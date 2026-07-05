@@ -1,0 +1,15 @@
+{
+  "name": "scrm-devtools",
+  "version": "0.0.1",
+  "description": "SCRM 开发工具 - 代码生成、测试、渠道开发",
+  "mcpServer": {
+    "url": "http://localhost:8000/api/v1/mcp",
+    "transport": "http"
+  },
+  "commands": {
+    "scrm:agent": "生成新的 Agent 角色代码",
+    "scrm:channel": "生成新的渠道 Provider",
+    "scrm:automation": "生成自动化规则模板",
+    "scrm:test": "生成 SCRM 模块测试"
+  }
+}

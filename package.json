@@ -1,0 +1,36 @@
+{
+  "name": "scrm-platform-front",
+  "private": true,
+  "scripts": {
+    "dev:ops": "pnpm --filter ops-console dev",
+    "build:ops": "pnpm --filter ops-console build",
+    "dev:h5": "pnpm --filter h5 dev:h5",
+    "build:h5": "pnpm --filter h5 build:h5",
+    "dev:mp-weixin": "pnpm --filter h5 dev:mp-weixin",
+    "build:mp-weixin": "pnpm --filter h5 build:mp-weixin",
+    "build:app": "pnpm --filter h5 build:custom -- --p app",
+    "gen:types": "pnpm --filter @scrm/shared gen:types",
+    "lint": "eslint apps/ packages/ --ext .ts,.vue",
+    "format": "prettier --write \"apps/**/*.{ts,vue}\" \"packages/**/*.{ts,vue}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@vue/eslint-config-typescript": "^13.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.27.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "openapi-typescript-codegen": "^0.31.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  }
+}

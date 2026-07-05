@@ -1,0 +1,26 @@
+{
+  "pages": [
+    {
+      "path": "pages/live-code/index",
+      "style": { "navigationBarTitleText": "扫码欢迎" }
+    },
+    {
+      "path": "pages/self-service/index",
+      "style": { "navigationBarTitleText": "客户自助" }
+    },
+    {
+      "path": "pages/campaign/index",
+      "style": { "navigationBarTitleText": "活动详情" }
+    },
+    {
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "首页" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "SCRM",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  }
+}

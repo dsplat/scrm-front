@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "scrm": {
+      "url": "https://your-domain.com/api/v1/mcp",
+      "transport": "http",
+      "headers": {
+        "Authorization": "Bearer <sanctum-token>",
+        "Content-Type": "application/json"
+      }
+    }
+  }
+}
