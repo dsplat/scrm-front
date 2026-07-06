@@ -1,0 +1,19 @@
+{
+  "version": "3.0",
+  "project": {
+    "name": "scrm-platform-front",
+    "type": "node"
+  },
+  "test": {
+    "enabled": true,
+    "commands": {
+      "node": "cd apps/ops-console && npx vue-tsc --noEmit 2>&1 | head -50"
+    }
+  },
+  "git_auto_add_dirs": [
+    "apps/",
+    "packages/",
+    "configs/",
+    "skills/"
+  ]
+}
