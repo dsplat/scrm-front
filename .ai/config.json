@@ -8,7 +8,7 @@
     "driver": "mariadb",
     "host": "192.168.8.220",
     "port": 3306,
-    "database": "ai_runner_scrm_platform_front",
+    "database": "ai_runner_scrm_front",
     "user": "runner",
     "password_env": "AI_RUNNER_DB_PASSWORD"
   },
