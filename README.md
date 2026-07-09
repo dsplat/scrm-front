@@ -1,4 +1,4 @@
-# SCRM Platform Front
+# SCRM Front
 
 SCRM 前端工程 - 运营台 (ops-console) + C 端应用 (uni-app) + 共享类型包
 
