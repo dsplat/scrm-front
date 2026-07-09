@@ -1,5 +1,5 @@
 {
-  "name": "scrm-platform-front",
+  "name": "scrm-front",
   "private": true,
   "scripts": {
     "dev:ops": "pnpm --filter ops-console dev",
