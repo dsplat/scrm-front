@@ -1,0 +1,9 @@
+{
+  "task_id": "TASK-003-fix",
+  "files": [
+    "apps/ops-console/src/components/common/ProFormDialog/ProFormDialog.vue",
+    "apps/ops-console/src/components/common/ProFormDialog/index.ts"
+  ],
+  "commit": "5b70a5faae23e55bf965af0941e23f3b64852021",
+  "updated_at": "2026-07-09T23:40:20"
+}
