@@ -1,0 +1,9 @@
+{
+  "task_id": "TASK-002-dev",
+  "files": [
+    "apps/ops-console/src/components/common/ProTable/ProTable.vue",
+    "apps/ops-console/src/components/common/ProTable/index.ts"
+  ],
+  "commit": "4824bb8baccee44d91e6b0a3ff1785e6e8194181",
+  "updated_at": "2026-07-09T23:34:44"
+}
