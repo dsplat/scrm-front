@@ -1,8 +1,0 @@
-{
-  "task_id": "TASK-001-fix",
-  "files": [
-    "apps/ops-console/src/components/common/Charts/index.ts"
-  ],
-  "commit": "bd77f37fe75048e0007c4520d8557f68275b67fc",
-  "updated_at": "2026-07-10T06:34:13"
-}

@@ -1,9 +1,0 @@
-{
-  "task_id": "TASK-002-fix",
-  "files": [
-    "apps/ops-console/src/components/common/ProTable/index.ts",
-    "apps/ops-console/src/components/common/ProTable/ProTable.vue"
-  ],
-  "commit": "092820a8d3c3ecaebf97435018bd92e683b3edcc",
-  "updated_at": "2026-07-10T07:12:03"
-}

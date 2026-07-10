@@ -1,19 +1,19 @@
 {
   "opencode:/data/app/scrm-platform-front": {
     "url": "http://127.0.0.1:14362",
-    "pid": 1514597,
+    "pid": 1552464,
     "port": 14362,
     "project_dir": "/data/app/scrm-platform-front",
-    "started_at": "2026-07-10T06:06:05.389458",
+    "started_at": "2026-07-10T19:31:48.180407",
     "log_file": "/data/app/scrm-platform-front/.ai/opencode-serve.log",
     "cli_tool": "opencode"
   },
   "mimo:/data/app/scrm-platform-front": {
     "url": "http://127.0.0.1:14615",
-    "pid": 1520816,
+    "pid": 1555960,
     "port": 14615,
     "project_dir": "/data/app/scrm-platform-front",
-    "started_at": "2026-07-10T06:28:09.494745",
+    "started_at": "2026-07-10T19:50:18.906934",
     "log_file": "/data/app/scrm-platform-front/.ai/mimo-serve.log",
     "cli_tool": "mimo"
   }
