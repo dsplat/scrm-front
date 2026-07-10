@@ -1,0 +1,13 @@
+{
+  "id": 1,
+  "sequence": "[\"TASK-001\", \"TASK-002\", \"TASK-003\", \"TASK-004\", \"TASK-005\", \"TASK-006\", \"TASK-007\", \"TASK-008\", \"TASK-009\", \"TASK-010\", \"TASK-011\", \"TASK-012\", \"TASK-013\", \"TASK-014\", \"TASK-015\", \"TASK-016\", \"TASK-017\", \"TASK-018\", \"TASK-019\", \"TASK-020\", \"TASK-021\", \"TASK-022\", \"TASK-023\", \"TASK-024\", \"TASK-025\", \"TASK-026\", \"TASK-027\"]",
+  "completed": "[]",
+  "skipped": "[]",
+  "failed": null,
+  "current": null,
+  "retries": "{}",
+  "diagnoses": "{\"TASK-001\": {\"root_cause\": \"DEV 未产出任何代码变更，导致预期文件中所有图表组件和配置文件均未被创建。\", \"category\": \"incomplete_code\", \"strategy\": \"rewrite_prompt\", \"fix_instruction\": \"补全所有 TODO/占位符，确保每个函数完整实现。\", \"attempt\": 4, \"escalated_model\": \"alibaba-cn/glm-5.2\"}, \"TASK-002\": {\"root_cause\": \"开发人员未产出预期的代码变更，即 ProTable 组件的核心文件（ProTable.vue 和 index.ts），导致任务目标无法完成。\", \"category\": \"incomplete_code\", \"strategy\": \"rewrite_prompt\", \"fix_instruction\": \"补全所有 TODO/占位符，确保每个函数完整实现。\", \"attempt\": 4, \"escalated_model\": \"alibaba-cn/glm-5.2\"}, \"TASK-003\": {\"root_cause\": \"DEV 未产出任何代码变更，未能满足任务要求的组件封装需求。\", \"category\": \"incomplete_code\", \"strategy\": \"rewrite_prompt\", \"fix_instruction\": \"补全所有 TODO/占位符，确保每个函数完整实现。\", \"attempt\": 4, \"escalated_model\": \"alibaba-cn/glm-5.2\"}, \"TASK-004\": {\"root_cause\": \"修改了超出任务范围的文件\", \"category\": \"scope_overflow\", \"strategy\": \"add_detail\", \"fix_instruction\": \"严格只修改任务【范围】内允许的文件，回滚所有越界变更，不要触碰无关文件。\", \"attempt\": 4, \"escalated_model\": \"alibaba-cn/glm-5.2\"}}",
+  "model_switches": "[]",
+  "started_at": "2026-07-09T23:17:34.433230",
+  "updated_at": "2026-07-10T00:06:46.558433"
+}

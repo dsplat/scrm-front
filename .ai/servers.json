@@ -10,10 +10,17 @@
   },
   "mimo:/data/app/scrm-platform-front": {
     "url": "http://127.0.0.1:14615",
+<<<<<<< Updated upstream
     "pid": 1492164,
     "port": 14615,
     "project_dir": "/data/app/scrm-platform-front",
     "started_at": "2026-07-10T00:15:57.353577",
+=======
+    "pid": 1489429,
+    "port": 14615,
+    "project_dir": "/data/app/scrm-platform-front",
+    "started_at": "2026-07-10T00:07:06.279099",
+>>>>>>> Stashed changes
     "log_file": "/data/app/scrm-platform-front/.ai/mimo-serve.log",
     "cli_tool": "mimo"
   }
