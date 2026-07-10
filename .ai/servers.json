@@ -7,14 +7,5 @@
     "started_at": "2026-07-09T23:31:14.297509",
     "log_file": "/data/app/scrm-platform-front/.ai/opencode-serve.log",
     "cli_tool": "opencode"
-  },
-  "mimo:/data/app/scrm-platform-front": {
-    "url": "http://127.0.0.1:14615",
-    "pid": 1476744,
-    "port": 14615,
-    "project_dir": "/data/app/scrm-platform-front",
-    "started_at": "2026-07-09T23:31:16.322872",
-    "log_file": "/data/app/scrm-platform-front/.ai/mimo-serve.log",
-    "cli_tool": "mimo"
   }
 }
