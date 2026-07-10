@@ -1,8 +1,0 @@
-{
-  "task_id": "TASK-004-dev",
-  "files": [
-    "apps/ops-console/src/views/pro-table-demo.vue"
-  ],
-  "commit": "1473093eef5351cf4b5c2b2cb9d33068b857ac78",
-  "updated_at": "2026-07-09T23:44:55"
-}
