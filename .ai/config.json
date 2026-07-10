@@ -1,8 +1,18 @@
 {
-  "version": "3.0",
+  "version": "4.0",
   "project": {
     "name": "scrm-front",
     "type": "node"
+  },
+  "llm": {
+    "mimo": {
+      "base_url": "https://token-plan-cn.xiaomimimo.com/v1",
+      "api_key_env": "LLM_API_KEY"
+    },
+    "aliyun": {
+      "base_url": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+      "api_key_env": "ALIYUN_API_KEY"
+    }
   },
   "database": {
     "driver": "mariadb",
@@ -14,11 +24,11 @@
   },
   "cli_tools": {
     "mimo": {
-      "env_file": ".ai/.env.mimo",
+      "env_file": "envs/.env.mimo",
       "base_model": "xiaomi/mimo-v2.5-pro"
     },
     "opencode": {
-      "env_file": ".ai/.env.opencode",
+      "env_file": "envs/.env.opencode",
       "base_model": "alibaba-cn/deepseek-v4-pro"
     }
   },
@@ -28,6 +38,7 @@
       "cli_tool": "opencode",
       "model": "alibaba-cn/deepseek-v4-pro",
       "review_model": "alibaba-cn/qwen3.7-plus",
+      "llm_provider": "aliyun",
       "prompt_file": "prompts/pm-prompt.md",
       "description": "需求分析、Sprint规划、Task拆分",
       "timeout": 600
@@ -36,6 +47,7 @@
       "name": "开发工程师",
       "cli_tool": "mimo",
       "model": "xiaomi/mimo-v2.5-pro",
+      "llm_provider": "mimo",
       "prompt_file": "prompts/dev-prompt.md",
       "description": "代码开发",
       "timeout": 300
@@ -44,6 +56,7 @@
       "name": "代码审查",
       "cli_tool": "opencode",
       "model": "alibaba-cn/qwen-3.7-plus",
+      "llm_provider": "aliyun",
       "prompt_file": "prompts/review-prompt.md",
       "description": "代码审查（只检查和建议）",
       "timeout": 180
@@ -52,11 +65,20 @@
       "name": "修复工程师",
       "cli_tool": "mimo",
       "model": "xiaomi/mimo-v2.5-pro",
+      "llm_provider": "mimo",
       "prompt_file": "prompts/fix-prompt.md",
       "description": "代码修复",
       "timeout": 300,
       "escalation_model": "alibaba-cn/glm-5.2"
     }
+  },
+  "judge": {
+    "enabled": true,
+    "llm_provider": "mimo",
+    "model": "mimo-v2.5",
+    "max_tokens": 2048,
+    "temperature": 0.1,
+    "timeout": 30
   },
   "guardian": {
     "max_retries": 5,
@@ -73,10 +95,5 @@
       "node": "cd apps/ops-console && npx vue-tsc --noEmit 2>&1 | head -50"
     }
   },
-  "git_auto_add_dirs": [
-    "apps/",
-    "packages/",
-    "configs/",
-    "skills/"
-  ]
+  "git_auto_add_dirs": ["apps/", "packages/", "configs/", "skills/"]
 }
