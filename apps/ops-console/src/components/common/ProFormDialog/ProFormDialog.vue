@@ -100,6 +100,7 @@
 </template>
 
 <script setup lang="ts">
+// ProFormDialog — 通用表单弹窗组件
 import { ref, computed, watch, reactive, type FormInstance, type FormRules } from 'vue'
 import { ElMessage } from 'element-plus'
 
