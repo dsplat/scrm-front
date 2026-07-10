@@ -1,0 +1,8 @@
+{
+  "task_id": "TASK-002-dev",
+  "files": [
+    "apps/ops-console/src/components/common/ProTable/index.ts"
+  ],
+  "commit": "7bf1be9153ca6f3e1564df67e537148d36ca36d4",
+  "updated_at": "2026-07-10T06:47:35"
+}
