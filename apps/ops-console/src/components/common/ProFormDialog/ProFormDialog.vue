@@ -100,8 +100,7 @@
 </template>
 
 <script setup lang="ts">
-// ProFormDialog — 通用表单弹窗组件，支持动态字段配置、表单验证、提交与重置
-import { ref, computed, watch, reactive, type FormInstance, type FormRules } from 'vue'
+// ProFormDialog — 通用表单弹窗组件，支持动态字段配置、表单验证、提交与重置import { ref, computed, watch, reactive, type FormInstance, type FormRules } from 'vue'
 import { ElMessage } from 'element-plus'
 
 export interface FieldOption {
