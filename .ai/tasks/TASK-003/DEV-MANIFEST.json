@@ -4,6 +4,6 @@
     "apps/ops-console/src/components/common/ProFormDialog/ProFormDialog.vue",
     "apps/ops-console/src/components/common/ProFormDialog/index.ts"
   ],
-  "commit": "23d13c7059c0ad46166576ab23926136f0884855",
-  "updated_at": "2026-07-10T07:26:32"
+  "commit": "bb49c3dbed4c33649e95ef88547c76726f6f9558",
+  "updated_at": "2026-07-10T07:29:28"
 }
