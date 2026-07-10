@@ -4,6 +4,6 @@
     "apps/ops-console/src/components/common/ProTable/index.ts",
     "apps/ops-console/src/components/common/ProTable/ProTable.vue"
   ],
-  "commit": "ebd1b0e96ca39024a950f110123fc8b3edc4c7da",
-  "updated_at": "2026-07-10T06:48:58"
+  "commit": "f6797d50b5a236364b898828a316a6104b861598",
+  "updated_at": "2026-07-10T06:50:00"
 }
