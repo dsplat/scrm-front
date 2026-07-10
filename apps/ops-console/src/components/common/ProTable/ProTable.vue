@@ -1,5 +1,5 @@
 <template>
-  <!-- ProTable — 通用表格组件，支持搜索、分页、排序、操作列渲染 -->
+  <!-- ProTable — 通用表格组件，支持搜索、分页、排序、操作列 -->
   <div class="pro-table">
     <el-card v-if="searchConfig?.length" shadow="never" class="search-card">
       <el-form :model="searchForm" inline @submit.prevent="handleSearch">
