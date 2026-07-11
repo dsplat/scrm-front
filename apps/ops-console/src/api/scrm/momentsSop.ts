@@ -36,9 +36,12 @@ export interface UpdateMomentsSopData {
   status?: number
 }
 
-export async function getMomentsSopList(params: MomentsSopListParams) {
-  const res = await http.get<MomentsSopListResult>('/scrm/moments-sops', { params })
-  return res.data
+export async function getMomentsSopList(params: MomentsSopListParams): Promise<MomentsSopListResult> {
+  const res = await http.get<any>('/scrm/moments-sops', { params })
+  return {
+    data: res.data ?? [],
+    total: res.meta?.total ?? res.total ?? 0,
+  }
 }
 
 export async function getMomentsSopDetail(id: number) {
