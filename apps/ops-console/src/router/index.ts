@@ -50,6 +50,43 @@ const routes: RouteRecordRaw[] = [
       { path: 'risk', name: 'SensitiveWord', component: () => import('@/views/risk/SensitiveWordManagement.vue'), meta: { title: '风控合规' } },
       { path: 'risk/compliance', name: 'ComplianceDashboard', component: () => import('@/views/risk/ComplianceDashboard.vue'), meta: { title: '合规审查' } },
       { path: 'permission', name: 'RolePermission', component: () => import('@/views/permission/RolePermission.vue'), meta: { title: '角色权限' } },
+
+      // 私域运营 — 内容营销
+      { path: 'posters', name: 'PosterManagement', component: () => import('@/views/scrm/PosterManagement.vue'), meta: { title: '海报管理' } },
+      { path: 'moments-sop', name: 'MomentsSOP', component: () => import('@/views/scrm/MomentsSOP.vue'), meta: { title: '朋友圈 SOP' } },
+      { path: 'scripts', name: 'ScriptLibrary', component: () => import('@/views/scrm/ScriptLibrary.vue'), meta: { title: '话术库' } },
+
+      // 私域运营 — 会员运营
+      { path: 'membership/levels', name: 'MembershipLevel', component: () => import('@/views/scrm/membership/MembershipLevel.vue'), meta: { title: '会员等级' } },
+      { path: 'membership/points', name: 'PointsSystem', component: () => import('@/views/scrm/membership/PointsSystem.vue'), meta: { title: '积分系统' } },
+      { path: 'membership/achievements', name: 'AchievementSystem', component: () => import('@/views/scrm/membership/AchievementSystem.vue'), meta: { title: '成就体系' } },
+      { path: 'membership/cards', name: 'MembershipCard', component: () => import('@/views/scrm/membership/MembershipCard.vue'), meta: { title: '会员卡/储值卡' } },
+
+      // 私域运营 — 裂变活动
+      { path: 'coupons', name: 'CouponManagement', component: () => import('@/views/scrm/CouponManagement.vue'), meta: { title: '优惠券' } },
+      { path: 'fissions', name: 'FissionCampaign', component: () => import('@/views/scrm/FissionCampaign.vue'), meta: { title: '裂变活动' } },
+      { path: 'lotteries', name: 'LotteryCampaign', component: () => import('@/views/scrm/LotteryCampaign.vue'), meta: { title: '抽奖活动' } },
+      { path: 'surveys', name: 'SurveyForm', component: () => import('@/views/scrm/SurveyForm.vue'), meta: { title: '问卷表单' } },
+      { path: 'votings', name: 'VotingCampaign', component: () => import('@/views/scrm/VotingCampaign.vue'), meta: { title: '投票活动' } },
+
+      // 私域运营 — 企微运营
+      { path: 'mass-push', name: 'MassPush', component: () => import('@/views/scrm/MassPush.vue'), meta: { title: '群发助手' } },
+      { path: 'welcome', name: 'WelcomeMessage', component: () => import('@/views/scrm/WelcomeMessage.vue'), meta: { title: '欢迎语' } },
+      { path: 'inheritance', name: 'InheritanceManagement', component: () => import('@/views/scrm/InheritanceManagement.vue'), meta: { title: '离职继承' } },
+
+      // 私域运营 — 数据分析
+      { path: 'analytics/profile', name: 'CustomerProfile', component: () => import('@/views/scrm/analytics/CustomerProfile.vue'), meta: { title: '客户深度画像' } },
+      { path: 'analytics/funnel', name: 'FunnelAnalysis', component: () => import('@/views/scrm/analytics/FunnelAnalysis.vue'), meta: { title: '转化漏斗' } },
+      { path: 'analytics/churn', name: 'ChurnAlert', component: () => import('@/views/scrm/analytics/ChurnAlert.vue'), meta: { title: '流失预警' } },
+      { path: 'analytics/community', name: 'CommunityAnalytics', component: () => import('@/views/scrm/analytics/CommunityAnalytics.vue'), meta: { title: '社群活跃度' } },
+
+      // 私域运营 — 触达运营
+      { path: 'scheduled-reach', name: 'ScheduledReach', component: () => import('@/views/scrm/ScheduledReach.vue'), meta: { title: '定时触达' } },
+      { path: 'sms', name: 'SmsMarketing', component: () => import('@/views/scrm/SmsMarketing.vue'), meta: { title: '短信营销' } },
+
+      // 私域运营 — 交易转化
+      { path: 'products', name: 'ProductManagement', component: () => import('@/views/scrm/ProductManagement.vue'), meta: { title: '商品管理' } },
+      { path: 'distribution', name: 'DistributionManagement', component: () => import('@/views/scrm/DistributionManagement.vue'), meta: { title: '分销管理' } },
     ],
   },
   { path: '/login', name: 'Login', component: () => import('@/views/Login.vue'), meta: { title: '登录' } },

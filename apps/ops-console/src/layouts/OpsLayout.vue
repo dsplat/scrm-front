@@ -107,6 +107,78 @@
               <el-icon><Lock /></el-icon><span>角色权限</span>
             </el-menu-item>
           </el-sub-menu>
+
+          <el-sub-menu index="group-content-marketing">
+            <template #title>
+              <el-icon><Picture /></el-icon>
+              <span>内容营销</span>
+            </template>
+            <el-menu-item index="/posters"><span>海报管理</span></el-menu-item>
+            <el-menu-item index="/moments-sop"><span>朋友圈 SOP</span></el-menu-item>
+            <el-menu-item index="/scripts"><span>话术库</span></el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-membership">
+            <template #title>
+              <el-icon><User /></el-icon>
+              <span>会员运营</span>
+            </template>
+            <el-menu-item index="/membership/levels"><span>会员等级</span></el-menu-item>
+            <el-menu-item index="/membership/points"><span>积分系统</span></el-menu-item>
+            <el-menu-item index="/membership/achievements"><span>成就体系</span></el-menu-item>
+            <el-menu-item index="/membership/cards"><span>会员卡/储值卡</span></el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-fission">
+            <template #title>
+              <el-icon><Present /></el-icon>
+              <span>裂变活动</span>
+            </template>
+            <el-menu-item index="/coupons"><span>优惠券</span></el-menu-item>
+            <el-menu-item index="/fissions"><span>裂变活动</span></el-menu-item>
+            <el-menu-item index="/lotteries"><span>抽奖活动</span></el-menu-item>
+            <el-menu-item index="/surveys"><span>问卷表单</span></el-menu-item>
+            <el-menu-item index="/votings"><span>投票活动</span></el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-wecom">
+            <template #title>
+              <el-icon><ChatDotRound /></el-icon>
+              <span>企微运营</span>
+            </template>
+            <el-menu-item index="/mass-push"><span>群发助手</span></el-menu-item>
+            <el-menu-item index="/welcome"><span>欢迎语</span></el-menu-item>
+            <el-menu-item index="/inheritance"><span>离职继承</span></el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-analytics">
+            <template #title>
+              <el-icon><DataLine /></el-icon>
+              <span>数据分析</span>
+            </template>
+            <el-menu-item index="/analytics/profile"><span>客户深度画像</span></el-menu-item>
+            <el-menu-item index="/analytics/funnel"><span>转化漏斗</span></el-menu-item>
+            <el-menu-item index="/analytics/churn"><span>流失预警</span></el-menu-item>
+            <el-menu-item index="/analytics/community"><span>社群活跃度</span></el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-reach">
+            <template #title>
+              <el-icon><Bell /></el-icon>
+              <span>触达运营</span>
+            </template>
+            <el-menu-item index="/scheduled-reach"><span>定时触达</span></el-menu-item>
+            <el-menu-item index="/sms"><span>短信营销</span></el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-commerce">
+            <template #title>
+              <el-icon><ShoppingCart /></el-icon>
+              <span>交易转化</span>
+            </template>
+            <el-menu-item index="/products"><span>商品管理</span></el-menu-item>
+            <el-menu-item index="/distribution"><span>分销管理</span></el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-scrollbar>
     </el-aside>

@@ -1,0 +1,1 @@
+<template><div class="page-container"><el-card><template #header><span>离职继承</span></template><el-empty description="功能开发中" /></el-card></div></template><script setup lang="ts">defineOptions({ name: 'InheritanceManagement' })</script>
