@@ -28,8 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, h } from 'vue'
+import { ElMessage, ElMessageBox, ElImage, ElTag } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
 import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
 import ProFormDialog from '@/components/common/ProFormDialog/ProFormDialog.vue'
@@ -42,7 +42,6 @@ import {
   type Poster,
 } from '@/api/scrm/poster'
 
-// PosterManagement — 海报管理页面，支持列表、搜索、创建/编辑弹窗、删除功能
 defineOptions({ name: 'PosterManagement' })
 
 const tableRef = ref<InstanceType<typeof ProTable>>()
@@ -67,9 +66,28 @@ const searchConfig: SearchConfig[] = [
 const columns: ColumnConfig[] = [
   { prop: 'id', label: 'ID', width: 80 },
   { prop: 'title', label: '海报名称', minWidth: 150 },
-  { prop: 'imageUrl', label: '海报图片', minWidth: 120 },
+  {
+    prop: 'imageUrl',
+    label: '海报图片',
+    minWidth: 120,
+    render: (row: Poster) =>
+      h(ElImage, {
+        src: row.imageUrl,
+        style: 'width: 60px; height: 60px',
+        previewSrcList: [row.imageUrl],
+        fit: 'cover',
+      }),
+  },
   { prop: 'jumpUrl', label: '跳转链接', minWidth: 200, showOverflowTooltip: true },
-  { prop: 'status', label: '状态', width: 100 },
+  {
+    prop: 'status',
+    label: '状态',
+    width: 100,
+    render: (row: Poster) =>
+      h(ElTag, { type: row.status === 1 ? 'success' : 'danger' }, () =>
+        row.status === 1 ? '启用' : '禁用',
+      ),
+  },
   { prop: 'createdAt', label: '创建时间', width: 180, sortable: true },
 ]
 
@@ -96,12 +114,13 @@ const fields: FieldConfig[] = [
 
 async function handleRequest(params: RequestParams): Promise<RequestResult> {
   try {
-    const res = await getPosterList({
+    const query: Record<string, any> = {
       page: params.page,
       pageSize: params.pageSize,
-      title: params.title as string,
-      status: params.status as number,
-    })
+    }
+    if (params.title) query.title = params.title
+    if (params.status !== undefined && params.status !== '') query.status = params.status
+    const res = await getPosterList(query as any)
     return { data: res.data ?? [], total: res.total ?? 0 }
   } catch (e: any) {
     ElMessage.error(e.message || '获取海报列表失败')
@@ -128,8 +147,8 @@ async function handleSubmit(data: Record<string, any>) {
       await updatePoster(id, updateData)
       ElMessage.success('更新成功')
     } else {
-      const { id: _id, ...createData } = data
-      await createPoster(createData as any)
+      const { title, imageUrl, jumpUrl, status } = data
+      await createPoster({ title, imageUrl, jumpUrl, status })
       ElMessage.success('创建成功')
     }
     tableRef.value?.refresh()
