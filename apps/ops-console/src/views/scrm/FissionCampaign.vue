@@ -5,7 +5,7 @@
         <div class="card-header">
           <span>裂变活动</span>
           <div class="header-actions">
-            <el-button type="primary" @click="handleCreate">新建活动</el-button>
+            <el-button type="primary" @click="handleCreate"> 新建活动 </el-button>
           </div>
         </div>
       </template>
@@ -75,8 +75,8 @@
         <div v-show="currentStep === 1">
           <el-form-item label="裂变类型" prop="fissionType">
             <el-radio-group v-model="formData.fissionType">
-              <el-radio value="single">单级裂变</el-radio>
-              <el-radio value="multi">多级裂变</el-radio>
+              <el-radio value="single"> 单级裂变 </el-radio>
+              <el-radio value="multi"> 多级裂变 </el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="目标人数" prop="targetCount">
@@ -161,7 +161,9 @@
                   </div>
                 </div>
                 <div v-else class="poster-placeholder">
-                  <el-icon :size="28"><Plus /></el-icon>
+                  <el-icon :size="28">
+                    <Plus />
+                  </el-icon>
                   <span>上传海报</span>
                 </div>
               </el-upload>
@@ -172,67 +174,76 @@
       </el-form>
 
       <template #footer>
-        <el-button v-if="currentStep > 0" @click="currentStep--">上一步</el-button>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button v-if="currentStep < 3" type="primary" @click="handleNextStep">下一步</el-button>
-        <el-button v-else type="primary" :loading="submitting" @click="handleSubmit"
-          >确定</el-button
-        >
+        <el-button v-if="currentStep > 0" @click="currentStep--"> 上一步 </el-button>
+        <el-button @click="formVisible = false"> 取消 </el-button>
+        <el-button v-if="currentStep < 3" type="primary" @click="handleNextStep">
+          下一步
+        </el-button>
+        <el-button v-else type="primary" :loading="submitting" @click="handleSubmit">
+          确定
+        </el-button>
       </template>
     </el-dialog>
 
     <el-dialog v-model="detailVisible" title="活动详情" width="640px">
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="活动名称" :span="2">{{
-          detailData?.name
-        }}</el-descriptions-item>
-        <el-descriptions-item label="活动状态">
-          <el-tag :type="getStatusTagType(detailData?.status)">{{
-            getStatusLabel(detailData?.status)
-          }}</el-tag>
+        <el-descriptions-item label="活动名称" :span="2">
+          {{ detailData?.name }}
         </el-descriptions-item>
-        <el-descriptions-item label="裂变类型">{{
-          detailData?.fissionType === 'single' ? '单级裂变' : '多级裂变'
-        }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ detailData?.startTime }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ detailData?.endTime }}</el-descriptions-item>
-        <el-descriptions-item label="参与人数">{{
-          detailData?.participantCount ?? 0
-        }}</el-descriptions-item>
-        <el-descriptions-item label="分享次数">{{
-          detailData?.shareCount ?? 0
-        }}</el-descriptions-item>
-        <el-descriptions-item label="转化人数">{{
-          detailData?.convertCount ?? 0
-        }}</el-descriptions-item>
-        <el-descriptions-item label="目标人数">{{ detailData?.targetCount }}</el-descriptions-item>
-        <el-descriptions-item label="奖励类型">{{
-          getRewardTypeLabel(detailData?.rewardType)
-        }}</el-descriptions-item>
-        <el-descriptions-item label="奖励名称" :span="2">{{
-          detailData?.rewardName
-        }}</el-descriptions-item>
-        <el-descriptions-item label="奖励价值"
-          >{{ detailData?.rewardValue
-          }}{{ detailData?.rewardType === 'points' ? '积分' : '元' }}</el-descriptions-item
-        >
-        <el-descriptions-item label="创建时间">{{ detailData?.createdAt }}</el-descriptions-item>
-        <el-descriptions-item label="活动描述" :span="2">{{
-          detailData?.description || '-'
-        }}</el-descriptions-item>
-        <el-descriptions-item label="分享标题" :span="2">{{
-          detailData?.shareTitle || '-'
-        }}</el-descriptions-item>
-        <el-descriptions-item label="分享描述" :span="2">{{
-          detailData?.shareDesc || '-'
-        }}</el-descriptions-item>
+        <el-descriptions-item label="活动状态">
+          <el-tag :type="getStatusTagType(detailData?.status)">
+            {{ getStatusLabel(detailData?.status) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="裂变类型">
+          {{ detailData?.fissionType === 'single' ? '单级裂变' : '多级裂变' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="开始时间">
+          {{ detailData?.startTime }}
+        </el-descriptions-item>
+        <el-descriptions-item label="结束时间">
+          {{ detailData?.endTime }}
+        </el-descriptions-item>
+        <el-descriptions-item label="参与人数">
+          {{ detailData?.participantCount ?? 0 }}
+        </el-descriptions-item>
+        <el-descriptions-item label="分享次数">
+          {{ detailData?.shareCount ?? 0 }}
+        </el-descriptions-item>
+        <el-descriptions-item label="转化人数">
+          {{ detailData?.convertCount ?? 0 }}
+        </el-descriptions-item>
+        <el-descriptions-item label="目标人数">
+          {{ detailData?.targetCount }}
+        </el-descriptions-item>
+        <el-descriptions-item label="奖励类型">
+          {{ getRewardTypeLabel(detailData?.rewardType) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="奖励名称" :span="2">
+          {{ detailData?.rewardName }}
+        </el-descriptions-item>
+        <el-descriptions-item label="奖励价值">
+          {{ detailData?.rewardValue }}{{ detailData?.rewardType === 'points' ? '积分' : '元' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间">
+          {{ detailData?.createdAt }}
+        </el-descriptions-item>
+        <el-descriptions-item label="活动描述" :span="2">
+          {{ detailData?.description || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="分享标题" :span="2">
+          {{ detailData?.shareTitle || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="分享描述" :span="2">
+          {{ detailData?.shareDesc || '-' }}
+        </el-descriptions-item>
       </el-descriptions>
       <div v-if="detailData?.posterUrl" class="detail-poster">
         <div class="detail-poster-label">活动海报</div>
         <el-image :src="detailData.posterUrl" fit="contain" class="detail-poster-image" />
       </div>
       <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button @click="detailVisible = false"> 关闭 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -244,7 +255,6 @@ import {
   ElMessage,
   ElMessageBox,
   ElTag,
-  ElSwitch,
   type FormInstance,
   type FormRules,
   type UploadRequestOptions,

@@ -5,13 +5,13 @@
         <div class="card-header">
           <span>合规审查</span>
           <el-radio-group v-model="statusFilter" size="small" @change="loadData">
-            <el-radio-button value="pending">待审查</el-radio-button>
-            <el-radio-button value="approved">已通过</el-radio-button>
-            <el-radio-button value="rejected">已拒绝</el-radio-button>
+            <el-radio-button value="pending"> 待审查 </el-radio-button>
+            <el-radio-button value="approved"> 已通过 </el-radio-button>
+            <el-radio-button value="rejected"> 已拒绝 </el-radio-button>
           </el-radio-group>
         </div>
       </template>
-      <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+      <el-table v-loading="loading" :data="tableData" stripe style="width: 100%">
         <el-table-column type="index" width="50" />
         <el-table-column label="内容" prop="content" show-overflow-tooltip />
         <el-table-column label="类型" prop="type" width="100" />
@@ -35,7 +35,7 @@
         <el-table-column label="时间" prop="createdAt" width="180" />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleReview(row)">审查</el-button>
+            <el-button link type="primary" @click="handleReview(row)"> 审查 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -65,7 +65,7 @@ async function loadData() {
     const res = await http.get('/scrm/compliance/reviews', {
       params: { status: statusFilter.value },
     })
-    tableData.value = res.data?.data ?? res.data ?? []
+    tableData.value = (res.data as any) ?? []
   } catch {
     ElMessage.error('加载审查列表失败')
   } finally {

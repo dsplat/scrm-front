@@ -27,8 +27,8 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch"> 搜索 </el-button>
+          <el-button @click="handleReset"> 重置 </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -173,7 +173,7 @@ async function fetchData() {
     }
     if (sortState.prop) {
       params.sortProp = sortState.prop
-      params.sortOrder = sortState.order
+      params.sortOrder = sortState.order || undefined
     }
     const result = await props.request(params)
     tableData.value = result.data ?? []

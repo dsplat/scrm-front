@@ -230,7 +230,7 @@ function maskBankAccount(account?: string): string {
 
 const activeTab = ref('distributors')
 
-const TreeNode = defineComponent({
+const TreeNode: any = defineComponent({
   name: 'TreeNode',
   props: {
     node: {

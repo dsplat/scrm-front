@@ -82,7 +82,7 @@
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
+      <el-button @click="dialogVisible = false"> 取消 </el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">
         {{ submitText }}
       </el-button>
@@ -92,7 +92,8 @@
 
 <script setup lang="ts">
 // ProFormDialog — 通用表单弹窗组件
-import { ref, computed, watch, reactive, type FormInstance, type FormRules } from 'vue'
+import { ref, computed, watch, reactive } from 'vue'
+import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 
 export interface FieldOption {

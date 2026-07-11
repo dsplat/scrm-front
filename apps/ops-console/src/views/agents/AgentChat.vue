@@ -24,8 +24,12 @@
                 <el-icon><Cpu /></el-icon>
               </el-avatar>
               <div class="agent-info">
-                <div class="agent-name">{{ agent.name }}</div>
-                <div class="agent-role">{{ agent.role || '数字员工' }}</div>
+                <div class="agent-name">
+                  {{ agent.name }}
+                </div>
+                <div class="agent-role">
+                  {{ agent.role || '数字员工' }}
+                </div>
               </div>
               <el-badge
                 :is-dot="agent.status === 'active'"
@@ -39,31 +43,43 @@
 
       <!-- 中间对话区域 -->
       <el-col :span="14" class="chat-panel">
-        <div class="chat-header" v-if="selectedAgent">
+        <div v-if="selectedAgent" class="chat-header">
           <span class="chat-title">{{ selectedAgent.name }}</span>
           <el-tag :type="selectedAgent.status === 'active' ? 'success' : 'info'" size="small">
             {{ selectedAgent.status === 'active' ? '在线' : '离线' }}
           </el-tag>
         </div>
-        <div class="chat-messages" ref="messagesRef">
+        <div ref="messagesRef" class="chat-messages">
           <div v-if="messages.length === 0 && !selectedAgent" class="chat-placeholder">
-            <el-icon :size="48" color="#c0c4cc"><ChatDotRound /></el-icon>
+            <el-icon :size="48" color="#c0c4cc">
+              <ChatDotRound />
+            </el-icon>
             <p>请从左侧选择一个 Agent 开始对话</p>
           </div>
           <div v-else-if="messages.length === 0" class="chat-placeholder">
-            <el-icon :size="48" color="#409eff"><Cpu /></el-icon>
+            <el-icon :size="48" color="#409eff">
+              <Cpu />
+            </el-icon>
             <p>开始与 {{ selectedAgent?.name }} 对话</p>
           </div>
           <div v-for="(msg, index) in messages" :key="index" class="message-row" :class="msg.role">
             <el-avatar :size="32" class="msg-avatar">
-              <el-icon v-if="msg.role === 'agent'"><Cpu /></el-icon>
-              <el-icon v-else><User /></el-icon>
+              <el-icon v-if="msg.role === 'agent'">
+                <Cpu />
+              </el-icon>
+              <el-icon v-else>
+                <User />
+              </el-icon>
             </el-avatar>
             <div class="msg-content">
               <div class="msg-bubble" :class="msg.role">
-                <p v-if="msg.type === 'text'">{{ msg.content }}</p>
+                <p v-if="msg.type === 'text'">
+                  {{ msg.content }}
+                </p>
                 <div v-else-if="msg.type === 'action_card'" class="action-card">
-                  <el-icon color="#67c23a"><SuccessFilled /></el-icon>
+                  <el-icon color="#67c23a">
+                    <SuccessFilled />
+                  </el-icon>
                   <span>{{ msg.content }}</span>
                 </div>
               </div>
@@ -71,36 +87,40 @@
             </div>
           </div>
           <div v-if="sending" class="message-row agent">
-            <el-avatar :size="32" class="msg-avatar"
-              ><el-icon><Cpu /></el-icon
-            ></el-avatar>
+            <el-avatar :size="32" class="msg-avatar">
+              <el-icon><Cpu /></el-icon>
+            </el-avatar>
             <div class="msg-content">
               <div class="msg-bubble agent loading">
-                <span class="typing-dots"> <span></span><span></span><span></span> </span>
+                <span class="typing-dots"> <span /><span /><span /> </span>
               </div>
             </div>
           </div>
         </div>
         <div class="chat-input">
           <div class="quick-actions">
-            <el-button size="small" @click="insertQuickAction('查看今日数据')">今日数据</el-button>
-            <el-button size="small" @click="insertQuickAction('查看客户列表')">客户列表</el-button>
-            <el-button size="small" @click="insertQuickAction('查看社群活跃度')"
-              >社群活跃</el-button
-            >
+            <el-button size="small" @click="insertQuickAction('查看今日数据')">
+              今日数据
+            </el-button>
+            <el-button size="small" @click="insertQuickAction('查看客户列表')">
+              客户列表
+            </el-button>
+            <el-button size="small" @click="insertQuickAction('查看社群活跃度')">
+              社群活跃
+            </el-button>
           </div>
           <div class="input-row">
             <el-input
               v-model="message"
               placeholder="输入消息或指令..."
-              @keyup.enter="sendMessage"
               :disabled="!selectedAgent"
+              @keyup.enter="sendMessage"
             >
               <template #append>
                 <el-button
-                  @click="sendMessage"
                   :disabled="!message.trim() || sending"
                   type="primary"
+                  @click="sendMessage"
                 >
                   发送
                 </el-button>
@@ -112,7 +132,7 @@
 
       <!-- 右侧上下文面板 -->
       <el-col :span="5" class="context-panel">
-        <el-card shadow="never" class="panel-card" v-if="selectedAgent">
+        <el-card v-if="selectedAgent" shadow="never" class="panel-card">
           <template #header>
             <div class="panel-header">
               <span>上下文</span>
@@ -120,7 +140,9 @@
           </template>
           <div class="context-section">
             <h4>Agent 角色</h4>
-            <p class="context-desc">{{ selectedAgent.role || '数字员工' }}</p>
+            <p class="context-desc">
+              {{ selectedAgent.role || '数字员工' }}
+            </p>
             <p class="context-capability">
               {{ selectedAgent.description || '可执行客户查询、数据分析、消息发送等操作' }}
             </p>
@@ -136,9 +158,9 @@
           <div class="context-section">
             <h4>关联知识库</h4>
             <div v-if="knowledgeBases.length > 0">
-              <el-tag v-for="kb in knowledgeBases" :key="kb" size="small" class="kb-tag">{{
-                kb
-              }}</el-tag>
+              <el-tag v-for="kb in knowledgeBases" :key="kb" size="small" class="kb-tag">
+                {{ kb }}
+              </el-tag>
             </div>
             <p v-else class="context-empty">暂无关联知识库</p>
           </div>
@@ -147,14 +169,16 @@
             <h4>最近操作</h4>
             <div v-if="recentActions.length > 0" class="recent-actions">
               <div v-for="(action, i) in recentActions" :key="i" class="action-item">
-                <el-icon :size="14" color="#67c23a"><SuccessFilled /></el-icon>
+                <el-icon :size="14" color="#67c23a">
+                  <SuccessFilled />
+                </el-icon>
                 <span>{{ action }}</span>
               </div>
             </div>
             <p v-else class="context-empty">暂无操作记录</p>
           </div>
         </el-card>
-        <el-card shadow="never" class="panel-card" v-else>
+        <el-card v-else shadow="never" class="panel-card">
           <el-empty description="选择 Agent 查看上下文" :image-size="60" />
         </el-card>
       </el-col>
@@ -163,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, nextTick, onMounted, watch } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
@@ -208,7 +232,7 @@ function formatTime(): string {
 async function loadAgents() {
   try {
     const res = await http.get('/scrm/agents')
-    agents.value = res.data?.data ?? res.data ?? []
+    agents.value = (res.data as any) ?? []
   } catch {
     ElMessage.error('加载 Agent 列表失败')
   }
@@ -222,7 +246,7 @@ async function selectAgent(agent: Agent) {
   // Load knowledge bases
   try {
     const res = await http.get(`/scrm/agents/${agent.id}/knowledge-bases`)
-    const kbs = res.data?.data ?? res.data ?? []
+    const kbs = res.data ?? []
     knowledgeBases.value = Array.isArray(kbs) ? kbs.map((k: any) => k.name || k) : []
   } catch {
     knowledgeBases.value = []
@@ -231,7 +255,7 @@ async function selectAgent(agent: Agent) {
   // Load conversation history
   try {
     const res = await http.get(`/scrm/agents/${agent.id}/conversations`)
-    const convs = res.data?.data ?? res.data ?? []
+    const convs = res.data ?? []
     if (Array.isArray(convs) && convs.length > 0) {
       recentActions.value = convs.slice(0, 5).map((c: any) => c.summary || c.title || '对话记录')
     }
@@ -262,7 +286,7 @@ async function sendMessage() {
     const res = await http.post(`/scrm/agents/${selectedAgentId.value}/conversations`, {
       message: userMsg,
     })
-    const data = res.data?.data ?? res.data
+    const data = res.data as any
     const reply = data?.reply || data?.message || '收到您的指令'
     const action = data?.action
 

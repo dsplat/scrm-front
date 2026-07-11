@@ -244,7 +244,7 @@ async function loadData() {
       pageSize: pagination.pageSize,
       name: searchForm.name || undefined,
     })
-    tableData.value = res.data
+    tableData.value = res.data as any
     pagination.total = res.total
   } catch {
     ElMessage.error('加载离职员工列表失败')

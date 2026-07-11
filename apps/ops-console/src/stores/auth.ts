@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { http } from '@scrm/shared'
-import type { AxiosResponse } from 'axios'
 
 interface User {
   id: number
@@ -24,12 +23,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
 
   async function login(email: string, password: string) {
-    const res: AxiosResponse<LoginResponse> = await http.post('/auth/login', {
+    const res = await http.post<LoginResponse>('/auth/login', {
       email,
       password,
     })
 
-    const { token: newToken, user: userData } = res.data.data
+    const { token: newToken, user: userData } = (res.data as any).data
     token.value = newToken
     user.value = userData
     localStorage.setItem('scrm_token', newToken)
@@ -45,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchProfile() {
     try {
       const res = await http.get('/auth/me')
-      user.value = res.data?.data ?? res.data
+      user.value = res.data as any
     } catch {
       // Token might be invalid
       logout()

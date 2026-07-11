@@ -4,10 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>模板消息</span>
-          <el-button type="primary" @click="handleCreate">新建模板</el-button>
+          <el-button type="primary" @click="handleCreate"> 新建模板 </el-button>
         </div>
       </template>
-      <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+      <el-table v-loading="loading" :data="tableData" stripe style="width: 100%">
         <el-table-column type="index" width="50" />
         <el-table-column label="模板ID" prop="template_id" width="200" />
         <el-table-column label="标题" prop="title" />
@@ -20,8 +20,8 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleSendTest(row)">测试发送</el-button>
-            <el-button link type="info" @click="handleEdit(row)">配置</el-button>
+            <el-button link type="primary" @click="handleSendTest(row)"> 测试发送 </el-button>
+            <el-button link type="info" @click="handleEdit(row)"> 配置 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -47,7 +47,7 @@ async function loadData() {
   loading.value = true
   try {
     const res = await http.get('/scrm/wechat-templates')
-    tableData.value = res.data?.data ?? res.data ?? []
+    tableData.value = (res.data as any) ?? []
   } catch {
     ElMessage.error('加载模板列表失败')
   } finally {

@@ -4,10 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>公众号菜单</span>
-          <el-button type="primary" @click="handleCreate">新建</el-button>
+          <el-button type="primary" @click="handleCreate"> 新建 </el-button>
         </div>
       </template>
-      <el-table :data="tableData" stripe style="width: 100%" v-loading="loading">
+      <el-table v-loading="loading" :data="tableData" stripe style="width: 100%">
         <el-table-column type="index" width="50" />
         <el-table-column label="名称" prop="name" />
         <el-table-column label="状态" prop="status" width="120">
@@ -20,8 +20,8 @@
         <el-table-column label="创建时间" prop="createdAt" width="180" />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="handleEdit(row)"> 编辑 </el-button>
+            <el-button link type="danger" @click="handleDelete(row)"> 删除 </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -52,7 +52,7 @@ async function loadData() {
   loading.value = true
   try {
     const res = await http.get('/scrm/wechat-menus')
-    tableData.value = res.data?.data ?? res.data ?? []
+    tableData.value = (res.data as any) ?? []
   } catch {
     ElMessage.error('加载菜单列表失败')
   } finally {
@@ -65,8 +65,8 @@ function handleCreate() {
 function handleEdit(_row: TableItem) {
   ElMessage.info('编辑菜单')
 }
-async function handlePublish() {
-  ElMessage.success('已发布到微信')
+function handleDelete(_row: TableItem) {
+  ElMessage.info('删除菜单')
 }
 onMounted(loadData)
 </script>
