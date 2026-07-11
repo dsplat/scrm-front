@@ -146,3 +146,64 @@ export async function getCampaignOptions(): Promise<CampaignOption[]> {
   const res = await http.get<CampaignOption[]>('/scrm/analytics/campaigns')
   return res.data ?? []
 }
+
+export interface ChurnAlertSummary {
+  highRiskCount: number
+  churnRate: number
+  alertCount: number
+  recoveryRate: number
+}
+
+export interface ChurnTrendItem {
+  date: string
+  count: number
+}
+
+export interface ChurnCustomer {
+  customerId: number
+  customerName: string
+  avatar: string
+  phone: string
+  riskLevel: 'high' | 'medium' | 'low'
+  churnProbability: number
+  lastActiveAt: string
+  totalSpent: number
+  churnReason: string
+}
+
+export interface ChurnTrendParams {
+  startDate?: string
+  endDate?: string
+}
+
+export interface ChurnCustomerListParams {
+  page: number
+  pageSize: number
+  startDate?: string
+  endDate?: string
+  riskLevel?: string
+}
+
+export interface ChurnCustomerListResult {
+  data: ChurnCustomer[]
+  total: number
+}
+
+export async function getChurnAlertSummary(params?: ChurnTrendParams): Promise<ChurnAlertSummary> {
+  const res = await http.get<ChurnAlertSummary>('/scrm/analytics/churn-alert/summary', { params })
+  return res.data ?? { highRiskCount: 0, churnRate: 0, alertCount: 0, recoveryRate: 0 }
+}
+
+export async function getChurnTrend(params?: ChurnTrendParams): Promise<ChurnTrendItem[]> {
+  const res = await http.get<ChurnTrendItem[]>('/scrm/analytics/churn-alert/trend', { params })
+  return res.data ?? []
+}
+
+export async function getChurnCustomerList(
+  params: ChurnCustomerListParams,
+): Promise<ChurnCustomerListResult> {
+  const res = await http.get<ChurnCustomer[]>('/scrm/analytics/churn-alert/customers', {
+    params,
+  })
+  return extractListResult(res)
+}
