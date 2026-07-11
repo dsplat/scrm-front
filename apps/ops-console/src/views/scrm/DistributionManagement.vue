@@ -43,7 +43,7 @@
 
         <el-tab-pane label="分销关系图" name="tree">
           <div class="tab-header">
-            <el-button :loading="treeLoading" @click="loadTreeData"> 刷新 </el-button>
+            <el-button :loading="treeLoading" @click="refreshTreeData"> 刷新 </el-button>
           </div>
           <div class="tree-container">
             <div v-if="treeLoading" class="tree-loading">
@@ -177,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, h, onMounted, watch, defineComponent, type PropType } from 'vue'
+import { ref, reactive, h, watch, defineComponent, type PropType } from 'vue'
 import {
   ElMessage,
   ElMessageBox,
@@ -223,7 +223,8 @@ import {
 defineOptions({ name: 'DistributionManagement' })
 
 function maskBankAccount(account?: string): string {
-  if (!account || account.length < 4) return account ?? '-'
+  if (!account) return '-'
+  if (account.length < 4) return '****'
   return '**** **** **** ' + account.slice(-4)
 }
 
@@ -291,6 +292,7 @@ const withdrawalTableRef = ref<InstanceType<typeof ProTable>>()
 
 const treeData = ref<DistributorTreeNode[]>([])
 const treeLoading = ref(false)
+const treeLoaded = ref(false)
 
 const levelOptions = [
   { label: '等级1', value: 1 },
@@ -772,6 +774,7 @@ async function loadTreeData() {
   treeLoading.value = true
   try {
     treeData.value = await getDistributorTree()
+    treeLoaded.value = true
   } catch (e: any) {
     ElMessage.error(e.message || '获取分销关系图失败')
   } finally {
@@ -779,14 +782,13 @@ async function loadTreeData() {
   }
 }
 
-onMounted(() => {
-  if (activeTab.value === 'tree') {
-    loadTreeData()
-  }
-})
+function refreshTreeData() {
+  treeLoaded.value = false
+  loadTreeData()
+}
 
 watch(activeTab, (val) => {
-  if (val === 'tree' && treeData.value.length === 0) {
+  if (val === 'tree' && !treeLoaded.value) {
     loadTreeData()
   }
 })
