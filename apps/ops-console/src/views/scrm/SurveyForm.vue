@@ -233,8 +233,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, h, nextTick } from 'vue'
-import { ElMessage, ElMessageBox, ElTag, type FormInstance, type FormRules } from 'element-plus'
+import { ref, reactive, computed, h, nextTick } from 'vue'
+import { ElMessage, ElMessageBox, ElTag, ElPopover, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, Delete, Top, Bottom, Rank } from '@element-plus/icons-vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
@@ -249,6 +249,7 @@ import {
   getSurveyResponseList,
   type Survey,
   type SurveyQuestion,
+  type SurveyResponse,
   type SurveyListParams,
   type CreateSurveyData,
   type UpdateSurveyData,
@@ -294,13 +295,11 @@ const defaultQuestion = (type: SurveyQuestion['type']): QuestionForm => ({
   sortOrder: 0,
 })
 
-const defaultFormData = {
+const formData: { title: string; description: string; questions: QuestionForm[] } = reactive({
   title: '',
   description: '',
-  questions: [defaultQuestion('radio')] as QuestionForm[],
-}
-
-const formData = reactive({ ...defaultFormData, questions: [defaultQuestion('radio')] })
+  questions: [defaultQuestion('radio')],
+})
 
 const formRules: FormRules = {
   title: [{ required: true, message: '请输入问卷标题', trigger: 'blur' }],
@@ -403,12 +402,56 @@ const actions: ActionConfig[] = [
   { label: '删除', type: 'danger', onClick: (row) => handleDelete(row as Survey) },
 ]
 
-const responseColumns: ColumnConfig[] = [
-  { prop: 'id', label: 'ID', width: 80 },
-  { prop: 'respondentName', label: '提交人', width: 120 },
-  { prop: 'respondentPhone', label: '手机号', width: 130 },
-  { prop: 'submittedAt', label: '提交时间', width: 170 },
-]
+function getAnswerText(row: SurveyResponse, question: SurveyQuestion): string {
+  const answers = row.answers || {}
+  const value = answers[question.id ?? question.title]
+  if (value === undefined || value === null) return '-'
+  if (Array.isArray(value)) return value.join('、')
+  return String(value)
+}
+
+const responseColumns = computed<ColumnConfig[]>(() => {
+  const base: ColumnConfig[] = [
+    { prop: 'id', label: 'ID', width: 80 },
+    { prop: 'respondentName', label: '提交人', width: 120 },
+    { prop: 'respondentPhone', label: '手机号', width: 130 },
+  ]
+  const questionCols: ColumnConfig[] = currentResponseQuestions.value.map((q) => ({
+    prop: `answer_${q.id ?? q.title}`,
+    label: q.title,
+    minWidth: 150,
+    showOverflowTooltip: true,
+    render: (row: SurveyResponse) => h('span', null, getAnswerText(row, q)),
+  }))
+  const suffix: ColumnConfig[] = [
+    { prop: 'submittedAt', label: '提交时间', width: 170 },
+  ]
+  if (currentResponseQuestions.value.length > 3) {
+    suffix.push({
+      prop: '_answers',
+      label: '全部答案',
+      width: 100,
+      fixed: 'right' as const,
+      render: (row: SurveyResponse) => {
+        const items = currentResponseQuestions.value.map((q) =>
+          h('div', { style: 'margin-bottom:6px' }, [
+            h('strong', null, `${q.title}：`),
+            h('span', null, getAnswerText(row as SurveyResponse, q)),
+          ]),
+        )
+        return h(
+          ElPopover,
+          { placement: 'left', width: 360, trigger: 'click' },
+          {
+            default: () => h('div', { style: 'max-height:400px;overflow-y:auto' }, items),
+            reference: () => h(ElTag, { type: 'primary', style: 'cursor:pointer' }, () => '查看'),
+          },
+        )
+      },
+    })
+  }
+  return [...base, ...questionCols, ...suffix]
+})
 
 async function handleRequest(params: RequestParams): Promise<RequestResult> {
   try {
@@ -505,10 +548,15 @@ async function handleDelete(row: Survey) {
   }
 }
 
-function handleViewResponses(row: Survey) {
+async function handleViewResponses(row: Survey) {
   currentResponseSurveyId.value = row.id
-  currentResponseQuestions.value = row.questions || []
   responseVisible.value = true
+  try {
+    const detail = await getSurveyDetail(row.id)
+    currentResponseQuestions.value = detail.questions || []
+  } catch {
+    currentResponseQuestions.value = []
+  }
   nextTick(() => {
     responseTableRef.value?.refresh()
   })
