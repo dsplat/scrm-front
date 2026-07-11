@@ -1,4 +1,4 @@
-import { http } from '@scrm/shared'
+import { http, type ApiResponse } from '@scrm/shared'
 
 export interface MassPushTask {
   id: number
@@ -46,12 +46,16 @@ export interface UpdateMassPushData {
   scheduledTime?: string
 }
 
-export async function getMassPushList(params: MassPushListParams): Promise<MassPushListResult> {
-  const res = await http.get<MassPushTask[]>('/scrm/mass-push', { params })
+function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number } {
   return {
     data: res.data ?? [],
     total: res.meta?.total ?? res.total ?? 0,
   }
+}
+
+export async function getMassPushList(params: MassPushListParams): Promise<MassPushListResult> {
+  const res = await http.get<MassPushTask[]>('/scrm/mass-push', { params })
+  return extractListResult(res)
 }
 
 export async function getMassPushDetail(id: number): Promise<MassPushTask> {

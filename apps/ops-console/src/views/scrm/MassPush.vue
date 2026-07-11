@@ -91,7 +91,7 @@
             {{ currentTask.scheduledTime || '立即发送' }}
           </el-descriptions-item>
           <el-descriptions-item label="任务状态">
-            <el-tag :type="getStatusTagType(currentTask.status) as any">
+            <el-tag :type="getStatusTagType(currentTask.status)">
               {{ getStatusLabel(currentTask.status) }}
             </el-tag>
           </el-descriptions-item>
@@ -132,7 +132,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, h } from 'vue'
-import { ElMessage, ElMessageBox, ElTag, type FormInstance, type FormRules } from 'element-plus'
+import {
+  ElMessage,
+  ElMessageBox,
+  ElTag,
+  type FormInstance,
+  type FormRules,
+  type FormItemRule,
+} from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
 import type {
   ColumnConfig,
@@ -151,6 +158,7 @@ import {
   resumeMassPush,
   type MassPushTask,
   type MassPushStatus,
+  type MassPushListParams,
   type CreateMassPushData,
 } from '@/api/scrm/massPush'
 
@@ -161,7 +169,7 @@ const dialogVisible = ref(false)
 const dialogTitle = ref('新建任务')
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
-const editingId = ref<number | null>(null)
+const editingId = ref<number | undefined>(undefined)
 
 const detailVisible = ref(false)
 const currentTask = ref<MassPushTask | null>(null)
@@ -198,7 +206,7 @@ const formRules: FormRules = {
   targetType: [{ required: true, message: '请选择发送对象', trigger: 'change' }],
   targetValue: [
     {
-      validator: (_rule: FormRules[string], _value: string, callback: (error?: Error) => void) => {
+      validator: (_rule: FormItemRule, _value: string, callback: (error?: Error) => void) => {
         if (formData.targetType !== 'all' && !formData.targetValue) {
           callback(new Error('请输入对象值'))
         } else {
@@ -210,7 +218,7 @@ const formRules: FormRules = {
   ],
   scheduledTime: [
     {
-      validator: (_rule: FormRules[string], _value: string, callback: (error?: Error) => void) => {
+      validator: (_rule: FormItemRule, _value: string, callback: (error?: Error) => void) => {
         if (formData.enableSchedule && !formData.scheduledTime) {
           callback(new Error('请选择发送时间'))
         } else {
@@ -253,7 +261,7 @@ const columns: ColumnConfig[] = [
     label: '状态',
     width: 100,
     render: (row: MassPushTask) =>
-      h(ElTag, { type: getStatusTagType(row.status) as any }, () => getStatusLabel(row.status)),
+      h(ElTag, { type: getStatusTagType(row.status) }, () => getStatusLabel(row.status)),
   },
   {
     prop: 'sentCount',
@@ -303,8 +311,10 @@ function getStatusLabel(status: MassPushStatus) {
   return statusOptions.find((o) => o.value === status)?.label ?? status
 }
 
-function getStatusTagType(status: MassPushStatus) {
-  const map: Record<MassPushStatus, string> = {
+function getStatusTagType(
+  status: MassPushStatus,
+): 'info' | 'success' | 'primary' | 'warning' | 'danger' {
+  const map: Record<MassPushStatus, 'info' | 'success' | 'warning' | 'danger'> = {
     draft: 'info',
     pending: 'info',
     sending: 'warning',
@@ -317,13 +327,13 @@ function getStatusTagType(status: MassPushStatus) {
 
 async function handleRequest(params: RequestParams): Promise<RequestResult> {
   try {
-    const query: Record<string, any> = {
+    const query: MassPushListParams = {
       page: params.page,
       pageSize: params.pageSize,
     }
     if (params.name) query.name = params.name
     if (params.status) query.status = params.status
-    const res = await getMassPushList(query as any)
+    const res = await getMassPushList(query)
     return { data: res.data ?? [], total: res.total ?? 0 }
   } catch (e: any) {
     ElMessage.error(e.message || '获取任务列表失败')
@@ -337,7 +347,7 @@ function resetForm() {
 
 function handleCreate() {
   dialogTitle.value = '新建任务'
-  editingId.value = null
+  editingId.value = undefined
   resetForm()
   dialogVisible.value = true
 }
@@ -396,12 +406,13 @@ async function handleSubmit() {
     content: formData.content,
     targetType: formData.targetType,
     targetValue: formData.targetType === 'all' ? '' : formData.targetValue,
-    scheduledTime: formData.enableSchedule ? formData.scheduledTime : undefined,
+    scheduledTime:
+      formData.enableSchedule && formData.scheduledTime ? formData.scheduledTime : undefined,
   }
 
   submitting.value = true
   try {
-    if (editingId.value !== null) {
+    if (editingId.value !== undefined) {
       await updateMassPush(editingId.value, payload)
     } else {
       await createMassPush(payload)
