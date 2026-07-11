@@ -42,6 +42,9 @@
         </el-tab-pane>
 
         <el-tab-pane label="分销关系图" name="tree">
+          <div class="tab-header">
+            <el-button :loading="treeLoading" @click="loadTreeData"> 刷新 </el-button>
+          </div>
           <div class="tree-container">
             <div v-if="treeLoading" class="tree-loading">
               <el-icon class="is-loading" :size="24">
@@ -183,6 +186,7 @@ import {
   ElIcon,
   type FormInstance,
   type FormRules,
+  type FormItemRule,
 } from 'element-plus'
 import { Loading, ArrowRight } from '@element-plus/icons-vue'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
@@ -217,6 +221,11 @@ import {
 } from '@/api/scrm/distribution'
 
 defineOptions({ name: 'DistributionManagement' })
+
+function maskBankAccount(account?: string): string {
+  if (!account || account.length < 4) return account ?? '-'
+  return '**** **** **** ' + account.slice(-4)
+}
 
 const activeTab = ref('distributors')
 
@@ -312,8 +321,8 @@ function getStatusLabel(status?: string) {
 }
 
 function getStatusTagType(status?: string) {
-  const map: Record<string, string> = { active: 'success', frozen: 'danger' }
-  return (map[status ?? ''] ?? 'info') as any
+  const map: Record<string, 'success' | 'danger' | 'info'> = { active: 'success', frozen: 'danger' }
+  return map[status ?? ''] ?? 'info'
 }
 
 function getWithdrawalStatusLabel(status?: string) {
@@ -321,12 +330,12 @@ function getWithdrawalStatusLabel(status?: string) {
 }
 
 function getWithdrawalTagType(status?: string) {
-  const map: Record<string, string> = {
+  const map: Record<string, 'warning' | 'success' | 'danger' | 'info'> = {
     pending: 'warning',
     approved: 'success',
     rejected: 'danger',
   }
-  return (map[status ?? ''] ?? 'info') as any
+  return map[status ?? ''] ?? 'info'
 }
 
 const distributorSearchConfig: SearchConfig[] = [
@@ -470,7 +479,12 @@ const withdrawalColumns: ColumnConfig[] = [
     render: (row: WithdrawalRecord) => h('span', null, `¥${row.amount?.toFixed(2) ?? '0.00'}`),
   },
   { prop: 'bankName', label: '银行', width: 120 },
-  { prop: 'bankAccount', label: '银行卡号', width: 180 },
+  {
+    prop: 'bankAccount',
+    label: '银行卡号',
+    width: 180,
+    render: (row: WithdrawalRecord) => h('span', null, maskBankAccount(row.bankAccount)),
+  },
   {
     prop: 'status',
     label: '状态',
@@ -548,9 +562,9 @@ const ruleFormRules: FormRules = {
   rate: [
     { required: true, message: '请输入佣金比例', trigger: 'blur' },
     {
-      validator: (_rule: FormRules[string], val: number, callback: (error?: Error) => void) => {
+      validator: (_rule: FormItemRule, val: number, callback: (error?: Error) => void) => {
         if (val === undefined || val === null || val <= 0 || val > 100) {
-          callback(new Error('佣金比例必须在0-100之间'))
+          callback(new Error('佣金比例必须大于0且不超过100'))
         } else {
           callback()
         }
@@ -562,7 +576,7 @@ const ruleFormRules: FormRules = {
   maxAmount: [
     { required: true, message: '请输入最高金额', trigger: 'blur' },
     {
-      validator: (_rule: FormRules[string], val: number, callback: (error?: Error) => void) => {
+      validator: (_rule: FormItemRule, val: number, callback: (error?: Error) => void) => {
         if (val < ruleFormData.minAmount) {
           callback(new Error('最高金额不能小于最低金额'))
         } else {
@@ -662,11 +676,13 @@ async function handleDeleteRule(row: CommissionRule) {
 
 async function handleToggleRuleStatus(row: CommissionRule, enabled: boolean) {
   const newStatus = enabled ? 'enabled' : 'disabled'
+  const prevStatus = row.status
+  row.status = newStatus as 'enabled' | 'disabled'
   try {
     await toggleCommissionRule(row.id, newStatus as 'enabled' | 'disabled')
-    row.status = newStatus as 'enabled' | 'disabled'
     ElMessage.success(enabled ? '已启用' : '已禁用')
   } catch (e: any) {
+    row.status = prevStatus
     ElMessage.error(e.message || '操作失败')
   }
 }
@@ -689,7 +705,7 @@ const auditFormRules: FormRules = {
   action: [{ required: true, message: '请选择审核结果', trigger: 'change' }],
   remark: [
     {
-      validator: (_rule: FormRules[string], val: string, callback: (error?: Error) => void) => {
+      validator: (_rule: FormItemRule, val: string, callback: (error?: Error) => void) => {
         if (auditFormData.action === 'reject' && !val?.trim()) {
           callback(new Error('拒绝时必须填写审核备注'))
         } else {
@@ -774,6 +790,15 @@ watch(activeTab, (val) => {
     loadTreeData()
   }
 })
+
+watch(
+  () => ruleFormData.minAmount,
+  () => {
+    if (ruleFormRef.value && ruleFormData.maxAmount !== undefined) {
+      ruleFormRef.value.validateField('maxAmount')
+    }
+  },
+)
 </script>
 
 <style scoped>
