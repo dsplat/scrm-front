@@ -8,7 +8,7 @@
             v-model="selectedCustomerId"
             filterable
             remote
-            :remote-method="searchCustomers"
+            :remote-method="debouncedSearchCustomers"
             :loading="customerSearchLoading"
             placeholder="请输入客户名称搜索"
             style="width: 280px"
@@ -65,7 +65,7 @@
                     {{ profileData?.level || '—' }}
                   </el-descriptions-item>
                   <el-descriptions-item label="手机号码">
-                    {{ profileData?.phone || '—' }}
+                    {{ maskPhone(profileData?.phone) }}
                   </el-descriptions-item>
                   <el-descriptions-item label="渠道来源">
                     {{ profileData?.channel || '—' }}
@@ -162,8 +162,8 @@
           <el-table-column type="index" width="50" />
           <el-table-column label="类型" width="100">
             <template #default="{ row }">
-              <el-tag :type="getInteractionTagType(row.type)" size="small">
-                {{ getInteractionTypeName(row.type) }}
+              <el-tag :type="getInteractionDisplay(row.type).tagType" size="small">
+                {{ getInteractionDisplay(row.type).name }}
               </el-tag>
             </template>
           </el-table-column>
@@ -208,8 +208,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useDebounceFn } from '@vueuse/core'
 import type { EChartsOption } from 'echarts'
 import LineChart from '@/components/common/Charts/LineChart.vue'
 import PieChart from '@/components/common/Charts/PieChart.vue'
@@ -227,8 +228,13 @@ import {
 
 defineOptions({ name: 'CustomerProfile' })
 
+interface CustomerListItem {
+  id: number
+  name: string
+}
+
 const selectedCustomerId = ref<number | null>(null)
-const customerOptions = ref<{ id: number; name: string }[]>([])
+const customerOptions = ref<CustomerListItem[]>([])
 const customerSearchLoading = ref(false)
 const profileLoading = ref(false)
 const interactionLoading = ref(false)
@@ -241,49 +247,43 @@ const tagDistribution = ref<TagDistributionItem[]>([])
 const interactionList = ref<InteractionRecord[]>([])
 const interactionPagination = ref({ page: 1, pageSize: 10, total: 0 })
 
+let profileRequestId = 0
+let interactionRequestId = 0
+
+function maskPhone(phone?: string): string {
+  if (!phone) return '—'
+  if (phone.length < 7) return phone
+  return phone.slice(0, 3) + '****' + phone.slice(-4)
+}
+
+function createDateRange(days: number) {
+  const end = new Date()
+  const start = new Date()
+  start.setTime(start.getTime() - days * 24 * 3600 * 1000)
+  return [start, end]
+}
+
 const dateShortcuts = [
-  {
-    text: '最近7天',
-    value: () => {
-      const end = new Date()
-      const start = new Date()
-      start.setTime(start.getTime() - 7 * 24 * 3600 * 1000)
-      return [start, end]
-    },
-  },
-  {
-    text: '最近30天',
-    value: () => {
-      const end = new Date()
-      const start = new Date()
-      start.setTime(start.getTime() - 30 * 24 * 3600 * 1000)
-      return [start, end]
-    },
-  },
-  {
-    text: '最近90天',
-    value: () => {
-      const end = new Date()
-      const start = new Date()
-      start.setTime(start.getTime() - 90 * 24 * 3600 * 1000)
-      return [start, end]
-    },
-  },
+  { text: '最近7天', value: () => createDateRange(7) },
+  { text: '最近30天', value: () => createDateRange(30) },
+  { text: '最近90天', value: () => createDateRange(90) },
 ]
 
-const consumptionTrendData = computed(() => {
-  return consumptionTrend.value.map((item) => ({
+const consumptionTrendData = computed(() =>
+  consumptionTrend.value.map((item) => ({
     name: item.date,
     value: item.amount,
-  }))
-})
+  })),
+)
 
 const consumptionTrendOptions = computed<EChartsOption>(() => ({
   tooltip: {
     trigger: 'axis',
-    formatter: (params: any) => {
-      const data = params[0]
-      return `${data.name}<br/>消费金额: ¥${data.value.toLocaleString()}`
+    formatter(params: unknown) {
+      const list = Array.isArray(params) ? params : [params]
+      const data = list[0] as { name?: string; value?: number } | undefined
+      if (!data) return ''
+      return `${data.name ?? ''}<br/>消费金额: ¥${(data.value ?? 0).toLocaleString()}`
     },
   },
   yAxis: {
@@ -293,12 +293,12 @@ const consumptionTrendOptions = computed<EChartsOption>(() => ({
   },
 }))
 
-const tagDistributionData = computed(() => {
-  return tagDistribution.value.map((item) => ({
+const tagDistributionData = computed(() =>
+  tagDistribution.value.map((item) => ({
     name: item.name,
     value: item.value,
-  }))
-})
+  })),
+)
 
 const tagDistributionOptions = computed<EChartsOption>(() => ({
   tooltip: {
@@ -320,29 +320,19 @@ const tagDistributionOptions = computed<EChartsOption>(() => ({
   ],
 }))
 
-function getInteractionTagType(type: string) {
-  const map: Record<string, string> = {
-    message: '',
-    order: 'success',
-    visit: 'info',
-    coupon: 'warning',
-    event: 'danger',
-  }
-  return map[type] || 'info'
+const interactionTypeMap: Record<string, { tagType: string; name: string }> = {
+  message: { tagType: '', name: '消息' },
+  order: { tagType: 'success', name: '订单' },
+  visit: { tagType: 'info', name: '访问' },
+  coupon: { tagType: 'warning', name: '优惠券' },
+  event: { tagType: 'danger', name: '活动' },
 }
 
-function getInteractionTypeName(type: string) {
-  const map: Record<string, string> = {
-    message: '消息',
-    order: '订单',
-    visit: '访问',
-    coupon: '优惠券',
-    event: '活动',
-  }
-  return map[type] || type
+function getInteractionDisplay(type: string) {
+  return interactionTypeMap[type] || { tagType: 'info', name: type }
 }
 
-async function searchCustomers(query: string) {
+const debouncedSearchCustomers = useDebounceFn(async (query: string) => {
   if (!query) {
     customerOptions.value = []
     return
@@ -350,8 +340,8 @@ async function searchCustomers(query: string) {
   customerSearchLoading.value = true
   try {
     const res = await listCustomers({ name: query, per_page: 20 })
-    const data = (res as any)?.data ?? res ?? []
-    customerOptions.value = data.map((item: any) => ({
+    const items: CustomerListItem[] = (res as { data?: CustomerListItem[] })?.data ?? []
+    customerOptions.value = items.map((item) => ({
       id: item.id,
       name: item.name,
     }))
@@ -360,10 +350,11 @@ async function searchCustomers(query: string) {
   } finally {
     customerSearchLoading.value = false
   }
-}
+}, 300)
 
 async function loadProfileData() {
   if (!selectedCustomerId.value) return
+  const reqId = ++profileRequestId
   profileLoading.value = true
   try {
     const [profile, trend, tags] = await Promise.all([
@@ -374,18 +365,23 @@ async function loadProfileData() {
       }),
       getTagDistribution(selectedCustomerId.value),
     ])
+    if (reqId !== profileRequestId) return
     profileData.value = profile
     consumptionTrend.value = trend
     tagDistribution.value = tags
   } catch {
+    if (reqId !== profileRequestId) return
     ElMessage.error('加载客户画像数据失败')
   } finally {
-    profileLoading.value = false
+    if (reqId === profileRequestId) {
+      profileLoading.value = false
+    }
   }
 }
 
 async function loadInteractionList() {
   if (!selectedCustomerId.value) return
+  const reqId = ++interactionRequestId
   interactionLoading.value = true
   try {
     const res = await getInteractionList(selectedCustomerId.value, {
@@ -395,18 +391,23 @@ async function loadInteractionList() {
       endDate: dateRange.value?.[1],
       type: interactionTypeFilter.value || undefined,
     })
+    if (reqId !== interactionRequestId) return
     interactionList.value = res.data
     interactionPagination.value.total = res.total
   } catch {
+    if (reqId !== interactionRequestId) return
     ElMessage.error('加载互动记录失败')
   } finally {
-    interactionLoading.value = false
+    if (reqId === interactionRequestId) {
+      interactionLoading.value = false
+    }
   }
 }
 
 function handleCustomerChange() {
   if (selectedCustomerId.value) {
     interactionPagination.value.page = 1
+    dateRange.value = null
     loadAllData()
   }
 }
@@ -421,15 +422,6 @@ function loadAllData() {
   loadProfileData()
   loadInteractionList()
 }
-
-onMounted(async () => {
-  const res = await listCustomers({ per_page: 100 })
-  const data = (res as any)?.data ?? res ?? []
-  customerOptions.value = data.map((item: any) => ({
-    id: item.id,
-    name: item.name,
-  }))
-})
 </script>
 
 <style scoped lang="scss">

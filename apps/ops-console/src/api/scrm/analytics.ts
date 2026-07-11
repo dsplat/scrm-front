@@ -50,7 +50,7 @@ export interface InteractionRecord {
   content: string
   channel: string
   createdAt: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface InteractionListParams {
