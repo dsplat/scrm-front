@@ -207,3 +207,59 @@ export async function getChurnCustomerList(
   })
   return extractListResult(res)
 }
+
+export interface CommunityRankItem {
+  communityId: number
+  name: string
+  memberCount: number
+  activityScore: number
+}
+
+export interface CommunityTrendItem {
+  date: string
+  score: number
+}
+
+export interface CommunityInfo {
+  id: number
+  name: string
+  memberCount: number
+  activityScore: number
+  owner: string
+  createdAt: string
+}
+
+export interface CommunityFilterParams {
+  startDate?: string
+  endDate?: string
+}
+
+export interface CommunityListParams {
+  page: number
+  pageSize: number
+  keyword?: string
+}
+
+export interface CommunityListResult {
+  data: CommunityInfo[]
+  total: number
+}
+
+export async function getCommunityRank(
+  params?: CommunityFilterParams,
+): Promise<CommunityRankItem[]> {
+  const res = await http.get<CommunityRankItem[]>('/scrm/analytics/community/rank', { params })
+  return res.data ?? []
+}
+
+export async function getCommunityTrend(
+  params?: CommunityFilterParams,
+): Promise<CommunityTrendItem[]> {
+  const res = await http.get<CommunityTrendItem[]>('/scrm/analytics/community/trend', { params })
+  return res.data ?? []
+}
+
+export async function getCommunityList(params: CommunityListParams): Promise<CommunityListResult> {
+  const res = await http.get<CommunityInfo[]>('/scrm/analytics/community/list', { params })
+  return extractListResult(res)
+}
