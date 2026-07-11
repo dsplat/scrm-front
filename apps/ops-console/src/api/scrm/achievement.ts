@@ -1,4 +1,4 @@
-import { http } from '@scrm/shared'
+import { http, type ApiResponse } from '@scrm/shared'
 
 export interface Achievement {
   id: number
@@ -48,30 +48,33 @@ export interface UpdateAchievementData {
   status?: number
 }
 
-export async function getAchievementList(params: AchievementListParams): Promise<AchievementListResult> {
-  const res = await http.get<any>('/scrm/achievements', { params })
+function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number } {
   return {
     data: res.data ?? [],
     total: res.meta?.total ?? res.total ?? 0,
   }
 }
 
-export async function getAchievementDetail(id: number) {
+export async function getAchievementList(params: AchievementListParams): Promise<AchievementListResult> {
+  const res = await http.get<Achievement[]>('/scrm/achievements', { params })
+  return extractListResult(res)
+}
+
+export async function getAchievementDetail(id: number): Promise<Achievement> {
   const res = await http.get<Achievement>(`/scrm/achievements/${id}`)
   return res.data
 }
 
-export async function createAchievement(data: CreateAchievementData) {
-  const res = await http.post('/scrm/achievements', data)
+export async function createAchievement(data: CreateAchievementData): Promise<Achievement> {
+  const res = await http.post<Achievement>('/scrm/achievements', data)
   return res.data
 }
 
-export async function updateAchievement(id: number, data: UpdateAchievementData) {
-  const res = await http.put(`/scrm/achievements/${id}`, data)
+export async function updateAchievement(id: number, data: UpdateAchievementData): Promise<Achievement> {
+  const res = await http.put<Achievement>(`/scrm/achievements/${id}`, data)
   return res.data
 }
 
-export async function deleteAchievement(id: number) {
-  const res = await http.delete(`/scrm/achievements/${id}`)
-  return res.data
+export async function deleteAchievement(id: number): Promise<void> {
+  await http.delete(`/scrm/achievements/${id}`)
 }
