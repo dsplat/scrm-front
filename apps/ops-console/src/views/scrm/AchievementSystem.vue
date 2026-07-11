@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref, h } from 'vue'
-import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
+import { ElMessage, ElMessageBox, ElImage, ElTag } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
 import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
 import ProFormDialog from '@/components/common/ProFormDialog/ProFormDialog.vue'
@@ -40,6 +40,7 @@ import {
   updateAchievement,
   deleteAchievement,
   type Achievement,
+  type AchievementListParams,
 } from '@/api/scrm/achievement'
 
 defineOptions({ name: 'AchievementSystem' })
@@ -71,7 +72,11 @@ const columns: ColumnConfig[] = [
     label: '图标',
     width: 80,
     render: (row: Achievement) =>
-      h('span', { class: 'achievement-icon' }, row.icon),
+      h(ElImage, {
+        src: row.icon,
+        style: 'width: 40px; height: 40px',
+        fit: 'cover',
+      }),
   },
   { prop: 'description', label: '描述', minWidth: 200, showOverflowTooltip: true },
   {
@@ -169,13 +174,13 @@ function getRewardText(type: string, value: number): string {
 
 async function handleRequest(params: RequestParams): Promise<RequestResult> {
   try {
-    const query: Record<string, any> = {
+    const query: AchievementListParams = {
       page: params.page,
       pageSize: params.pageSize,
     }
     if (params.name) query.name = params.name
-    if (params.status !== undefined && params.status !== '') query.status = params.status
-    const res = await getAchievementList(query as any)
+    if (params.status !== undefined && params.status !== '') query.status = Number(params.status)
+    const res = await getAchievementList(query)
     return { data: res.data ?? [], total: res.total ?? 0 }
   } catch (e: any) {
     ElMessage.error(e.message || '获取成就列表失败')
@@ -196,14 +201,18 @@ function handleEdit(row: Achievement) {
 }
 
 async function handleSubmit(data: Record<string, any>) {
-  if (data.id) {
-    const { id, ...updateData } = data
-    await updateAchievement(id, updateData)
-  } else {
-    const { name, icon, description, conditionType, conditionValue, rewardType, rewardValue, status } = data
-    await createAchievement({ name, icon, description, conditionType, conditionValue, rewardType, rewardValue, status })
+  try {
+    if (data.id) {
+      const { id, ...updateData } = data
+      await updateAchievement(id, updateData)
+    } else {
+      const { name, icon, description, conditionType, conditionValue, rewardType, rewardValue, status } = data
+      await createAchievement({ name, icon, description, conditionType, conditionValue, rewardType, rewardValue, status })
+    }
+    tableRef.value?.refresh()
+  } catch (e: any) {
+    ElMessage.error(e.message || '操作失败')
   }
-  tableRef.value?.refresh()
 }
 
 async function handleDelete(row: Achievement) {
@@ -225,9 +234,5 @@ async function handleDelete(row: Achievement) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.achievement-icon {
-  font-size: 24px;
 }
 </style>
