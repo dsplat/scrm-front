@@ -65,10 +65,11 @@
           :animation="200"
           handle=".drag-handle"
           class="question-list"
+          @update="syncSortOrder"
         >
           <div
             v-for="(question, index) in formData.questions"
-            :key="index"
+            :key="question._uid"
             class="question-item"
           >
             <div class="question-item-header">
@@ -277,7 +278,10 @@ const responseTableRef = ref<InstanceType<typeof ProTable>>()
 const currentResponseSurveyId = ref<number | null>(null)
 const currentResponseQuestions = ref<SurveyQuestion[]>([])
 
+let questionUid = 0
+
 interface QuestionForm {
+  _uid: number
   type: SurveyQuestion['type']
   title: string
   required: boolean
@@ -287,6 +291,7 @@ interface QuestionForm {
 }
 
 const defaultQuestion = (type: SurveyQuestion['type']): QuestionForm => ({
+  _uid: ++questionUid,
   type,
   title: '',
   required: false,
@@ -311,8 +316,8 @@ function getQuestionLabel(type: string) {
 }
 
 function getQuestionTagType(type: string) {
-  const map: Record<string, string> = { radio: '', checkbox: 'success', text: 'info', textarea: 'warning', select: 'danger' }
-  return (map[type] ?? 'info') as any
+  const map: Record<string, '' | 'success' | 'info' | 'warning' | 'danger'> = { radio: '', checkbox: 'success', text: 'info', textarea: 'warning', select: 'danger' }
+  return map[type] ?? 'info'
 }
 
 function validateOptions(_rule: any, value: string[], callback: (error?: Error) => void) {
@@ -338,9 +343,14 @@ function removeQuestion(index: number) {
 function moveQuestion(index: number, direction: number) {
   const target = index + direction
   if (target < 0 || target >= formData.questions.length) return
-  const temp = formData.questions[index]
-  formData.questions[index] = formData.questions[target]
-  formData.questions[target] = temp
+  const items = [...formData.questions]
+  const [removed] = items.splice(index, 1)
+  items.splice(target, 0, removed)
+  items.forEach((q, i) => (q.sortOrder = i))
+  formData.questions = items
+}
+
+function syncSortOrder() {
   formData.questions.forEach((q, i) => (q.sortOrder = i))
 }
 
@@ -356,7 +366,12 @@ function getStatusLabel(status?: string) {
 
 function getStatusTagType(status?: string) {
   const map: Record<string, string> = { draft: 'info', active: 'success', closed: 'danger' }
-  return (map[status ?? ''] ?? 'info') as any
+  return (map[status ?? ''] ?? 'info') as 'info' | 'success' | 'danger'
+}
+
+function maskPhone(phone?: string): string {
+  if (!phone || phone.length < 7) return phone ?? '-'
+  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
 }
 
 const searchConfig: SearchConfig[] = [
@@ -414,7 +429,12 @@ const responseColumns = computed<ColumnConfig[]>(() => {
   const base: ColumnConfig[] = [
     { prop: 'id', label: 'ID', width: 80 },
     { prop: 'respondentName', label: '提交人', width: 120 },
-    { prop: 'respondentPhone', label: '手机号', width: 130 },
+    {
+      prop: 'respondentPhone',
+      label: '手机号',
+      width: 130,
+      render: (row: SurveyResponse) => h('span', null, maskPhone(row.respondentPhone)),
+    },
   ]
   const questionCols: ColumnConfig[] = currentResponseQuestions.value.map((q) => ({
     prop: `answer_${q.id ?? q.title}`,
@@ -493,6 +513,7 @@ async function handleEdit(row: Survey) {
     formData.description = detail.description || ''
     formData.questions = detail.questions?.length
       ? detail.questions.map((q) => ({
+          _uid: ++questionUid,
           type: q.type,
           title: q.title,
           required: q.required,
@@ -638,7 +659,8 @@ async function handleSubmit() {
 }
 
 function handleFormClose() {
-  formRef.value?.resetFields()
+  resetForm()
+  formRef.value?.clearValidate()
 }
 </script>
 
