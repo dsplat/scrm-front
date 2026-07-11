@@ -1,4 +1,4 @@
-import { http, type ApiResponse } from '@scrm/shared'
+import { http } from '@scrm/shared'
 
 export interface VotingOption {
   id?: number
@@ -50,22 +50,21 @@ export interface UpdateVotingCampaignData {
   options?: Omit<VotingOption, 'id'>[]
 }
 
-function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number } {
+export async function getVotingCampaignList(
+  params: VotingCampaignListParams,
+): Promise<VotingCampaignListResult> {
+  const res = await http.get<VotingCampaign[]>('/scrm/voting-campaigns', { params })
   return {
     data: res.data ?? [],
     total: res.meta?.total ?? res.total ?? 0,
   }
 }
 
-export async function getVotingCampaignList(
-  params: VotingCampaignListParams,
-): Promise<VotingCampaignListResult> {
-  const res = await http.get<VotingCampaign[]>('/scrm/voting-campaigns', { params })
-  return extractListResult(res)
-}
-
 export async function getVotingCampaignDetail(id: number): Promise<VotingCampaign> {
   const res = await http.get<VotingCampaign>(`/scrm/voting-campaigns/${id}`)
+  if (!res.data) {
+    throw new Error('投票活动详情数据为空')
+  }
   return res.data
 }
 

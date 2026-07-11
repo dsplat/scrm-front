@@ -138,7 +138,6 @@ import {
   type VotingCampaign,
   type VotingCampaignListParams,
   type CreateVotingCampaignData,
-  type UpdateVotingCampaignData,
   type VotingOptionResult,
 } from '@/api/scrm/voting'
 
@@ -171,13 +170,17 @@ const defaultOption = (): OptionForm => ({
   sortOrder: 0,
 })
 
-const defaultFormData = {
-  title: '',
-  timeRange: [] as string[],
-  options: [defaultOption(), defaultOption()] as OptionForm[],
+interface FormData {
+  title: string
+  timeRange: string[]
+  options: OptionForm[]
 }
 
-const formData = reactive({ ...defaultFormData, options: [defaultOption(), defaultOption()] })
+const formData = reactive<FormData>({
+  title: '',
+  timeRange: [],
+  options: [defaultOption(), defaultOption()],
+})
 
 const formRules: FormRules = {
   title: [{ required: true, message: '请输入投票标题', trigger: 'blur' }],
@@ -206,14 +209,14 @@ function getStatusLabel(status?: string) {
   return statusOptions.find((o) => o.value === status)?.label ?? status ?? '-'
 }
 
-function getStatusTagType(status?: string) {
-  const map: Record<string, string> = {
+function getStatusTagType(status?: string): 'info' | 'success' | 'danger' | 'warning' {
+  const map: Record<string, 'info' | 'success' | 'danger' | 'warning'> = {
     draft: 'info',
     active: 'success',
     ended: 'danger',
     disabled: 'warning',
   }
-  return (map[status ?? ''] ?? 'info') as any
+  return map[status ?? ''] ?? 'info'
 }
 
 const searchConfig: SearchConfig[] = [
@@ -329,6 +332,7 @@ function addOption() {
 }
 
 function removeOption(index: number) {
+  if (formData.options.length <= 2) return
   formData.options.splice(index, 1)
 }
 
@@ -340,9 +344,7 @@ async function handleStatusChange(row: VotingCampaign, status: 'active' | 'disab
     ElMessage.success(`投票活动已${label}`)
     tableRef.value?.refresh()
   } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || `${label}失败`)
-    }
+    handleActionError(e, `${label}失败`)
   }
 }
 
@@ -353,9 +355,13 @@ async function handleDelete(row: VotingCampaign) {
     ElMessage.success('删除成功')
     tableRef.value?.refresh()
   } catch (e: any) {
-    if (e !== 'cancel') {
-      ElMessage.error(e.message || '删除失败')
-    }
+    handleActionError(e, '删除失败')
+  }
+}
+
+function handleActionError(e: unknown, fallbackMessage: string) {
+  if (e !== 'cancel') {
+    ElMessage.error((e as Error).message || fallbackMessage)
   }
 }
 
@@ -382,12 +388,17 @@ async function handleSubmit() {
     return
   }
 
+  if (!formData.timeRange || formData.timeRange.length !== 2) {
+    ElMessage.warning('请选择投票时间')
+    return
+  }
+
   const options = formData.options.map((o, i) => ({
     title: o.title,
     sortOrder: i,
   }))
 
-  const basePayload = {
+  const basePayload: CreateVotingCampaignData = {
     title: formData.title,
     startTime: formData.timeRange[0],
     endTime: formData.timeRange[1],
@@ -397,9 +408,9 @@ async function handleSubmit() {
   submitting.value = true
   try {
     if (editingId.value !== null) {
-      await updateVotingCampaign(editingId.value, basePayload as UpdateVotingCampaignData)
+      await updateVotingCampaign(editingId.value, basePayload)
     } else {
-      await createVotingCampaign(basePayload as CreateVotingCampaignData)
+      await createVotingCampaign(basePayload)
     }
     ElMessage.success('操作成功')
     formVisible.value = false
