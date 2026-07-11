@@ -143,12 +143,14 @@ import type {
 } from '@/components/common/ProTable/ProTable.vue'
 import {
   getMassPushList,
+  getMassPushDetail,
   createMassPush,
   updateMassPush,
   deleteMassPush,
   pauseMassPush,
   resumeMassPush,
   type MassPushTask,
+  type MassPushStatus,
   type CreateMassPushData,
 } from '@/api/scrm/massPush'
 
@@ -171,6 +173,7 @@ const targetTypeOptions = [
 ]
 
 const statusOptions = [
+  { label: '草稿', value: 'draft' },
   { label: '待发送', value: 'pending' },
   { label: '发送中', value: 'sending' },
   { label: '已暂停', value: 'paused' },
@@ -275,8 +278,18 @@ const actions: ActionConfig[] = [
     onClick: (row) => handlePauseResume(row as MassPushTask),
     visible: (row: MassPushTask) => row.status === 'paused',
   },
-  { label: '编辑', type: 'primary', onClick: (row) => handleEdit(row as MassPushTask) },
-  { label: '删除', type: 'danger', onClick: (row) => handleDelete(row as MassPushTask) },
+  {
+    label: '编辑',
+    type: 'primary',
+    onClick: (row) => handleEdit(row as MassPushTask),
+    visible: (row: MassPushTask) => row.status !== 'sending' && row.status !== 'completed',
+  },
+  {
+    label: '删除',
+    type: 'danger',
+    onClick: (row) => handleDelete(row as MassPushTask),
+    visible: (row: MassPushTask) => row.status !== 'sending' && row.status !== 'completed',
+  },
 ]
 
 function getTargetLabel(row: MassPushTask) {
@@ -286,12 +299,13 @@ function getTargetLabel(row: MassPushTask) {
   return `${opt.label}(${row.targetValue})`
 }
 
-function getStatusLabel(status: string) {
+function getStatusLabel(status: MassPushStatus) {
   return statusOptions.find((o) => o.value === status)?.label ?? status
 }
 
-function getStatusTagType(status: string) {
-  const map: Record<string, string> = {
+function getStatusTagType(status: MassPushStatus) {
+  const map: Record<MassPushStatus, string> = {
+    draft: 'info',
     pending: 'info',
     sending: 'warning',
     paused: 'warning',
@@ -340,9 +354,13 @@ function handleEdit(row: MassPushTask) {
   dialogVisible.value = true
 }
 
-function handleDetail(row: MassPushTask) {
-  currentTask.value = row
-  detailVisible.value = true
+async function handleDetail(row: MassPushTask) {
+  try {
+    currentTask.value = await getMassPushDetail(row.id)
+    detailVisible.value = true
+  } catch (e: any) {
+    ElMessage.error(e.message || '获取任务详情失败')
+  }
 }
 
 async function handlePauseResume(row: MassPushTask) {
