@@ -42,6 +42,7 @@ import {
   type Poster,
 } from '@/api/scrm/poster'
 
+// PosterManagement — 海报管理页面，支持列表、搜索、创建/编辑弹窗、删除功能
 defineOptions({ name: 'PosterManagement' })
 
 const tableRef = ref<InstanceType<typeof ProTable>>()
