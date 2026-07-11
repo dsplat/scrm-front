@@ -5,7 +5,7 @@
         <div class="card-header">
           <span>问卷表单</span>
           <div class="header-actions">
-            <el-button type="primary" @click="handleCreate">创建问卷</el-button>
+            <el-button type="primary" @click="handleCreate"> 创建问卷 </el-button>
           </div>
         </div>
       </template>
@@ -26,20 +26,27 @@
       :close-on-click-modal="false"
       @close="handleFormClose"
     >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
-      >
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-form-item label="问卷标题" prop="title">
-          <el-input v-model="formData.title" placeholder="请输入问卷标题" maxlength="100" show-word-limit />
+          <el-input
+            v-model="formData.title"
+            placeholder="请输入问卷标题"
+            maxlength="100"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="问卷描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" placeholder="请输入问卷描述" :rows="3" maxlength="500" show-word-limit />
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            placeholder="请输入问卷描述"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+          />
         </el-form-item>
 
-        <el-divider content-position="left">题目设计</el-divider>
+        <el-divider content-position="left"> 题目设计 </el-divider>
 
         <div class="question-toolbar">
           <el-button type="primary" plain size="small" @click="addQuestion('radio')">
@@ -74,7 +81,9 @@
           >
             <div class="question-item-header">
               <div class="question-item-left">
-                <el-icon class="drag-handle"><Rank /></el-icon>
+                <el-icon class="drag-handle">
+                  <Rank />
+                </el-icon>
                 <span class="question-item-index">{{ index + 1 }}.</span>
                 <el-tag size="small" :type="getQuestionTagType(question.type)">
                   {{ getQuestionLabel(question.type) }}
@@ -87,8 +96,8 @@
                   type="danger"
                   link
                   size="small"
-                  @click="moveQuestion(index, -1)"
                   :disabled="index === 0"
+                  @click="moveQuestion(index, -1)"
                 >
                   <el-icon><Top /></el-icon>
                 </el-button>
@@ -97,8 +106,8 @@
                   type="danger"
                   link
                   size="small"
-                  @click="moveQuestion(index, 1)"
                   :disabled="index === formData.questions.length - 1"
+                  @click="moveQuestion(index, 1)"
                 >
                   <el-icon><Bottom /></el-icon>
                 </el-button>
@@ -120,14 +129,23 @@
               label="题目标题"
               class="question-title-item"
             >
-              <el-input v-model="question.title" placeholder="请输入题目标题" maxlength="200" show-word-limit />
+              <el-input
+                v-model="question.title"
+                placeholder="请输入题目标题"
+                maxlength="200"
+                show-word-limit
+              />
             </el-form-item>
 
             <el-form-item
               v-if="question.type === 'text' || question.type === 'textarea'"
               label="提示文字"
             >
-              <el-input v-model="question.placeholder" placeholder="请输入提示文字" maxlength="100" />
+              <el-input
+                v-model="question.placeholder"
+                placeholder="请输入提示文字"
+                maxlength="100"
+              />
             </el-form-item>
 
             <el-form-item
@@ -138,7 +156,7 @@
             >
               <div class="option-list">
                 <div
-                  v-for="(opt, optIndex) in question.options"
+                  v-for="(_opt, optIndex) in question.options"
                   :key="optIndex"
                   class="option-item"
                 >
@@ -166,24 +184,28 @@
           </div>
         </VueDraggable>
 
-        <el-empty v-if="formData.questions.length === 0" description="请添加题目" :image-size="80" />
+        <el-empty
+          v-if="formData.questions.length === 0"
+          description="请添加题目"
+          :image-size="80"
+        />
       </el-form>
 
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button @click="handlePreview">预览</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
+        <el-button @click="formVisible = false"> 取消 </el-button>
+        <el-button @click="handlePreview"> 预览 </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 确定 </el-button>
       </template>
     </el-dialog>
 
-    <el-dialog
-      v-model="previewVisible"
-      title="问卷预览"
-      width="700px"
-    >
+    <el-dialog v-model="previewVisible" title="问卷预览" width="700px">
       <div class="preview-container">
-        <h2 class="preview-title">{{ previewData.title }}</h2>
-        <p v-if="previewData.description" class="preview-desc">{{ previewData.description }}</p>
+        <h2 class="preview-title">
+          {{ previewData.title }}
+        </h2>
+        <p v-if="previewData.description" class="preview-desc">
+          {{ previewData.description }}
+        </p>
         <el-divider />
         <div
           v-for="(question, index) in previewData.questions"
@@ -197,29 +219,42 @@
           </div>
           <div class="preview-question-body">
             <el-radio-group v-if="question.type === 'radio'" disabled>
-              <el-radio v-for="opt in question.options" :key="opt" :value="opt">{{ opt }}</el-radio>
+              <el-radio v-for="opt in question.options" :key="opt" :value="opt">
+                {{ opt }}
+              </el-radio>
             </el-radio-group>
             <el-checkbox-group v-else-if="question.type === 'checkbox'" disabled>
               <el-checkbox v-for="opt in question.options" :key="opt" :value="opt" :label="opt" />
             </el-checkbox-group>
-            <el-select v-else-if="question.type === 'select'" disabled placeholder="请选择" style="width: 100%">
+            <el-select
+              v-else-if="question.type === 'select'"
+              disabled
+              placeholder="请选择"
+              style="width: 100%"
+            >
               <el-option v-for="opt in question.options" :key="opt" :label="opt" :value="opt" />
             </el-select>
-            <el-input v-else-if="question.type === 'text'" disabled :placeholder="question.placeholder || '请输入'" />
-            <el-input v-else-if="question.type === 'textarea'" disabled type="textarea" :rows="2" :placeholder="question.placeholder || '请输入'" />
+            <el-input
+              v-else-if="question.type === 'text'"
+              disabled
+              :placeholder="question.placeholder || '请输入'"
+            />
+            <el-input
+              v-else-if="question.type === 'textarea'"
+              disabled
+              type="textarea"
+              :rows="2"
+              :placeholder="question.placeholder || '请输入'"
+            />
           </div>
         </div>
       </div>
       <template #footer>
-        <el-button @click="previewVisible = false">关闭</el-button>
+        <el-button @click="previewVisible = false"> 关闭 </el-button>
       </template>
     </el-dialog>
 
-    <el-dialog
-      v-model="responseVisible"
-      title="回收数据"
-      width="1000px"
-    >
+    <el-dialog v-model="responseVisible" title="回收数据" width="1000px">
       <ProTable
         ref="responseTableRef"
         :columns="responseColumns"
@@ -227,7 +262,7 @@
         :search-config="[]"
       />
       <template #footer>
-        <el-button @click="responseVisible = false">关闭</el-button>
+        <el-button @click="responseVisible = false"> 关闭 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -235,11 +270,25 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, h, nextTick } from 'vue'
-import { ElMessage, ElMessageBox, ElTag, ElPopover, type FormInstance, type FormRules, type FormItemRule } from 'element-plus'
+import {
+  ElMessage,
+  ElMessageBox,
+  ElTag,
+  ElPopover,
+  type FormInstance,
+  type FormRules,
+  type FormItemRule,
+} from 'element-plus'
 import { Plus, Delete, Top, Bottom, Rank } from '@element-plus/icons-vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import {
   getSurveyList,
   getSurveyDetail,
@@ -255,7 +304,6 @@ import {
   type CreateSurveyData,
   type UpdateSurveyData,
   type SurveyResponseListParams,
-  type SurveyAnswerValue,
 } from '@/api/scrm/survey'
 
 defineOptions({ name: 'SurveyForm' })
@@ -312,12 +360,24 @@ const formRules: FormRules = {
 }
 
 function getQuestionLabel(type: string) {
-  const map: Record<string, string> = { radio: '单选', checkbox: '多选', text: '文本', textarea: '长文本', select: '下拉' }
+  const map: Record<string, string> = {
+    radio: '单选',
+    checkbox: '多选',
+    text: '文本',
+    textarea: '长文本',
+    select: '下拉',
+  }
   return map[type] ?? type
 }
 
 function getQuestionTagType(type: string) {
-  const map: Record<string, '' | 'success' | 'info' | 'warning' | 'danger'> = { radio: '', checkbox: 'success', text: 'info', textarea: 'warning', select: 'danger' }
+  const map: Record<string, 'primary' | 'success' | 'info' | 'warning' | 'danger'> = {
+    radio: 'primary',
+    checkbox: 'success',
+    text: 'info',
+    textarea: 'warning',
+    select: 'danger',
+  }
   return map[type] ?? 'info'
 }
 
@@ -380,7 +440,13 @@ function maskPhone(phone?: string): string {
 
 const searchConfig: SearchConfig[] = [
   { prop: 'title', label: '问卷标题', type: 'input', placeholder: '请输入问卷标题' },
-  { prop: 'status', label: '状态', type: 'select', placeholder: '请选择状态', options: statusOptions },
+  {
+    prop: 'status',
+    label: '状态',
+    type: 'select',
+    placeholder: '请选择状态',
+    options: statusOptions,
+  },
 ]
 
 const columns: ColumnConfig[] = [
@@ -447,9 +513,7 @@ const responseColumns = computed<ColumnConfig[]>(() => {
     showOverflowTooltip: true,
     render: (row: SurveyResponse) => h('span', null, getAnswerText(row, q)),
   }))
-  const suffix: ColumnConfig[] = [
-    { prop: 'submittedAt', label: '提交时间', width: 170 },
-  ]
+  const suffix: ColumnConfig[] = [{ prop: 'submittedAt', label: '提交时间', width: 170 }]
   if (currentResponseQuestions.value.length > 3) {
     suffix.push({
       prop: '_answers',
