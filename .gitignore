@@ -30,3 +30,4 @@ Thumbs.db
 
 # Generated types
 packages/shared/src/types/
+opencode.json

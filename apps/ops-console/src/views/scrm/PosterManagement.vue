@@ -141,20 +141,14 @@ function handleEdit(row: Poster) {
 }
 
 async function handleSubmit(data: Record<string, any>) {
-  try {
-    if (data.id) {
-      const { id, ...updateData } = data
-      await updatePoster(id, updateData)
-      ElMessage.success('更新成功')
-    } else {
-      const { title, imageUrl, jumpUrl, status } = data
-      await createPoster({ title, imageUrl, jumpUrl, status })
-      ElMessage.success('创建成功')
-    }
-    tableRef.value?.refresh()
-  } catch (e: any) {
-    ElMessage.error(e.message || '操作失败')
+  if (data.id) {
+    const { id, ...updateData } = data
+    await updatePoster(id, updateData)
+  } else {
+    const { title, imageUrl, jumpUrl, status } = data
+    await createPoster({ title, imageUrl, jumpUrl, status })
   }
+  tableRef.value?.refresh()
 }
 
 async function handleDelete(row: Poster) {

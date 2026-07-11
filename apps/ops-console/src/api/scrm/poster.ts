@@ -36,9 +36,12 @@ export interface UpdatePosterData {
   status?: number
 }
 
-export async function getPosterList(params: PosterListParams) {
-  const res = await http.get<PosterListResult>('/scrm/posters', { params })
-  return res.data
+export async function getPosterList(params: PosterListParams): Promise<PosterListResult> {
+  const res = await http.get<any>('/scrm/posters', { params })
+  return {
+    data: res.data ?? [],
+    total: res.meta?.total ?? res.total ?? 0,
+  }
 }
 
 export async function getPosterDetail(id: number) {
