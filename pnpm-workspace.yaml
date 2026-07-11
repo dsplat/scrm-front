@@ -3,10 +3,13 @@ packages:
   - 'apps/*'
 
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  vue-demi: set this to true or false
+  '@parcel/watcher': true
+  core-js: true
+  esbuild: true
+  vue-demi: true
 
 onlyBuiltDependencies:
   - esbuild
   - '@parcel/watcher'
   - vue-demi
+  - core-js
