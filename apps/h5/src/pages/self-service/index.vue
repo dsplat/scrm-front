@@ -1,23 +1,27 @@
 <template>
   <view class="self-service-page">
     <view class="section">
-      <text class="section-title">常见问题</text>
-      <view class="faq-item" v-for="faq in faqs" :key="faq.id" @tap="toggleFaq(faq.id)">
-        <text class="faq-q">{{ faq.question }}</text>
-        <text v-if="faq.open" class="faq-a">{{ faq.answer }}</text>
+      <text class="section-title"> 常见问题 </text>
+      <view v-for="faq in faqs" :key="faq.id" class="faq-item" @tap="toggleFaq(faq.id)">
+        <text class="faq-q">
+          {{ faq.question }}
+        </text>
+        <text v-if="faq.open" class="faq-a">
+          {{ faq.answer }}
+        </text>
       </view>
       <view v-if="faqs.length === 0 && !loading" class="empty">
         <text>暂无常见问题</text>
       </view>
     </view>
     <view class="section">
-      <text class="section-title">在线客服</text>
+      <text class="section-title"> 在线客服 </text>
       <button @tap="contactAgent">联系 AI 客服</button>
     </view>
     <view class="section">
-      <text class="section-title">意见反馈</text>
+      <text class="section-title"> 意见反馈 </text>
       <textarea v-model="feedback" placeholder="请输入您的意见..." />
-      <button @tap="handleSubmitFeedback" :disabled="submitting || !feedback.trim()">
+      <button :disabled="submitting || !feedback.trim()" @tap="handleSubmitFeedback">
         {{ submitting ? '提交中...' : '提交反馈' }}
       </button>
     </view>
@@ -140,88 +144,6 @@ async function handleSubmitFeedback() {
   padding: 40rpx;
   color: #999;
   font-size: 26rpx;
-}
-textarea {
-  width: 100%;
-  height: 150rpx;
-  border: 1px solid #e0e0e0;
-  border-radius: 8rpx;
-  padding: 16rpx;
-}
-button {
-  margin-top: 16rpx;
-}
-</style>
-<template>
-  <view class="self-service-page">
-    <view class="section">
-      <text class="section-title">常见问题</text>
-      <view class="faq-item" v-for="faq in faqs" :key="faq.id" @tap="toggleFaq(faq.id)">
-        <text class="faq-q">{{ faq.question }}</text>
-        <text v-if="faq.open" class="faq-a">{{ faq.answer }}</text>
-      </view>
-    </view>
-    <view class="section">
-      <text class="section-title">在线客服</text>
-      <button @tap="contactAgent">联系 AI 客服</button>
-    </view>
-    <view class="section">
-      <text class="section-title">意见反馈</text>
-      <textarea v-model="feedback" placeholder="请输入您的意见..." />
-      <button @tap="submitFeedback">提交反馈</button>
-    </view>
-  </view>
-</template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-const feedback = ref('')
-const faqs = ref([
-  { id: 1, question: '如何退换货？', answer: '7天内无理由退换货，请联系客服处理。', open: false },
-  { id: 2, question: '物流时效？', answer: '通常1-3个工作日送达。', open: false },
-  { id: 3, question: '如何积分兑换？', answer: '在个人中心-积分商城进行兑换。', open: false },
-])
-function toggleFaq(id: number) {
-  faqs.value.find((f) => f.id === id)!.open = !faqs.value.find((f) => f.id === id)!.open
-}
-function contactAgent() {
-  uni.navigateTo({ url: '/pages/live-code/index' })
-}
-function submitFeedback() {
-  uni.showToast({ title: '反馈已提交', icon: 'success' })
-  feedback.value = ''
-}
-</script>
-
-<style scoped>
-.self-service-page {
-  padding: 20rpx;
-}
-.section {
-  background: #fff;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-}
-.section-title {
-  font-size: 30rpx;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 16rpx;
-}
-.faq-item {
-  padding: 16rpx 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-.faq-q {
-  font-size: 28rpx;
-  display: block;
-}
-.faq-a {
-  font-size: 26rpx;
-  color: #666;
-  display: block;
-  margin-top: 8rpx;
 }
 textarea {
   width: 100%;

@@ -2,12 +2,16 @@
   <view class="campaign-page">
     <image class="banner" src="/static/campaign-banner.png" mode="widthFix" />
     <view class="campaign-info">
-      <text class="title">{{ title }}</text>
-      <text class="desc">{{ description }}</text>
-      <view class="countdown" v-if="!expired && endDate">
+      <text class="title">
+        {{ title }}
+      </text>
+      <text class="desc">
+        {{ description }}
+      </text>
+      <view v-if="!expired && endDate" class="countdown">
         <text>距结束: {{ countdown }}</text>
       </view>
-      <button class="join-btn" @tap="handleJoinCampaign" :disabled="expired || joining">
+      <button class="join-btn" :disabled="expired || joining" @tap="handleJoinCampaign">
         {{ joining ? '参与中...' : expired ? '活动已结束' : '立即参与' }}
       </button>
       <button class="share-btn" open-type="share">分享给好友</button>
@@ -97,91 +101,6 @@ async function handleJoinCampaign() {
   } finally {
     joining.value = false
   }
-}
-</script>
-
-<style scoped>
-.campaign-page {
-  background: #fff;
-  min-height: 100vh;
-}
-.banner {
-  width: 100%;
-}
-.campaign-info {
-  padding: 32rpx;
-}
-.title {
-  font-size: 36rpx;
-  font-weight: bold;
-  display: block;
-}
-.desc {
-  font-size: 28rpx;
-  color: #666;
-  display: block;
-  margin: 16rpx 0;
-}
-.countdown {
-  text-align: center;
-  color: #e6a23c;
-  font-size: 30rpx;
-  margin: 20rpx 0;
-}
-.join-btn {
-  background: #ff6b6b;
-  color: #fff;
-  border-radius: 40rpx;
-  margin: 20rpx 0;
-}
-.share-btn {
-  border-radius: 40rpx;
-}
-</style>
-<template>
-  <view class="campaign-page">
-    <image class="banner" src="/static/campaign-banner.png" mode="widthFix" />
-    <view class="campaign-info">
-      <text class="title">{{ title }}</text>
-      <text class="desc">{{ description }}</text>
-      <view class="countdown" v-if="!expired">
-        <text>距结束: {{ countdown }}</text>
-      </view>
-      <button class="join-btn" @tap="joinCampaign" :disabled="expired">
-        {{ expired ? '活动已结束' : '立即参与' }}
-      </button>
-      <button class="share-btn" open-type="share">分享给好友</button>
-    </view>
-  </view>
-</template>
-
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-const title = ref('限时优惠活动')
-const description = ref('参与活动即可获得专属优惠和积分奖励')
-const expired = ref(false)
-const countdown = ref('')
-let timer: number | null = null
-
-onMounted(() => {
-  timer = setInterval(() => {
-    const end = Date.now() + 86400000
-    const diff = end - Date.now()
-    if (diff <= 0) {
-      expired.value = true
-      return
-    }
-    const h = Math.floor(diff / 3600000)
-    const m = Math.floor((diff % 3600000) / 60000)
-    const s = Math.floor((diff % 60000) / 1000)
-    countdown.value = `${h}h ${m}m ${s}s`
-  }, 1000)
-})
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
-})
-function joinCampaign() {
-  uni.showToast({ title: '参与成功！', icon: 'success' })
 }
 </script>
 
