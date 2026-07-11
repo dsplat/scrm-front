@@ -6,12 +6,7 @@
       </template>
       <el-form :model="form" @submit.prevent="handleLogin" label-width="0">
         <el-form-item>
-          <el-input
-            v-model="form.email"
-            placeholder="邮箱"
-            prefix-icon="User"
-            size="large"
-          />
+          <el-input v-model="form.email" placeholder="邮箱" prefix-icon="User" size="large" />
         </el-form-item>
         <el-form-item>
           <el-input

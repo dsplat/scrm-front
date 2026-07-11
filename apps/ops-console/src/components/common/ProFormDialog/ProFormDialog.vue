@@ -6,12 +6,7 @@
     :close-on-click-modal="false"
     @close="handleClose"
   >
-    <el-form
-      ref="formRef"
-      :model="formData"
-      :rules="formRules"
-      :label-width="labelWidth"
-    >
+    <el-form ref="formRef" :model="formData" :rules="formRules" :label-width="labelWidth">
       <el-form-item
         v-for="field in fields"
         :key="field.prop"
@@ -66,11 +61,7 @@
           v-model="formData[field.prop]"
           :disabled="field.disabled"
         >
-          <el-radio
-            v-for="opt in field.options"
-            :key="opt.value"
-            :value="opt.value"
-          >
+          <el-radio v-for="opt in field.options" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </el-radio>
         </el-radio-group>
@@ -148,7 +139,7 @@ const props = withDefaults(defineProps<Props>(), {
   width: '600px',
   labelWidth: '100px',
   submitText: '确定',
-  initialData: () => ({})
+  initialData: () => ({}),
 })
 
 const emit = defineEmits<{
@@ -162,15 +153,19 @@ const formData = reactive<Record<string, any>>({})
 
 const dialogVisible = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: (val) => emit('update:modelValue', val),
 })
 
 const formRules = computed<FormRules>(() => {
   const rules: FormRules = {}
-  props.fields.forEach(field => {
+  props.fields.forEach((field) => {
     const fieldRules: any[] = []
     if (field.required) {
-      fieldRules.push({ required: true, message: `请输入${field.label}`, trigger: field.type === 'input' || field.type === 'textarea' ? 'blur' : 'change' })
+      fieldRules.push({
+        required: true,
+        message: `请输入${field.label}`,
+        trigger: field.type === 'input' || field.type === 'textarea' ? 'blur' : 'change',
+      })
     }
     if (field.rules?.length) {
       fieldRules.push(...field.rules)
@@ -183,7 +178,7 @@ const formRules = computed<FormRules>(() => {
 })
 
 function initFormData() {
-  props.fields.forEach(field => {
+  props.fields.forEach((field) => {
     formData[field.prop] = props.initialData?.[field.prop] ?? getDefaultValue(field)
   })
 }
@@ -218,15 +213,22 @@ function handleClose() {
   formRef.value?.resetFields()
 }
 
-watch(() => props.modelValue, (val) => {
-  if (val) {
-    initFormData()
-  }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      initFormData()
+    }
+  },
+)
 
-watch(() => props.initialData, () => {
-  if (props.modelValue) {
-    initFormData()
-  }
-}, { deep: true })
+watch(
+  () => props.initialData,
+  () => {
+    if (props.modelValue) {
+      initFormData()
+    }
+  },
+  { deep: true },
+)
 </script>

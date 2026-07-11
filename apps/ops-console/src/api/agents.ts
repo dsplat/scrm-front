@@ -30,7 +30,11 @@ export async function getConversations(id: number) {
   return res.data
 }
 
-export async function startConversation(id: number, message: string, context?: Record<string, any>) {
+export async function startConversation(
+  id: number,
+  message: string,
+  context?: Record<string, any>,
+) {
   const res = await http.post(`/scrm/agents/${id}/conversations`, { message, context })
   return res.data
 }

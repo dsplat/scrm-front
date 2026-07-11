@@ -65,7 +65,9 @@ function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number
   }
 }
 
-export async function getMembershipCardList(params: MembershipCardListParams): Promise<MembershipCardListResult> {
+export async function getMembershipCardList(
+  params: MembershipCardListParams,
+): Promise<MembershipCardListResult> {
   const res = await http.get<MembershipCard[]>('/scrm/membership-cards', { params })
   return extractListResult(res)
 }
@@ -75,12 +77,17 @@ export async function getMembershipCardDetail(id: number): Promise<MembershipCar
   return res.data
 }
 
-export async function createMembershipCard(data: CreateMembershipCardData): Promise<MembershipCard> {
+export async function createMembershipCard(
+  data: CreateMembershipCardData,
+): Promise<MembershipCard> {
   const res = await http.post<MembershipCard>('/scrm/membership-cards', data)
   return res.data
 }
 
-export async function updateMembershipCard(id: number, data: UpdateMembershipCardData): Promise<MembershipCard> {
+export async function updateMembershipCard(
+  id: number,
+  data: UpdateMembershipCardData,
+): Promise<MembershipCard> {
   const res = await http.put<MembershipCard>(`/scrm/membership-cards/${id}`, data)
   return res.data
 }

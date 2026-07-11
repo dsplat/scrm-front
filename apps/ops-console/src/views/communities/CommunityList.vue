@@ -38,7 +38,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; name: string; member_count?: number; channel?: string; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  member_count?: number
+  channel?: string
+  status: string
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -49,15 +56,34 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/communities')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载社群列表失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载社群列表失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { router.push('/communities/new') }
-function handleEdit(row: TableItem) { router.push(`/communities/${row.id}`) }
-function handleDelete(_row: TableItem) { ElMessage.success('已删除'); loadData() }
+function handleCreate() {
+  router.push('/communities/new')
+}
+function handleEdit(row: TableItem) {
+  router.push(`/communities/${row.id}`)
+}
+function handleDelete(_row: TableItem) {
+  ElMessage.success('已删除')
+  loadData()
+}
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

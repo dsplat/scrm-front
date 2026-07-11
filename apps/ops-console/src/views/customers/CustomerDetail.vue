@@ -15,7 +15,7 @@
             <el-descriptions-item label="最后互动">—</el-descriptions-item>
           </el-descriptions>
         </el-card>
-        <el-card style="margin-top:20px">
+        <el-card style="margin-top: 20px">
           <template #header>互动记录</template>
           <el-empty description="暂无互动记录" />
         </el-card>
@@ -25,7 +25,7 @@
           <template #header>AI 洞察</template>
           <el-button type="primary" @click="generateInsight">生成客户画像分析</el-button>
         </el-card>
-        <el-card style="margin-top:20px">
+        <el-card style="margin-top: 20px">
           <template #header>客户旅程</template>
           <el-empty description="暂无旅程数据" />
         </el-card>
@@ -37,5 +37,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 const tags = ref<string[]>([])
-function generateInsight() { ElMessage.info('正在生成客户画像...') }
+function generateInsight() {
+  ElMessage.info('正在生成客户画像...')
+}
 </script>

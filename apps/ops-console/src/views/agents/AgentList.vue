@@ -38,7 +38,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listAgents, toggleAgent } from '@/api/agents'
 
-interface TableItem { id: number; name: string; role?: string; status: string; conversations_count?: number; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  role?: string
+  status: string
+  conversations_count?: number
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -56,8 +63,12 @@ async function loadData() {
   }
 }
 
-function handleCreate() { router.push('/agents/new') }
-function handleEdit(row: TableItem) { router.push(`/agents/${row.id}`) }
+function handleCreate() {
+  router.push('/agents/new')
+}
+function handleEdit(row: TableItem) {
+  router.push(`/agents/${row.id}`)
+}
 async function handleToggle(row: TableItem) {
   await toggleAgent(row.id)
   ElMessage.success(row.status === 'active' ? '已停用' : '已启用')
@@ -68,6 +79,14 @@ onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

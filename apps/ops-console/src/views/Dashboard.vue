@@ -78,8 +78,19 @@ function updateTrendChart() {
     xAxis: { type: 'category', data: dates, boundaryGap: false },
     yAxis: { type: 'value' },
     series: [
-      { name: '新增客户', type: 'line', smooth: true, areaStyle: {}, data: Array.from({ length: days }, () => Math.floor(Math.random() * 50 + 10)) },
-      { name: '消息量', type: 'line', smooth: true, data: Array.from({ length: days }, () => Math.floor(Math.random() * 200 + 50)) },
+      {
+        name: '新增客户',
+        type: 'line',
+        smooth: true,
+        areaStyle: {},
+        data: Array.from({ length: days }, () => Math.floor(Math.random() * 50 + 10)),
+      },
+      {
+        name: '消息量',
+        type: 'line',
+        smooth: true,
+        data: Array.from({ length: days }, () => Math.floor(Math.random() * 200 + 50)),
+      },
     ],
   })
 }
@@ -90,20 +101,22 @@ function initPieChart() {
   pieChart.setOption({
     tooltip: { trigger: 'item' },
     legend: { bottom: '5%' },
-    series: [{
-      type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
-      itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
-      label: { show: false },
-      emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
-      data: [
-        { value: 1048, name: '微信公众号' },
-        { value: 735, name: '企业微信' },
-        { value: 580, name: '小程序' },
-        { value: 484, name: '其他' },
-      ],
-    }],
+    series: [
+      {
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
+        label: { show: false },
+        emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+        data: [
+          { value: 1048, name: '微信公众号' },
+          { value: 735, name: '企业微信' },
+          { value: 580, name: '小程序' },
+          { value: 484, name: '其他' },
+        ],
+      },
+    ],
   })
 }
 
@@ -132,11 +145,36 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .dashboard {
   .stat-card {
-    .stat-title { font-size: 13px; color: #909399; }
-    .stat-value { font-size: 28px; font-weight: 600; color: #303133; margin: 8px 0; }
-    .stat-trend { font-size: 12px; display: flex; align-items: center; gap: 4px; &.up { color: #67c23a; } &.down { color: #f56c6c; } }
+    .stat-title {
+      font-size: 13px;
+      color: #909399;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #303133;
+      margin: 8px 0;
+    }
+    .stat-trend {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      &.up {
+        color: #67c23a;
+      }
+      &.down {
+        color: #f56c6c;
+      }
+    }
   }
-  .card-header { display: flex; justify-content: space-between; align-items: center; }
-  .chart-container { height: 300px; }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chart-container {
+    height: 300px;
+  }
 }
 </style>

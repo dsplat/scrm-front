@@ -27,18 +27,23 @@
       :close-on-click-modal="false"
       @close="handleDialogClose"
     >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
-      >
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-form-item label="优惠券名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入优惠券名称" maxlength="50" show-word-limit />
+          <el-input
+            v-model="formData.name"
+            placeholder="请输入优惠券名称"
+            maxlength="50"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="优惠券类型" prop="type">
           <el-select v-model="formData.type" placeholder="请选择优惠券类型" style="width: 100%">
-            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+            <el-option
+              v-for="opt in typeOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="面额/折扣" prop="value">
@@ -50,14 +55,28 @@
             :step="formData.type === 'discount' ? 0.1 : 10"
             style="width: 100%"
           />
-          <span class="form-tip">{{ formData.type === 'discount' ? '折（如9.5折输入9.5）' : '元' }}</span>
+          <span class="form-tip">{{
+            formData.type === 'discount' ? '折（如9.5折输入9.5）' : '元'
+          }}</span>
         </el-form-item>
         <el-form-item label="使用门槛" prop="minAmount">
-          <el-input-number v-model="formData.minAmount" :min="0" :precision="2" :step="10" style="width: 100%" />
+          <el-input-number
+            v-model="formData.minAmount"
+            :min="0"
+            :precision="2"
+            :step="10"
+            style="width: 100%"
+          />
           <span class="form-tip">元（0表示无门槛）</span>
         </el-form-item>
         <el-form-item label="发放数量" prop="totalCount">
-          <el-input-number v-model="formData.totalCount" :min="1" :max="999999" :step="1" style="width: 100%" />
+          <el-input-number
+            v-model="formData.totalCount"
+            :min="1"
+            :max="999999"
+            :step="1"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="有效期类型" prop="validityType">
           <el-radio-group v-model="formData.validityType">
@@ -65,7 +84,11 @@
             <el-radio value="period">固定期限</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="formData.validityType === 'period'" label="有效期范围" prop="validityRange">
+        <el-form-item
+          v-if="formData.validityType === 'period'"
+          label="有效期范围"
+          prop="validityRange"
+        >
           <el-date-picker
             v-model="formData.validityRange"
             type="daterange"
@@ -77,7 +100,14 @@
           />
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" placeholder="请输入描述" :rows="3" maxlength="500" show-word-limit />
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            placeholder="请输入描述"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="formData.status">
@@ -139,7 +169,13 @@ import { ref, reactive, h } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { ElMessage, ElMessageBox, ElTag, type FormInstance, type FormRules } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import {
   getCouponList,
   createCoupon,
@@ -237,7 +273,11 @@ function getTypeLabel(type: string) {
 }
 
 function getTypeTagType(type: string) {
-  const map: Record<string, string> = { cash: 'danger', discount: 'warning', free_shipping: 'success' }
+  const map: Record<string, string> = {
+    cash: 'danger',
+    discount: 'warning',
+    free_shipping: 'success',
+  }
   return map[type] ?? 'info'
 }
 
@@ -278,7 +318,8 @@ const columns: ColumnConfig[] = [
     prop: 'minAmount',
     label: '使用门槛',
     width: 110,
-    render: (row: Coupon) => h('span', null, row.minAmount > 0 ? `满¥${row.minAmount.toFixed(2)}` : '无门槛'),
+    render: (row: Coupon) =>
+      h('span', null, row.minAmount > 0 ? `满¥${row.minAmount.toFixed(2)}` : '无门槛'),
   },
   {
     prop: 'totalCount',
@@ -291,7 +332,13 @@ const columns: ColumnConfig[] = [
     label: '有效期',
     width: 180,
     render: (row: Coupon) =>
-      h('span', null, row.validityType === 'permanent' ? '永久有效' : `${row.validityStart} 至 ${row.validityEnd}`),
+      h(
+        'span',
+        null,
+        row.validityType === 'permanent'
+          ? '永久有效'
+          : `${row.validityStart} 至 ${row.validityEnd}`,
+      ),
   },
   {
     prop: 'status',
@@ -346,7 +393,8 @@ function handleEdit(row: Coupon) {
   formData.minAmount = row.minAmount || 0
   formData.totalCount = row.totalCount
   formData.validityType = row.validityType
-  formData.validityRange = row.validityStart && row.validityEnd ? [row.validityStart, row.validityEnd] : []
+  formData.validityRange =
+    row.validityStart && row.validityEnd ? [row.validityStart, row.validityEnd] : []
   formData.description = row.description || ''
   formData.status = row.status
   dialogVisible.value = true
@@ -435,7 +483,11 @@ const searchCouponsForDelete = useDebounceFn(doSearchCouponsForDelete, 300)
 async function confirmBatchDelete() {
   if (!batchDeleteIds.value.length) return
   try {
-    await ElMessageBox.confirm(`确定删除选中的 ${batchDeleteIds.value.length} 张优惠券吗？`, '提示', { type: 'warning' })
+    await ElMessageBox.confirm(
+      `确定删除选中的 ${batchDeleteIds.value.length} 张优惠券吗？`,
+      '提示',
+      { type: 'warning' },
+    )
     batchDeleting.value = true
     await batchDeleteCoupons(batchDeleteIds.value)
     ElMessage.success('批量删除成功')

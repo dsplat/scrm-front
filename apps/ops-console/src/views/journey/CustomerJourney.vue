@@ -37,7 +37,14 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface JourneyItem { id: number; customer_name?: string; stage?: string; event?: string; duration?: number; createdAt: string }
+interface JourneyItem {
+  id: number
+  customer_name?: string
+  stage?: string
+  event?: string
+  duration?: number
+  createdAt: string
+}
 
 const loading = ref(false)
 const tableData = ref<JourneyItem[]>([])
@@ -47,13 +54,27 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/customer-journeys')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载旅程数据失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载旅程数据失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { ElMessage.info('筛选旅程') }
+function handleCreate() {
+  ElMessage.info('筛选旅程')
+}
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

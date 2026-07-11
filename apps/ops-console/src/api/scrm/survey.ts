@@ -103,7 +103,9 @@ export async function updateSurveyStatus(id: number, status: 'active' | 'closed'
   await http.put(`/scrm/surveys/${id}/status`, { status })
 }
 
-export async function getSurveyResponseList(params: SurveyResponseListParams): Promise<SurveyResponseListResult> {
+export async function getSurveyResponseList(
+  params: SurveyResponseListParams,
+): Promise<SurveyResponseListResult> {
   const res = await http.get<SurveyResponse[]>('/scrm/surveys/responses', { params })
   return extractListResult(res)
 }

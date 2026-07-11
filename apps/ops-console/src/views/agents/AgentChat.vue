@@ -1,6 +1,6 @@
 <template>
   <div class="chat-container">
-    <el-row :gutter="0" style="height:100%">
+    <el-row :gutter="0" style="height: 100%">
       <!-- 左侧 Agent 列表 -->
       <el-col :span="5" class="agent-list-panel">
         <el-card shadow="never" class="panel-card">
@@ -27,7 +27,10 @@
                 <div class="agent-name">{{ agent.name }}</div>
                 <div class="agent-role">{{ agent.role || '数字员工' }}</div>
               </div>
-              <el-badge :is-dot="agent.status === 'active'" :type="agent.status === 'active' ? 'success' : 'info'" />
+              <el-badge
+                :is-dot="agent.status === 'active'"
+                :type="agent.status === 'active' ? 'success' : 'info'"
+              />
             </div>
             <el-empty v-if="agents.length === 0" description="暂无 Agent" :image-size="60" />
           </div>
@@ -51,12 +54,7 @@
             <el-icon :size="48" color="#409eff"><Cpu /></el-icon>
             <p>开始与 {{ selectedAgent?.name }} 对话</p>
           </div>
-          <div
-            v-for="(msg, index) in messages"
-            :key="index"
-            class="message-row"
-            :class="msg.role"
-          >
+          <div v-for="(msg, index) in messages" :key="index" class="message-row" :class="msg.role">
             <el-avatar :size="32" class="msg-avatar">
               <el-icon v-if="msg.role === 'agent'"><Cpu /></el-icon>
               <el-icon v-else><User /></el-icon>
@@ -73,12 +71,12 @@
             </div>
           </div>
           <div v-if="sending" class="message-row agent">
-            <el-avatar :size="32" class="msg-avatar"><el-icon><Cpu /></el-icon></el-avatar>
+            <el-avatar :size="32" class="msg-avatar"
+              ><el-icon><Cpu /></el-icon
+            ></el-avatar>
             <div class="msg-content">
               <div class="msg-bubble agent loading">
-                <span class="typing-dots">
-                  <span></span><span></span><span></span>
-                </span>
+                <span class="typing-dots"> <span></span><span></span><span></span> </span>
               </div>
             </div>
           </div>
@@ -87,7 +85,9 @@
           <div class="quick-actions">
             <el-button size="small" @click="insertQuickAction('查看今日数据')">今日数据</el-button>
             <el-button size="small" @click="insertQuickAction('查看客户列表')">客户列表</el-button>
-            <el-button size="small" @click="insertQuickAction('查看社群活跃度')">社群活跃</el-button>
+            <el-button size="small" @click="insertQuickAction('查看社群活跃度')"
+              >社群活跃</el-button
+            >
           </div>
           <div class="input-row">
             <el-input
@@ -97,7 +97,11 @@
               :disabled="!selectedAgent"
             >
               <template #append>
-                <el-button @click="sendMessage" :disabled="!message.trim() || sending" type="primary">
+                <el-button
+                  @click="sendMessage"
+                  :disabled="!message.trim() || sending"
+                  type="primary"
+                >
                   发送
                 </el-button>
               </template>
@@ -117,7 +121,9 @@
           <div class="context-section">
             <h4>Agent 角色</h4>
             <p class="context-desc">{{ selectedAgent.role || '数字员工' }}</p>
-            <p class="context-capability">{{ selectedAgent.description || '可执行客户查询、数据分析、消息发送等操作' }}</p>
+            <p class="context-capability">
+              {{ selectedAgent.description || '可执行客户查询、数据分析、消息发送等操作' }}
+            </p>
           </div>
           <el-divider />
           <div class="context-section">
@@ -130,7 +136,9 @@
           <div class="context-section">
             <h4>关联知识库</h4>
             <div v-if="knowledgeBases.length > 0">
-              <el-tag v-for="kb in knowledgeBases" :key="kb" size="small" class="kb-tag">{{ kb }}</el-tag>
+              <el-tag v-for="kb in knowledgeBases" :key="kb" size="small" class="kb-tag">{{
+                kb
+              }}</el-tag>
             </div>
             <p v-else class="context-empty">暂无关联知识库</p>
           </div>
@@ -299,64 +307,240 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.chat-container { height: calc(100vh - 140px); background: #fff; border-radius: 4px; }
+.chat-container {
+  height: calc(100vh - 140px);
+  background: #fff;
+  border-radius: 4px;
+}
 
 .panel-card {
   height: 100%;
-  :deep(.el-card__header) { padding: 12px 16px; }
-  :deep(.el-card__body) { padding: 0; height: calc(100% - 55px); overflow-y: auto; }
+  :deep(.el-card__header) {
+    padding: 12px 16px;
+  }
+  :deep(.el-card__body) {
+    padding: 0;
+    height: calc(100% - 55px);
+    overflow-y: auto;
+  }
 }
 
-.panel-header { display: flex; align-items: center; justify-content: space-between; }
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 /* Left: Agent list */
-.agent-list-panel { height: 100%; border-right: 1px solid #e6e6e6; }
-.agent-list { padding: 8px; }
-.agent-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 6px; cursor: pointer;
-  transition: background 0.2s;
-  &:hover { background: #f5f7fa; }
-  &.active { background: #ecf5ff; }
+.agent-list-panel {
+  height: 100%;
+  border-right: 1px solid #e6e6e6;
 }
-.agent-info { flex: 1; min-width: 0; }
-.agent-name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.agent-role { font-size: 12px; color: #909399; margin-top: 2px; }
+.agent-list {
+  padding: 8px;
+}
+.agent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: #f5f7fa;
+  }
+  &.active {
+    background: #ecf5ff;
+  }
+}
+.agent-info {
+  flex: 1;
+  min-width: 0;
+}
+.agent-name {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-role {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 2px;
+}
 
 /* Center: Chat */
-.chat-panel { height: 100%; display: flex; flex-direction: column; border-left: 1px solid #e6e6e6; border-right: 1px solid #e6e6e6; }
-.chat-header { padding: 12px 16px; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; gap: 10px; }
-.chat-title { font-size: 15px; font-weight: 600; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #fafafa; }
-.chat-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #c0c4cc; p { margin-top: 12px; font-size: 14px; } }
-
-.message-row { display: flex; gap: 10px; margin-bottom: 16px; &.user { flex-direction: row-reverse; } }
-.msg-content { max-width: 70%; }
-.msg-bubble {
-  padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5;
-  &.user { background: #409eff; color: #fff; border-bottom-right-radius: 4px; }
-  &.agent { background: #fff; color: #303133; border-bottom-left-radius: 4px; border: 1px solid #e6e6e6; }
-  &.loading { padding: 8px 16px; }
-  p { margin: 0; }
+.chat-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #e6e6e6;
+  border-right: 1px solid #e6e6e6;
 }
-.msg-time { font-size: 11px; color: #909399; margin-top: 4px; display: block; }
-.message-row.user .msg-time { text-align: right; }
+.chat-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chat-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #fafafa;
+}
+.chat-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #c0c4cc;
+  p {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+}
 
-.action-card { display: flex; align-items: center; gap: 8px; color: #67c23a; font-size: 13px; }
+.message-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  &.user {
+    flex-direction: row-reverse;
+  }
+}
+.msg-content {
+  max-width: 70%;
+}
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  &.user {
+    background: #409eff;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  &.agent {
+    background: #fff;
+    color: #303133;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e6e6e6;
+  }
+  &.loading {
+    padding: 8px 16px;
+  }
+  p {
+    margin: 0;
+  }
+}
+.msg-time {
+  font-size: 11px;
+  color: #909399;
+  margin-top: 4px;
+  display: block;
+}
+.message-row.user .msg-time {
+  text-align: right;
+}
 
-.typing-dots { display: inline-flex; gap: 4px; span { width: 6px; height: 6px; background: #909399; border-radius: 50%; animation: dot-pulse 1.4s ease-in-out infinite; &:nth-child(2) { animation-delay: 0.2s; } &:nth-child(3) { animation-delay: 0.4s; } } }
-@keyframes dot-pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #67c23a;
+  font-size: 13px;
+}
 
-.chat-input { border-top: 1px solid #e6e6e6; background: #fff; }
-.quick-actions { padding: 8px 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-.input-row { padding: 0 12px 12px; }
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+  span {
+    width: 6px;
+    height: 6px;
+    background: #909399;
+    border-radius: 50%;
+    animation: dot-pulse 1.4s ease-in-out infinite;
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+@keyframes dot-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.chat-input {
+  border-top: 1px solid #e6e6e6;
+  background: #fff;
+}
+.quick-actions {
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.input-row {
+  padding: 0 12px 12px;
+}
 
 /* Right: Context */
-.context-panel { height: 100%; }
-.context-section { padding: 0 16px; h4 { font-size: 13px; font-weight: 600; color: #303133; margin-bottom: 8px; } }
-.context-desc { font-size: 13px; color: #606266; margin-bottom: 4px; }
-.context-capability { font-size: 12px; color: #909399; line-height: 1.5; }
-.context-empty { font-size: 12px; color: #c0c4cc; }
-.kb-tag { margin: 0 4px 4px 0; }
-.recent-actions { .action-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #606266; margin-bottom: 6px; } }
+.context-panel {
+  height: 100%;
+}
+.context-section {
+  padding: 0 16px;
+  h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 8px;
+  }
+}
+.context-desc {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 4px;
+}
+.context-capability {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+}
+.context-empty {
+  font-size: 12px;
+  color: #c0c4cc;
+}
+.kb-tag {
+  margin: 0 4px 4px 0;
+}
+.recent-actions {
+  .action-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #606266;
+    margin-bottom: 6px;
+  }
+}
 </style>

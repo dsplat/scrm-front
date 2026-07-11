@@ -38,7 +38,15 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listCustomers } from '@/api/customers'
 
-interface TableItem { id: number; name: string; channel?: string; stage?: string; tags?: string[]; lastActiveAt?: string; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  channel?: string
+  stage?: string
+  tags?: string[]
+  lastActiveAt?: string
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -48,7 +56,10 @@ const pagination = ref({ page: 1, pageSize: 20, total: 0 })
 async function loadData() {
   loading.value = true
   try {
-    const res = await listCustomers({ page: pagination.value.page, per_page: pagination.value.pageSize })
+    const res = await listCustomers({
+      page: pagination.value.page,
+      per_page: pagination.value.pageSize,
+    })
     tableData.value = res?.data ?? res ?? []
     pagination.value.total = res?.total ?? 0
   } catch {
@@ -58,8 +69,12 @@ async function loadData() {
   }
 }
 
-function handleCreate() { router.push('/customers/new') }
-function handleEdit(row: TableItem) { router.push(`/customers/${row.id}`) }
+function handleCreate() {
+  router.push('/customers/new')
+}
+function handleEdit(row: TableItem) {
+  router.push(`/customers/${row.id}`)
+}
 async function handleDelete(row: TableItem) {
   await ElMessageBox.confirm(`确定删除客户「${row.name}」？`)
   ElMessage.success('已删除')
@@ -70,6 +85,14 @@ onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

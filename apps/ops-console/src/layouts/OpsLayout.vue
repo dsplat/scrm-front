@@ -227,19 +227,35 @@
 
     <!-- 移动端底部 TabBar -->
     <div v-if="isMobile" class="mobile-tabbar">
-      <div class="tabbar-item" :class="{ active: activeMenu === '/dashboard' }" @click="router.push('/dashboard')">
+      <div
+        class="tabbar-item"
+        :class="{ active: activeMenu === '/dashboard' }"
+        @click="router.push('/dashboard')"
+      >
         <el-icon :size="22"><Odometer /></el-icon>
         <span>看板</span>
       </div>
-      <div class="tabbar-item" :class="{ active: activeMenu.startsWith('/customers') }" @click="router.push('/customers')">
+      <div
+        class="tabbar-item"
+        :class="{ active: activeMenu.startsWith('/customers') }"
+        @click="router.push('/customers')"
+      >
         <el-icon :size="22"><User /></el-icon>
         <span>客户</span>
       </div>
-      <div class="tabbar-item" :class="{ active: activeMenu.startsWith('/communities') }" @click="router.push('/communities')">
+      <div
+        class="tabbar-item"
+        :class="{ active: activeMenu.startsWith('/communities') }"
+        @click="router.push('/communities')"
+      >
         <el-icon :size="22"><ChatSquare /></el-icon>
         <span>社群</span>
       </div>
-      <div class="tabbar-item" :class="{ active: activeMenu.startsWith('/agents') }" @click="router.push('/agents')">
+      <div
+        class="tabbar-item"
+        :class="{ active: activeMenu.startsWith('/agents') }"
+        @click="router.push('/agents')"
+      >
         <el-icon :size="22"><Cpu /></el-icon>
         <span>Agent</span>
       </div>
@@ -252,21 +268,51 @@
     <!-- 移动端「更多」菜单 -->
     <el-drawer v-model="moreDrawer" title="全部菜单" direction="btt" size="60%">
       <el-menu :default-active="activeMenu" router @select="moreDrawer = false">
-        <el-menu-item index="/channels"><el-icon><Share /></el-icon>渠道管理</el-menu-item>
-        <el-menu-item index="/live-codes"><el-icon><Iphone /></el-icon>活码管理</el-menu-item>
-        <el-menu-item index="/tags"><el-icon><PriceTag /></el-icon>标签管理</el-menu-item>
-        <el-menu-item index="/conversations"><el-icon><ChatDotRound /></el-icon>会话记录</el-menu-item>
-        <el-menu-item index="/journey"><el-icon><Position /></el-icon>客户旅程</el-menu-item>
-        <el-menu-item index="/staff"><el-icon><Avatar /></el-icon>员工管理</el-menu-item>
-        <el-menu-item index="/materials"><el-icon><Picture /></el-icon>素材管理</el-menu-item>
-        <el-menu-item index="/automations"><el-icon><Setting /></el-icon>自动化规则</el-menu-item>
-        <el-menu-item index="/wechat"><el-icon><ChatLineRound /></el-icon>微信配置</el-menu-item>
-        <el-menu-item index="/knowledge"><el-icon><Document /></el-icon>知识库</el-menu-item>
-        <el-menu-item index="/external-kb"><el-icon><Collection /></el-icon>外部知识库</el-menu-item>
-        <el-menu-item index="/campaign"><el-icon><Present /></el-icon>营销活动</el-menu-item>
-        <el-menu-item index="/pipeline"><el-icon><Files /></el-icon>管道/阶段</el-menu-item>
-        <el-menu-item index="/risk"><el-icon><WarnTriangleFilled /></el-icon>风控合规</el-menu-item>
-        <el-menu-item index="/permission"><el-icon><Lock /></el-icon>角色权限</el-menu-item>
+        <el-menu-item index="/channels"
+          ><el-icon><Share /></el-icon>渠道管理</el-menu-item
+        >
+        <el-menu-item index="/live-codes"
+          ><el-icon><Iphone /></el-icon>活码管理</el-menu-item
+        >
+        <el-menu-item index="/tags"
+          ><el-icon><PriceTag /></el-icon>标签管理</el-menu-item
+        >
+        <el-menu-item index="/conversations"
+          ><el-icon><ChatDotRound /></el-icon>会话记录</el-menu-item
+        >
+        <el-menu-item index="/journey"
+          ><el-icon><Position /></el-icon>客户旅程</el-menu-item
+        >
+        <el-menu-item index="/staff"
+          ><el-icon><Avatar /></el-icon>员工管理</el-menu-item
+        >
+        <el-menu-item index="/materials"
+          ><el-icon><Picture /></el-icon>素材管理</el-menu-item
+        >
+        <el-menu-item index="/automations"
+          ><el-icon><Setting /></el-icon>自动化规则</el-menu-item
+        >
+        <el-menu-item index="/wechat"
+          ><el-icon><ChatLineRound /></el-icon>微信配置</el-menu-item
+        >
+        <el-menu-item index="/knowledge"
+          ><el-icon><Document /></el-icon>知识库</el-menu-item
+        >
+        <el-menu-item index="/external-kb"
+          ><el-icon><Collection /></el-icon>外部知识库</el-menu-item
+        >
+        <el-menu-item index="/campaign"
+          ><el-icon><Present /></el-icon>营销活动</el-menu-item
+        >
+        <el-menu-item index="/pipeline"
+          ><el-icon><Files /></el-icon>管道/阶段</el-menu-item
+        >
+        <el-menu-item index="/risk"
+          ><el-icon><WarnTriangleFilled /></el-icon>风控合规</el-menu-item
+        >
+        <el-menu-item index="/permission"
+          ><el-icon><Lock /></el-icon>角色权限</el-menu-item
+        >
       </el-menu>
     </el-drawer>
 
@@ -309,7 +355,9 @@ function handleLogout() {
 </script>
 
 <style scoped lang="scss">
-.ops-layout { height: 100vh; }
+.ops-layout {
+  height: 100vh;
+}
 
 .ops-sidebar {
   background-color: #304156;
@@ -331,9 +379,12 @@ function handleLogout() {
     border-right: none;
     background-color: #304156;
 
-    :deep(.el-menu-item), :deep(.el-sub-menu__title) {
+    :deep(.el-menu-item),
+    :deep(.el-sub-menu__title) {
       color: #bfcbd9;
-      &:hover { background-color: #263445; }
+      &:hover {
+        background-color: #263445;
+      }
     }
     :deep(.el-menu-item.is-active) {
       color: #409eff;
@@ -356,20 +407,28 @@ function handleLogout() {
     display: flex;
     align-items: center;
     gap: 16px;
-    .collapse-btn { font-size: 20px; cursor: pointer; }
+    .collapse-btn {
+      font-size: 20px;
+      cursor: pointer;
+    }
   }
 
   .header-right {
     display: flex;
     align-items: center;
     gap: 20px;
-    .action-icon { cursor: pointer; color: #606266; }
+    .action-icon {
+      cursor: pointer;
+      color: #606266;
+    }
     .user-info {
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
-      .username { font-size: 14px; }
+      .username {
+        font-size: 14px;
+      }
     }
   }
 }
@@ -416,10 +475,22 @@ function handleLogout() {
 
 /* 暗色模式 */
 html.dark {
-  .ops-header { background: #1d1e1f; border-bottom-color: #414243; }
-  .ops-main { background-color: #141414; }
-  .mobile-tabbar { background: #1d1e1f; border-top-color: #414243; }
-  .mobile-tabbar .tabbar-item { color: #606266; }
-  .mobile-tabbar .tabbar-item.active { color: #409eff; }
+  .ops-header {
+    background: #1d1e1f;
+    border-bottom-color: #414243;
+  }
+  .ops-main {
+    background-color: #141414;
+  }
+  .mobile-tabbar {
+    background: #1d1e1f;
+    border-top-color: #414243;
+  }
+  .mobile-tabbar .tabbar-item {
+    color: #606266;
+  }
+  .mobile-tabbar .tabbar-item.active {
+    color: #409eff;
+  }
 }
 </style>

@@ -17,25 +17,27 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   options: () => ({}),
   height: '300px',
-  radius: '60%'
+  radius: '60%',
 })
 
 const mergedOptions = computed<EChartsOption>(() => {
   const baseOption: EChartsOption = {
     tooltip: { trigger: 'item' },
     legend: { bottom: '5%' },
-    series: [{
-      type: 'pie',
-      radius: props.radius,
-      data: props.data,
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }
-    }]
+    series: [
+      {
+        type: 'pie',
+        radius: props.radius,
+        data: props.data,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        },
+      },
+    ],
   }
 
   return { ...baseOption, ...props.options }

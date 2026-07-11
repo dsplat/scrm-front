@@ -55,7 +55,9 @@ function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number
   }
 }
 
-export async function getAchievementList(params: AchievementListParams): Promise<AchievementListResult> {
+export async function getAchievementList(
+  params: AchievementListParams,
+): Promise<AchievementListResult> {
   const res = await http.get<Achievement[]>('/scrm/achievements', { params })
   return extractListResult(res)
 }
@@ -70,7 +72,10 @@ export async function createAchievement(data: CreateAchievementData): Promise<Ac
   return res.data
 }
 
-export async function updateAchievement(id: number, data: UpdateAchievementData): Promise<Achievement> {
+export async function updateAchievement(
+  id: number,
+  data: UpdateAchievementData,
+): Promise<Achievement> {
   const res = await http.put<Achievement>(`/scrm/achievements/${id}`, data)
   return res.data
 }

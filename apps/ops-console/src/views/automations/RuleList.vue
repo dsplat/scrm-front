@@ -38,7 +38,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; name: string; trigger_type?: string; executions_count?: number; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  trigger_type?: string
+  executions_count?: number
+  status: string
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -49,17 +56,39 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/automations')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载规则列表失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载规则列表失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { router.push('/automations/new') }
-function handleEdit(row: TableItem) { router.push(`/automations/${row.id}`) }
+function handleCreate() {
+  router.push('/automations/new')
+}
+function handleEdit(row: TableItem) {
+  router.push(`/automations/${row.id}`)
+}
 async function handleToggle(row: TableItem) {
-  try { await http.patch(`/scrm/automations/${row.id}/toggle`); ElMessage.success('已切换状态'); loadData() } catch { ElMessage.error('操作失败') }
+  try {
+    await http.patch(`/scrm/automations/${row.id}/toggle`)
+    ElMessage.success('已切换状态')
+    loadData()
+  } catch {
+    ElMessage.error('操作失败')
+  }
 }
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

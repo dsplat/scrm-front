@@ -147,7 +147,7 @@ const props = withDefaults(defineProps<Props>(), {
   actionWidth: 200,
   showPagination: true,
   pageSizes: () => [10, 20, 50, 100],
-  immediate: true
+  immediate: true,
 })
 
 const loading = ref(false)
@@ -158,7 +158,7 @@ const sortState = reactive({ prop: '', order: '' as '' | 'ascending' | 'descendi
 const searchForm = reactive<Record<string, any>>({})
 
 function initSearchForm() {
-  props.searchConfig?.forEach(item => {
+  props.searchConfig?.forEach((item) => {
     searchForm[item.prop] = ''
   })
 }
@@ -169,7 +169,7 @@ async function fetchData() {
     const params: RequestParams = {
       page: pagination.page,
       pageSize: pagination.pageSize,
-      ...searchForm
+      ...searchForm,
     }
     if (sortState.prop) {
       params.sortProp = sortState.prop
@@ -197,7 +197,13 @@ function handleReset() {
   handleSearch()
 }
 
-function handleSortChange({ prop, order }: { prop: string; order: 'ascending' | 'descending' | null }) {
+function handleSortChange({
+  prop,
+  order,
+}: {
+  prop: string
+  order: 'ascending' | 'descending' | null
+}) {
   sortState.prop = prop ?? ''
   sortState.order = order ?? ''
   fetchData()

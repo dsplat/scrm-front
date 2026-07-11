@@ -33,7 +33,12 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; template_id: string; title: string; status: string }
+interface TableItem {
+  id: number
+  template_id: string
+  title: string
+  status: string
+}
 
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
@@ -43,13 +48,27 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/wechat-templates')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载模板列表失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载模板列表失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { ElMessage.info('新建模板') }
-function handleEdit(_row: TableItem) { ElMessage.info('配置模板') }
-async function handleSendTest(_row: TableItem) { ElMessage.success('测试消息已发送') }
+function handleCreate() {
+  ElMessage.info('新建模板')
+}
+function handleEdit(_row: TableItem) {
+  ElMessage.info('配置模板')
+}
+async function handleSendTest(_row: TableItem) {
+  ElMessage.success('测试消息已发送')
+}
 onMounted(loadData)
 </script>
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 </style>

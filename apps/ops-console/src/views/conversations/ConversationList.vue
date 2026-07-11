@@ -38,7 +38,16 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; customer_name?: string; channel?: string; agent_name?: string; last_message?: string; unread_count?: number; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  customer_name?: string
+  channel?: string
+  agent_name?: string
+  last_message?: string
+  unread_count?: number
+  status: string
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -56,12 +65,22 @@ async function loadData() {
   }
 }
 
-function handleView(row: TableItem) { router.push(`/conversations/${row.id}`) }
+function handleView(row: TableItem) {
+  router.push(`/conversations/${row.id}`)
+}
 
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

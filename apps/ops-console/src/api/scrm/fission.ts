@@ -71,7 +71,9 @@ function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number
   }
 }
 
-export async function getFissionCampaignList(params: FissionCampaignListParams): Promise<FissionCampaignListResult> {
+export async function getFissionCampaignList(
+  params: FissionCampaignListParams,
+): Promise<FissionCampaignListResult> {
   const res = await http.get<FissionCampaign[]>('/scrm/fission-campaigns', { params })
   return extractListResult(res)
 }
@@ -81,12 +83,17 @@ export async function getFissionCampaignDetail(id: number): Promise<FissionCampa
   return res.data
 }
 
-export async function createFissionCampaign(data: CreateFissionCampaignData): Promise<FissionCampaign> {
+export async function createFissionCampaign(
+  data: CreateFissionCampaignData,
+): Promise<FissionCampaign> {
   const res = await http.post<FissionCampaign>('/scrm/fission-campaigns', data)
   return res.data
 }
 
-export async function updateFissionCampaign(id: number, data: UpdateFissionCampaignData): Promise<FissionCampaign> {
+export async function updateFissionCampaign(
+  id: number,
+  data: UpdateFissionCampaignData,
+): Promise<FissionCampaign> {
   const res = await http.put<FissionCampaign>(`/scrm/fission-campaigns/${id}`, data)
   return res.data
 }
@@ -95,7 +102,10 @@ export async function deleteFissionCampaign(id: number): Promise<void> {
   await http.delete(`/scrm/fission-campaigns/${id}`)
 }
 
-export async function updateFissionCampaignStatus(id: number, status: 'pending' | 'active' | 'ended'): Promise<void> {
+export async function updateFissionCampaignStatus(
+  id: number,
+  status: 'pending' | 'active' | 'ended',
+): Promise<void> {
   await http.put(`/scrm/fission-campaigns/${id}/status`, { status })
 }
 

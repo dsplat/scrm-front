@@ -24,19 +24,24 @@
       :close-on-click-modal="false"
       @close="handleDialogClose"
     >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
-      >
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-form-item label="卡片类型" prop="type">
           <el-select v-model="formData.type" placeholder="请选择卡片类型" style="width: 100%">
-            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+            <el-option
+              v-for="opt in typeOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="卡片名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入卡片名称" maxlength="50" show-word-limit />
+          <el-input
+            v-model="formData.name"
+            placeholder="请输入卡片名称"
+            maxlength="50"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="有效期类型" prop="validityType">
           <el-radio-group v-model="formData.validityType">
@@ -44,10 +49,23 @@
             <el-radio value="period">固定期限</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="formData.validityType === 'period'" label="有效天数" prop="validityDays">
-          <el-input-number v-model="formData.validityDays" :min="1" :max="36500" style="width: 100%" />
+        <el-form-item
+          v-if="formData.validityType === 'period'"
+          label="有效天数"
+          prop="validityDays"
+        >
+          <el-input-number
+            v-model="formData.validityDays"
+            :min="1"
+            :max="36500"
+            style="width: 100%"
+          />
         </el-form-item>
-        <el-form-item v-if="formData.validityType === 'period'" label="有效期范围" prop="validityRange">
+        <el-form-item
+          v-if="formData.validityType === 'period'"
+          label="有效期范围"
+          prop="validityRange"
+        >
           <el-date-picker
             v-model="formData.validityRange"
             type="daterange"
@@ -59,10 +77,23 @@
           />
         </el-form-item>
         <el-form-item v-if="formData.type === 'stored_value'" label="储值金额" prop="storedAmount">
-          <el-input-number v-model="formData.storedAmount" :min="0" :precision="2" :step="100" style="width: 100%" />
+          <el-input-number
+            v-model="formData.storedAmount"
+            :min="0"
+            :precision="2"
+            :step="100"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="权益说明" prop="benefits">
-          <el-input v-model="formData.benefits" type="textarea" placeholder="请输入权益说明" :rows="3" maxlength="500" show-word-limit />
+          <el-input
+            v-model="formData.benefits"
+            type="textarea"
+            placeholder="请输入权益说明"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="卡面背景图" prop="coverImage">
           <div class="cover-upload-wrapper">
@@ -87,7 +118,14 @@
           </div>
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" placeholder="请输入描述" :rows="2" maxlength="200" show-word-limit />
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            placeholder="请输入描述"
+            :rows="2"
+            maxlength="200"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="formData.status">
@@ -102,11 +140,7 @@
       </template>
     </el-dialog>
 
-    <el-drawer
-      v-model="detailVisible"
-      title="卡片详情"
-      size="480px"
-    >
+    <el-drawer v-model="detailVisible" title="卡片详情" size="480px">
       <template v-if="detailData">
         <el-descriptions :column="1" border>
           <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
@@ -117,12 +151,18 @@
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="有效期">
-            {{ detailData.validityType === 'permanent' ? '永久有效' : `${detailData.validityStart} 至 ${detailData.validityEnd}` }}
+            {{
+              detailData.validityType === 'permanent'
+                ? '永久有效'
+                : `${detailData.validityStart} 至 ${detailData.validityEnd}`
+            }}
           </el-descriptions-item>
           <el-descriptions-item v-if="detailData.type === 'stored_value'" label="储值金额">
             ¥{{ detailData.storedAmount?.toFixed(2) }}
           </el-descriptions-item>
-          <el-descriptions-item label="权益说明">{{ detailData.benefits || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="权益说明">{{
+            detailData.benefits || '-'
+          }}</el-descriptions-item>
           <el-descriptions-item label="卡面背景图">
             <el-image
               v-if="detailData.coverImage && isAllowedUrl(detailData.coverImage)"
@@ -133,7 +173,9 @@
             />
             <span v-else>-</span>
           </el-descriptions-item>
-          <el-descriptions-item label="描述">{{ detailData.description || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="描述">{{
+            detailData.description || '-'
+          }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="detailData.status === 1 ? 'success' : 'danger'">
               {{ detailData.status === 1 ? '启用' : '禁用' }}
@@ -149,10 +191,25 @@
 
 <script setup lang="ts">
 import { ref, h, reactive } from 'vue'
-import { ElMessage, ElMessageBox, ElImage, ElTag, ElIcon, type FormInstance, type FormRules, type UploadRequestOptions } from 'element-plus'
+import {
+  ElMessage,
+  ElMessageBox,
+  ElImage,
+  ElTag,
+  ElIcon,
+  type FormInstance,
+  type FormRules,
+  type UploadRequestOptions,
+} from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import {
   getMembershipCardList,
   getMembershipCardDetail,
@@ -198,7 +255,11 @@ const formRules: FormRules = {
   validityType: [{ required: true, message: '请选择有效期类型', trigger: 'change' }],
   validityDays: [
     {
-      validator: (_rule: FormRules[string], _value: number | undefined, callback: (error?: Error) => void) => {
+      validator: (
+        _rule: FormRules[string],
+        _value: number | undefined,
+        callback: (error?: Error) => void,
+      ) => {
         if (formData.validityType === 'period' && (!_value || _value < 1)) {
           callback(new Error('请输入有效天数'))
         } else {
@@ -256,7 +317,13 @@ const columns: ColumnConfig[] = [
     label: '有效期',
     width: 160,
     render: (row: MembershipCard) =>
-      h('span', null, row.validityType === 'permanent' ? '永久有效' : `${row.validityStart} 至 ${row.validityEnd}`),
+      h(
+        'span',
+        null,
+        row.validityType === 'permanent'
+          ? '永久有效'
+          : `${row.validityStart} 至 ${row.validityEnd}`,
+      ),
   },
   {
     prop: 'coverImage',
@@ -272,7 +339,11 @@ const columns: ColumnConfig[] = [
     label: '储值金额',
     width: 110,
     render: (row: MembershipCard) =>
-      h('span', null, row.type === 'stored_value' ? `¥${row.storedAmount?.toFixed(2) ?? '0.00'}` : '-'),
+      h(
+        'span',
+        null,
+        row.type === 'stored_value' ? `¥${row.storedAmount?.toFixed(2) ?? '0.00'}` : '-',
+      ),
   },
   {
     prop: 'status',
@@ -326,7 +397,8 @@ function handleEdit(row: MembershipCard) {
   formData.name = row.name
   formData.validityType = row.validityType
   formData.validityDays = row.validityDays || 365
-  formData.validityRange = row.validityStart && row.validityEnd ? [row.validityStart, row.validityEnd] : []
+  formData.validityRange =
+    row.validityStart && row.validityEnd ? [row.validityStart, row.validityEnd] : []
   formData.storedAmount = row.storedAmount || 0
   formData.benefits = row.benefits || ''
   formData.coverImage = row.coverImage || ''

@@ -38,7 +38,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listChannels, deleteChannel } from '@/api/channels'
 
-interface TableItem { id: number; name: string; type?: string; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  type?: string
+  status: string
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -56,8 +62,12 @@ async function loadData() {
   }
 }
 
-function handleCreate() { router.push('/channels/new') }
-function handleEdit(row: TableItem) { router.push(`/channels/${row.id}`) }
+function handleCreate() {
+  router.push('/channels/new')
+}
+function handleEdit(row: TableItem) {
+  router.push(`/channels/${row.id}`)
+}
 async function handleDelete(row: TableItem) {
   await ElMessageBox.confirm(`确定删除渠道「${row.name}」？`)
   await deleteChannel(row.id)
@@ -69,6 +79,14 @@ onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

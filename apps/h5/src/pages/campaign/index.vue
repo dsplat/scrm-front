@@ -8,7 +8,7 @@
         <text>距结束: {{ countdown }}</text>
       </view>
       <button class="join-btn" @tap="handleJoinCampaign" :disabled="expired || joining">
-        {{ joining ? '参与中...' : (expired ? '活动已结束' : '立即参与') }}
+        {{ joining ? '参与中...' : expired ? '活动已结束' : '立即参与' }}
       </button>
       <button class="share-btn" open-type="share">分享给好友</button>
     </view>
@@ -58,7 +58,10 @@ function startCountdown() {
   if (!endDate.value) return
   timer = setInterval(() => {
     const diff = endDate.value! - Date.now()
-    if (diff <= 0) { expired.value = true; return }
+    if (diff <= 0) {
+      expired.value = true
+      return
+    }
     const h = Math.floor(diff / 3600000)
     const m = Math.floor((diff % 3600000) / 60000)
     const s = Math.floor((diff % 60000) / 1000)
@@ -66,7 +69,9 @@ function startCountdown() {
   }, 1000) as unknown as number
 }
 
-onUnmounted(() => { if (timer) clearInterval(timer) })
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 async function handleJoinCampaign() {
   // @ts-ignore - uni is provided by uni-app runtime
@@ -96,14 +101,42 @@ async function handleJoinCampaign() {
 </script>
 
 <style scoped>
-.campaign-page { background: #fff; min-height: 100vh; }
-.banner { width: 100%; }
-.campaign-info { padding: 32rpx; }
-.title { font-size: 36rpx; font-weight: bold; display: block; }
-.desc { font-size: 28rpx; color: #666; display: block; margin: 16rpx 0; }
-.countdown { text-align: center; color: #e6a23c; font-size: 30rpx; margin: 20rpx 0; }
-.join-btn { background: #ff6b6b; color: #fff; border-radius: 40rpx; margin: 20rpx 0; }
-.share-btn { border-radius: 40rpx; }
+.campaign-page {
+  background: #fff;
+  min-height: 100vh;
+}
+.banner {
+  width: 100%;
+}
+.campaign-info {
+  padding: 32rpx;
+}
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  display: block;
+}
+.desc {
+  font-size: 28rpx;
+  color: #666;
+  display: block;
+  margin: 16rpx 0;
+}
+.countdown {
+  text-align: center;
+  color: #e6a23c;
+  font-size: 30rpx;
+  margin: 20rpx 0;
+}
+.join-btn {
+  background: #ff6b6b;
+  color: #fff;
+  border-radius: 40rpx;
+  margin: 20rpx 0;
+}
+.share-btn {
+  border-radius: 40rpx;
+}
 </style>
 <template>
   <view class="campaign-page">
@@ -134,24 +167,59 @@ onMounted(() => {
   timer = setInterval(() => {
     const end = Date.now() + 86400000
     const diff = end - Date.now()
-    if (diff <= 0) { expired.value = true; return }
+    if (diff <= 0) {
+      expired.value = true
+      return
+    }
     const h = Math.floor(diff / 3600000)
     const m = Math.floor((diff % 3600000) / 60000)
     const s = Math.floor((diff % 60000) / 1000)
     countdown.value = `${h}h ${m}m ${s}s`
   }, 1000)
 })
-onUnmounted(() => { if (timer) clearInterval(timer) })
-function joinCampaign() { uni.showToast({ title: '参与成功！', icon: 'success' }) }
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
+function joinCampaign() {
+  uni.showToast({ title: '参与成功！', icon: 'success' })
+}
 </script>
 
 <style scoped>
-.campaign-page { background: #fff; min-height: 100vh; }
-.banner { width: 100%; }
-.campaign-info { padding: 32rpx; }
-.title { font-size: 36rpx; font-weight: bold; display: block; }
-.desc { font-size: 28rpx; color: #666; display: block; margin: 16rpx 0; }
-.countdown { text-align: center; color: #e6a23c; font-size: 30rpx; margin: 20rpx 0; }
-.join-btn { background: #ff6b6b; color: #fff; border-radius: 40rpx; margin: 20rpx 0; }
-.share-btn { border-radius: 40rpx; }
+.campaign-page {
+  background: #fff;
+  min-height: 100vh;
+}
+.banner {
+  width: 100%;
+}
+.campaign-info {
+  padding: 32rpx;
+}
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  display: block;
+}
+.desc {
+  font-size: 28rpx;
+  color: #666;
+  display: block;
+  margin: 16rpx 0;
+}
+.countdown {
+  text-align: center;
+  color: #e6a23c;
+  font-size: 30rpx;
+  margin: 20rpx 0;
+}
+.join-btn {
+  background: #ff6b6b;
+  color: #fff;
+  border-radius: 40rpx;
+  margin: 20rpx 0;
+}
+.share-btn {
+  border-radius: 40rpx;
+}
 </style>

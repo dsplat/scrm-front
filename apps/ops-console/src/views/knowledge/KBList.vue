@@ -38,7 +38,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; name: string; documents_count?: number; search_count?: number; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  documents_count?: number
+  search_count?: number
+  status: string
+  createdAt: string
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -49,15 +56,34 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/knowledge-bases')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载知识库列表失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载知识库列表失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { router.push('/knowledge/new') }
-function handleEdit(row: TableItem) { router.push(`/knowledge/${row.id}`) }
-function handleDelete(_row: TableItem) { ElMessage.success('已删除'); loadData() }
+function handleCreate() {
+  router.push('/knowledge/new')
+}
+function handleEdit(row: TableItem) {
+  router.push(`/knowledge/${row.id}`)
+}
+function handleDelete(_row: TableItem) {
+  ElMessage.success('已删除')
+  loadData()
+}
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

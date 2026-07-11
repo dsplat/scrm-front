@@ -15,11 +15,15 @@
             <el-descriptions-item label="渠道">—</el-descriptions-item>
             <el-descriptions-item label="标签">—</el-descriptions-item>
           </el-descriptions>
-          <el-button type="primary" style="width:100%;margin-top:12px">AI 分析对话</el-button>
+          <el-button type="primary" style="width: 100%; margin-top: 12px">AI 分析对话</el-button>
         </el-card>
       </el-col>
     </el-row>
   </div>
 </template>
 <script setup lang="ts"></script>
-<style scoped>.chat-area { min-height: 400px; }</style>
+<style scoped>
+.chat-area {
+  min-height: 400px;
+}
+</style>

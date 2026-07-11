@@ -52,7 +52,12 @@ onMounted(async () => {
   } catch {
     // Fallback to static FAQs if API unavailable
     faqs.value = [
-      { id: 1, question: '如何退换货？', answer: '7天内无理由退换货，请联系客服处理。', open: false },
+      {
+        id: 1,
+        question: '如何退换货？',
+        answer: '7天内无理由退换货，请联系客服处理。',
+        open: false,
+      },
       { id: 2, question: '物流时效？', answer: '通常1-3个工作日送达。', open: false },
       { id: 3, question: '如何积分兑换？', answer: '在个人中心-积分商城进行兑换。', open: false },
     ]
@@ -62,7 +67,7 @@ onMounted(async () => {
 })
 
 function toggleFaq(id: number) {
-  const faq = faqs.value.find(f => f.id === id)
+  const faq = faqs.value.find((f) => f.id === id)
   if (faq) faq.open = !faq.open
 }
 
@@ -101,15 +106,51 @@ async function handleSubmitFeedback() {
 </script>
 
 <style scoped>
-.self-service-page { padding: 20rpx; }
-.section { background: #fff; border-radius: 12rpx; padding: 24rpx; margin-bottom: 20rpx; }
-.section-title { font-size: 30rpx; font-weight: bold; display: block; margin-bottom: 16rpx; }
-.faq-item { padding: 16rpx 0; border-bottom: 1px solid #f0f0f0; }
-.faq-q { font-size: 28rpx; display: block; }
-.faq-a { font-size: 26rpx; color: #666; display: block; margin-top: 8rpx; }
-.empty { text-align: center; padding: 40rpx; color: #999; font-size: 26rpx; }
-textarea { width: 100%; height: 150rpx; border: 1px solid #e0e0e0; border-radius: 8rpx; padding: 16rpx; }
-button { margin-top: 16rpx; }
+.self-service-page {
+  padding: 20rpx;
+}
+.section {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16rpx;
+}
+.faq-item {
+  padding: 16rpx 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.faq-q {
+  font-size: 28rpx;
+  display: block;
+}
+.faq-a {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  margin-top: 8rpx;
+}
+.empty {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 26rpx;
+}
+textarea {
+  width: 100%;
+  height: 150rpx;
+  border: 1px solid #e0e0e0;
+  border-radius: 8rpx;
+  padding: 16rpx;
+}
+button {
+  margin-top: 16rpx;
+}
 </style>
 <template>
   <view class="self-service-page">
@@ -140,18 +181,56 @@ const faqs = ref([
   { id: 2, question: '物流时效？', answer: '通常1-3个工作日送达。', open: false },
   { id: 3, question: '如何积分兑换？', answer: '在个人中心-积分商城进行兑换。', open: false },
 ])
-function toggleFaq(id: number) { faqs.value.find(f => f.id === id)!.open = !faqs.value.find(f => f.id === id)!.open }
-function contactAgent() { uni.navigateTo({ url: '/pages/live-code/index' }) }
-function submitFeedback() { uni.showToast({ title: '反馈已提交', icon: 'success' }); feedback.value = '' }
+function toggleFaq(id: number) {
+  faqs.value.find((f) => f.id === id)!.open = !faqs.value.find((f) => f.id === id)!.open
+}
+function contactAgent() {
+  uni.navigateTo({ url: '/pages/live-code/index' })
+}
+function submitFeedback() {
+  uni.showToast({ title: '反馈已提交', icon: 'success' })
+  feedback.value = ''
+}
 </script>
 
 <style scoped>
-.self-service-page { padding: 20rpx; }
-.section { background: #fff; border-radius: 12rpx; padding: 24rpx; margin-bottom: 20rpx; }
-.section-title { font-size: 30rpx; font-weight: bold; display: block; margin-bottom: 16rpx; }
-.faq-item { padding: 16rpx 0; border-bottom: 1px solid #f0f0f0; }
-.faq-q { font-size: 28rpx; display: block; }
-.faq-a { font-size: 26rpx; color: #666; display: block; margin-top: 8rpx; }
-textarea { width: 100%; height: 150rpx; border: 1px solid #e0e0e0; border-radius: 8rpx; padding: 16rpx; }
-button { margin-top: 16rpx; }
+.self-service-page {
+  padding: 20rpx;
+}
+.section {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+.section-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16rpx;
+}
+.faq-item {
+  padding: 16rpx 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.faq-q {
+  font-size: 28rpx;
+  display: block;
+}
+.faq-a {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  margin-top: 8rpx;
+}
+textarea {
+  width: 100%;
+  height: 150rpx;
+  border: 1px solid #e0e0e0;
+  border-radius: 8rpx;
+  padding: 16rpx;
+}
+button {
+  margin-top: 16rpx;
+}
 </style>

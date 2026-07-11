@@ -20,7 +20,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   data: () => [],
   options: () => ({}),
-  height: '300px'
+  height: '300px',
 })
 
 const chartRef = ref<HTMLElement>()
@@ -28,7 +28,7 @@ let chartInstance: echarts.ECharts | null = null
 
 const hasData = computed(() => {
   if (!props.data || props.data.length === 0) return false
-  return props.data.some(item => {
+  return props.data.some((item) => {
     if (typeof item === 'object' && item !== null) {
       return item.value !== undefined && item.value !== null
     }
@@ -51,19 +51,27 @@ function handleResize() {
   chartInstance?.resize()
 }
 
-watch(() => props.options, () => {
-  nextTick(updateChart)
-}, { deep: true })
+watch(
+  () => props.options,
+  () => {
+    nextTick(updateChart)
+  },
+  { deep: true },
+)
 
-watch(() => props.data, () => {
-  nextTick(() => {
-    if (hasData.value && !chartInstance) {
-      initChart()
-    } else {
-      updateChart()
-    }
-  })
-}, { deep: true })
+watch(
+  () => props.data,
+  () => {
+    nextTick(() => {
+      if (hasData.value && !chartInstance) {
+        initChart()
+      } else {
+        updateChart()
+      }
+    })
+  },
+  { deep: true },
+)
 
 onMounted(async () => {
   await nextTick()

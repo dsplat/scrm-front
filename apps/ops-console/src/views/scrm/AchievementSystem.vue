@@ -31,7 +31,13 @@
 import { ref, h } from 'vue'
 import { ElMessage, ElMessageBox, ElImage, ElTag } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import ProFormDialog from '@/components/common/ProFormDialog/ProFormDialog.vue'
 import type { FieldConfig } from '@/components/common/ProFormDialog/ProFormDialog.vue'
 import {
@@ -83,7 +89,8 @@ const columns: ColumnConfig[] = [
     prop: 'conditionType',
     label: '达成条件',
     minWidth: 150,
-    render: (row: Achievement) => h('span', null, getConditionText(row.conditionType, row.conditionValue)),
+    render: (row: Achievement) =>
+      h('span', null, getConditionText(row.conditionType, row.conditionValue)),
   },
   {
     prop: 'rewardType',
@@ -110,7 +117,13 @@ const actions: ActionConfig[] = [
 
 const fields: FieldConfig[] = [
   { prop: 'name', label: '成就名称', type: 'input', required: true, maxlength: 50 },
-  { prop: 'icon', label: '图标', type: 'input', required: true, placeholder: '请输入图标标识或URL' },
+  {
+    prop: 'icon',
+    label: '图标',
+    type: 'input',
+    required: true,
+    placeholder: '请输入图标标识或URL',
+  },
   { prop: 'description', label: '描述', type: 'textarea', maxlength: 200, rows: 3 },
   {
     prop: 'conditionType',
@@ -206,8 +219,26 @@ async function handleSubmit(data: Record<string, any>) {
       const { id, ...updateData } = data
       await updateAchievement(id, updateData)
     } else {
-      const { name, icon, description, conditionType, conditionValue, rewardType, rewardValue, status } = data
-      await createAchievement({ name, icon, description, conditionType, conditionValue, rewardType, rewardValue, status })
+      const {
+        name,
+        icon,
+        description,
+        conditionType,
+        conditionValue,
+        rewardType,
+        rewardValue,
+        status,
+      } = data
+      await createAchievement({
+        name,
+        icon,
+        description,
+        conditionType,
+        conditionValue,
+        rewardType,
+        rewardValue,
+        status,
+      })
     }
     tableRef.value?.refresh()
   } catch (e: any) {

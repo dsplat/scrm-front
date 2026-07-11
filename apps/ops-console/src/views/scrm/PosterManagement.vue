@@ -31,7 +31,13 @@
 import { ref, h } from 'vue'
 import { ElMessage, ElMessageBox, ElImage, ElTag } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import ProFormDialog from '@/components/common/ProFormDialog/ProFormDialog.vue'
 import type { FieldConfig } from '@/components/common/ProFormDialog/ProFormDialog.vue'
 import {
@@ -98,7 +104,13 @@ const actions: ActionConfig[] = [
 
 const fields: FieldConfig[] = [
   { prop: 'title', label: '海报名称', type: 'input', required: true, maxlength: 50 },
-  { prop: 'imageUrl', label: '海报图片', type: 'input', required: true, placeholder: '请输入图片URL' },
+  {
+    prop: 'imageUrl',
+    label: '海报图片',
+    type: 'input',
+    required: true,
+    placeholder: '请输入图片URL',
+  },
   { prop: 'jumpUrl', label: '跳转链接', type: 'input', placeholder: '请输入跳转链接' },
   {
     prop: 'status',

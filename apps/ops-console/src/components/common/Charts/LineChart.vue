@@ -19,24 +19,26 @@ const props = withDefaults(defineProps<Props>(), {
   options: () => ({}),
   height: '300px',
   smooth: true,
-  area: false
+  area: false,
 })
 
 const mergedOptions = computed<EChartsOption>(() => {
-  const categories = props.data.map(item => item.name)
-  const values = props.data.map(item => item.value)
+  const categories = props.data.map((item) => item.name)
+  const values = props.data.map((item) => item.value)
 
   const baseOption: EChartsOption = {
     tooltip: { trigger: 'axis' },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: { type: 'category', data: categories, boundaryGap: false },
     yAxis: { type: 'value' },
-    series: [{
-      type: 'line',
-      data: values,
-      smooth: props.smooth,
-      areaStyle: props.area ? {} : undefined
-    }]
+    series: [
+      {
+        type: 'line',
+        data: values,
+        smooth: props.smooth,
+        areaStyle: props.area ? {} : undefined,
+      },
+    ],
   }
 
   return { ...baseOption, ...props.options }

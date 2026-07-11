@@ -37,7 +37,14 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; name: string; provider_type?: string; connection_status?: string; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  name: string
+  provider_type?: string
+  connection_status?: string
+  status: string
+  createdAt: string
+}
 
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
@@ -47,16 +54,37 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/external-knowledge-bases')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载外部知识库列表失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载外部知识库列表失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { ElMessage.info('新建连接') }
-function handleEdit(_row: TableItem) { ElMessage.info('编辑连接') }
-function handleDelete(_row: TableItem) { ElMessage.success('已删除'); loadData() }
-async function handleTest(_row: TableItem) { ElMessage.success('连接正常') }
+function handleCreate() {
+  ElMessage.info('新建连接')
+}
+function handleEdit(_row: TableItem) {
+  ElMessage.info('编辑连接')
+}
+function handleDelete(_row: TableItem) {
+  ElMessage.success('已删除')
+  loadData()
+}
+async function handleTest(_row: TableItem) {
+  ElMessage.success('连接正常')
+}
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

@@ -31,7 +31,13 @@
 import { ref, h } from 'vue'
 import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import ProFormDialog from '@/components/common/ProFormDialog/ProFormDialog.vue'
 import type { FieldConfig } from '@/components/common/ProFormDialog/ProFormDialog.vue'
 import {
@@ -102,7 +108,15 @@ const actions: ActionConfig[] = [
 const fields: FieldConfig[] = [
   { prop: 'name', label: 'SOP 名称', type: 'input', required: true, maxlength: 50 },
   { prop: 'content', label: '内容', type: 'textarea', required: true, rows: 4 },
-  { prop: 'executeTime', label: '执行时间', type: 'date-picker', required: true, dateType: 'datetime', format: 'YYYY-MM-DD HH:mm:ss', valueFormat: 'YYYY-MM-DD HH:mm:ss' },
+  {
+    prop: 'executeTime',
+    label: '执行时间',
+    type: 'date-picker',
+    required: true,
+    dateType: 'datetime',
+    format: 'YYYY-MM-DD HH:mm:ss',
+    valueFormat: 'YYYY-MM-DD HH:mm:ss',
+  },
   {
     prop: 'status',
     label: '状态',

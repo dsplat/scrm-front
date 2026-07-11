@@ -79,7 +79,9 @@ function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number
   }
 }
 
-export async function getLotteryCampaignList(params: LotteryCampaignListParams): Promise<LotteryCampaignListResult> {
+export async function getLotteryCampaignList(
+  params: LotteryCampaignListParams,
+): Promise<LotteryCampaignListResult> {
   const res = await http.get<LotteryCampaign[]>('/scrm/lottery-campaigns', { params })
   return extractListResult(res)
 }
@@ -89,12 +91,17 @@ export async function getLotteryCampaignDetail(id: number): Promise<LotteryCampa
   return res.data
 }
 
-export async function createLotteryCampaign(data: CreateLotteryCampaignData): Promise<LotteryCampaign> {
+export async function createLotteryCampaign(
+  data: CreateLotteryCampaignData,
+): Promise<LotteryCampaign> {
   const res = await http.post<LotteryCampaign>('/scrm/lottery-campaigns', data)
   return res.data
 }
 
-export async function updateLotteryCampaign(id: number, data: UpdateLotteryCampaignData): Promise<LotteryCampaign> {
+export async function updateLotteryCampaign(
+  id: number,
+  data: UpdateLotteryCampaignData,
+): Promise<LotteryCampaign> {
   const res = await http.put<LotteryCampaign>(`/scrm/lottery-campaigns/${id}`, data)
   return res.data
 }
@@ -103,7 +110,10 @@ export async function deleteLotteryCampaign(id: number): Promise<void> {
   await http.delete(`/scrm/lottery-campaigns/${id}`)
 }
 
-export async function updateLotteryCampaignStatus(id: number, status: 'active' | 'disabled'): Promise<void> {
+export async function updateLotteryCampaignStatus(
+  id: number,
+  status: 'active' | 'disabled',
+): Promise<void> {
   await http.put(`/scrm/lottery-campaigns/${id}/status`, { status })
 }
 
@@ -116,7 +126,9 @@ export async function uploadLotteryPrizeImage(file: File): Promise<string> {
   return res.data.url
 }
 
-export async function getLotteryWinnerList(params: LotteryWinnerListParams): Promise<LotteryWinnerListResult> {
+export async function getLotteryWinnerList(
+  params: LotteryWinnerListParams,
+): Promise<LotteryWinnerListResult> {
   const res = await http.get<LotteryWinnerRecord[]>('/scrm/lottery-campaigns/winners', { params })
   return extractListResult(res)
 }

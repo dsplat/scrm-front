@@ -14,7 +14,12 @@
           <el-input v-model="form.appId" placeholder="请输入 AppID 或 CorpID" />
         </el-form-item>
         <el-form-item label="AppSecret / Secret">
-          <el-input v-model="form.appSecret" type="password" show-password placeholder="请输入 Secret" />
+          <el-input
+            v-model="form.appSecret"
+            type="password"
+            show-password
+            placeholder="请输入 Secret"
+          />
         </el-form-item>
         <el-form-item v-if="form.type === 'enterprise_wechat'" label="AgentID">
           <el-input v-model="form.agentId" placeholder="请输入 AgentID" />
@@ -48,8 +53,12 @@ import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const form = ref({
-  type: 'wechat_official', appId: '', appSecret: '', agentId: '',
-  callbackToken: '', encodingAesKey: '',
+  type: 'wechat_official',
+  appId: '',
+  appSecret: '',
+  agentId: '',
+  callbackToken: '',
+  encodingAesKey: '',
 })
 const callbackUrl = computed(() => {
   const base = window.location.origin + '/api/v1/channels'
@@ -57,7 +66,14 @@ const callbackUrl = computed(() => {
     ? `${base}/wechat-work/callback`
     : `${base}/wechat/callback`
 })
-function copyUrl() { navigator.clipboard.writeText(callbackUrl.value); ElMessage.success('已复制') }
-function handleSave() { ElMessage.success('配置已保存') }
-function handleTest() { ElMessage.info('测试连接中...') }
+function copyUrl() {
+  navigator.clipboard.writeText(callbackUrl.value)
+  ElMessage.success('已复制')
+}
+function handleSave() {
+  ElMessage.success('配置已保存')
+}
+function handleTest() {
+  ElMessage.info('测试连接中...')
+}
 </script>

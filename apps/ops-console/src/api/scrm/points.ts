@@ -65,7 +65,9 @@ export interface UpdatePointsRuleData {
   status?: number
 }
 
-export async function getPointsRuleList(params: PointsRuleListParams): Promise<PointsRuleListResult> {
+export async function getPointsRuleList(
+  params: PointsRuleListParams,
+): Promise<PointsRuleListResult> {
   const res = await http.get<any>('/scrm/points-rules', { params })
   return {
     data: res.data ?? [],

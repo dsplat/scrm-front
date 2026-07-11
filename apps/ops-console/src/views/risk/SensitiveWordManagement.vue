@@ -37,7 +37,15 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { http } from '@scrm/shared'
 
-interface TableItem { id: number; word: string; category?: string; level?: string; hits_count?: number; status: string; createdAt: string }
+interface TableItem {
+  id: number
+  word: string
+  category?: string
+  level?: string
+  hits_count?: number
+  status: string
+  createdAt: string
+}
 
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
@@ -47,15 +55,34 @@ async function loadData() {
   try {
     const res = await http.get('/scrm/sensitive-words')
     tableData.value = res.data?.data ?? res.data ?? []
-  } catch { ElMessage.error('加载敏感词列表失败') } finally { loading.value = false }
+  } catch {
+    ElMessage.error('加载敏感词列表失败')
+  } finally {
+    loading.value = false
+  }
 }
-function handleCreate() { ElMessage.info('新建敏感词') }
-function handleEdit(_row: TableItem) { ElMessage.info('编辑敏感词') }
-function handleDelete(_row: TableItem) { ElMessage.success('已删除'); loadData() }
+function handleCreate() {
+  ElMessage.info('新建敏感词')
+}
+function handleEdit(_row: TableItem) {
+  ElMessage.info('编辑敏感词')
+}
+function handleDelete(_row: TableItem) {
+  ElMessage.success('已删除')
+  loadData()
+}
 onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 16px; display: flex; justify-content: flex-end; }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>

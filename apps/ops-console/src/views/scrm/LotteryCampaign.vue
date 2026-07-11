@@ -26,14 +26,14 @@
       :close-on-click-modal="false"
       @close="handleFormClose"
     >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="100px"
-      >
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-form-item label="活动名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入活动名称" maxlength="50" show-word-limit />
+          <el-input
+            v-model="formData.name"
+            placeholder="请输入活动名称"
+            maxlength="50"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="活动时间" prop="timeRange">
           <el-date-picker
@@ -47,7 +47,14 @@
           />
         </el-form-item>
         <el-form-item label="活动描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" placeholder="请输入活动描述" :rows="3" maxlength="500" show-word-limit />
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            placeholder="请输入活动描述"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+          />
         </el-form-item>
 
         <el-divider content-position="left">奖品配置</el-divider>
@@ -55,7 +62,12 @@
         <div v-for="(prize, index) in formData.prizes" :key="index" class="prize-item">
           <div class="prize-item-header">
             <span class="prize-item-title">奖品 {{ index + 1 }}</span>
-            <el-button v-if="formData.prizes.length > 1" type="danger" link @click="removePrize(index)">
+            <el-button
+              v-if="formData.prizes.length > 1"
+              type="danger"
+              link
+              @click="removePrize(index)"
+            >
               <el-icon><Delete /></el-icon> 删除
             </el-button>
           </div>
@@ -64,12 +76,14 @@
             :rules="[{ required: true, message: '请输入奖品名称', trigger: 'blur' }]"
             label="奖品名称"
           >
-            <el-input v-model="prize.name" placeholder="请输入奖品名称" maxlength="30" show-word-limit />
+            <el-input
+              v-model="prize.name"
+              placeholder="请输入奖品名称"
+              maxlength="30"
+              show-word-limit
+            />
           </el-form-item>
-          <el-form-item
-            :prop="'prizes.' + index + '.imageUrl'"
-            label="奖品图片"
-          >
+          <el-form-item :prop="'prizes.' + index + '.imageUrl'" label="奖品图片">
             <div class="prize-image-upload">
               <el-upload
                 :show-file-list="false"
@@ -95,22 +109,35 @@
             :prop="'prizes.' + index + '.probability'"
             :rules="[
               { required: true, message: '请输入中奖概率', trigger: 'blur' },
-              { validator: validateProbability, trigger: 'blur' }
+              { validator: validateProbability, trigger: 'blur' },
             ]"
             label="中奖概率"
           >
-            <el-input-number v-model="prize.probability" :min="0" :max="100" :precision="2" :step="1" style="width: 200px" />
+            <el-input-number
+              v-model="prize.probability"
+              :min="0"
+              :max="100"
+              :precision="2"
+              :step="1"
+              style="width: 200px"
+            />
             <span class="form-tip">%</span>
           </el-form-item>
           <el-form-item
             :prop="'prizes.' + index + '.quantity'"
             :rules="[
               { required: true, message: '请输入奖品数量', trigger: 'blur' },
-              { validator: validateQuantity, trigger: 'blur' }
+              { validator: validateQuantity, trigger: 'blur' },
             ]"
             label="奖品数量"
           >
-            <el-input-number v-model="prize.quantity" :min="1" :max="999999" :step="1" style="width: 200px" />
+            <el-input-number
+              v-model="prize.quantity"
+              :min="1"
+              :max="999999"
+              :step="1"
+              style="width: 200px"
+            />
             <span class="form-tip">份</span>
           </el-form-item>
         </div>
@@ -119,7 +146,11 @@
           <el-button type="primary" plain @click="addPrize">
             <el-icon><Plus /></el-icon> 添加奖品
           </el-button>
-          <span v-if="totalProbability > 0" class="probability-total" :class="{ 'probability-error': totalProbability > 100 }">
+          <span
+            v-if="totalProbability > 0"
+            class="probability-total"
+            :class="{ 'probability-error': totalProbability > 100 }"
+          >
             总概率：{{ totalProbability }}%
           </span>
         </el-form-item>
@@ -131,11 +162,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog
-      v-model="winnerVisible"
-      title="中奖记录"
-      width="900px"
-    >
+    <el-dialog v-model="winnerVisible" title="中奖记录" width="900px">
       <ProTable
         ref="winnerTableRef"
         :columns="winnerColumns"
@@ -151,10 +178,23 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, h, nextTick } from 'vue'
-import { ElMessage, ElMessageBox, ElTag, type FormInstance, type FormRules, type UploadRequestOptions } from 'element-plus'
+import {
+  ElMessage,
+  ElMessageBox,
+  ElTag,
+  type FormInstance,
+  type FormRules,
+  type UploadRequestOptions,
+} from 'element-plus'
 import { Edit, Plus, Delete } from '@element-plus/icons-vue'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
-import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
+import type {
+  ColumnConfig,
+  SearchConfig,
+  ActionConfig,
+  RequestParams,
+  RequestResult,
+} from '@/components/common/ProTable/ProTable.vue'
 import {
   getLotteryCampaignList,
   getLotteryCampaignDetail,
@@ -259,7 +299,12 @@ function getStatusLabel(status?: string) {
 }
 
 function getStatusTagType(status?: string) {
-  const map: Record<string, string> = { pending: 'info', active: 'success', ended: 'danger', disabled: 'warning' }
+  const map: Record<string, string> = {
+    pending: 'info',
+    active: 'success',
+    ended: 'danger',
+    disabled: 'warning',
+  }
   return (map[status ?? ''] ?? 'info') as any
 }
 
@@ -303,7 +348,11 @@ const columns: ColumnConfig[] = [
 
 const actions: ActionConfig[] = [
   { label: '编辑', type: 'primary', onClick: (row) => handleEdit(row as LotteryCampaign) },
-  { label: '中奖记录', type: 'primary', onClick: (row) => handleViewWinners(row as LotteryCampaign) },
+  {
+    label: '中奖记录',
+    type: 'primary',
+    onClick: (row) => handleViewWinners(row as LotteryCampaign),
+  },
   {
     label: '启用',
     type: 'success',
@@ -314,7 +363,8 @@ const actions: ActionConfig[] = [
     label: '停用',
     type: 'warning',
     onClick: (row) => handleStatusChange(row as LotteryCampaign, 'disabled'),
-    visible: (row) => (row as LotteryCampaign).status === 'active' || (row as LotteryCampaign).status === 'pending',
+    visible: (row) =>
+      (row as LotteryCampaign).status === 'active' || (row as LotteryCampaign).status === 'pending',
   },
   { label: '删除', type: 'danger', onClick: (row) => handleDelete(row as LotteryCampaign) },
 ]
@@ -368,7 +418,8 @@ async function handleEdit(row: LotteryCampaign) {
     editingId.value = row.id
     formData.name = detail.name
     formData.description = detail.description || ''
-    formData.timeRange = detail.startTime && detail.endTime ? [detail.startTime, detail.endTime] : []
+    formData.timeRange =
+      detail.startTime && detail.endTime ? [detail.startTime, detail.endTime] : []
     formData.prizes = detail.prizes?.length
       ? detail.prizes.map((p) => ({
           name: p.name,

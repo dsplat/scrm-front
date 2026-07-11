@@ -36,7 +36,9 @@ export interface UpdateMomentsSopData {
   status?: number
 }
 
-export async function getMomentsSopList(params: MomentsSopListParams): Promise<MomentsSopListResult> {
+export async function getMomentsSopList(
+  params: MomentsSopListParams,
+): Promise<MomentsSopListResult> {
   const res = await http.get<any>('/scrm/moments-sops', { params })
   return {
     data: res.data ?? [],
