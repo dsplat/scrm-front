@@ -60,3 +60,8 @@ export async function deleteMomentsSop(id: number) {
   const res = await http.delete(`/scrm/moments-sops/${id}`)
   return res.data
 }
+
+export async function toggleMomentsSop(id: number, status: number) {
+  const res = await http.patch(`/scrm/moments-sops/${id}/toggle`, { status })
+  return res.data
+}

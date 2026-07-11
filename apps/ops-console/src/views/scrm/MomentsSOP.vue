@@ -39,6 +39,7 @@ import {
   createMomentsSop,
   updateMomentsSop,
   deleteMomentsSop,
+  toggleMomentsSop,
   type MomentsSop,
 } from '@/api/scrm/momentsSop'
 
@@ -82,6 +83,18 @@ const columns: ColumnConfig[] = [
 
 const actions: ActionConfig[] = [
   { label: '编辑', type: 'primary', onClick: (row) => handleEdit(row as MomentsSop) },
+  {
+    label: '启用',
+    type: 'success',
+    onClick: (row) => handleToggle(row as MomentsSop, 1),
+    visible: (row: MomentsSop) => row.status === 0,
+  },
+  {
+    label: '停用',
+    type: 'warning',
+    onClick: (row) => handleToggle(row as MomentsSop, 0),
+    visible: (row: MomentsSop) => row.status === 1,
+  },
   { label: '删除', type: 'danger', onClick: (row) => handleDelete(row as MomentsSop) },
 ]
 
@@ -130,16 +143,20 @@ function handleEdit(row: MomentsSop) {
 }
 
 async function handleSubmit(data: Record<string, any>) {
+  if (data.id) {
+    const { id, ...updateData } = data
+    await updateMomentsSop(id, updateData)
+  } else {
+    const { name, content, executeTime, status } = data
+    await createMomentsSop({ name, content, executeTime, status })
+  }
+  tableRef.value?.refresh()
+}
+
+async function handleToggle(row: MomentsSop, status: number) {
   try {
-    if (data.id) {
-      const { id, ...updateData } = data
-      await updateMomentsSop(id, updateData)
-      ElMessage.success('更新成功')
-    } else {
-      const { name, content, executeTime, status } = data
-      await createMomentsSop({ name, content, executeTime, status })
-      ElMessage.success('创建成功')
-    }
+    await toggleMomentsSop(row.id, status)
+    ElMessage.success(status === 1 ? '已启用' : '已停用')
     tableRef.value?.refresh()
   } catch (e: any) {
     ElMessage.error(e.message || '操作失败')
