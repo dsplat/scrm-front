@@ -22,12 +22,14 @@ export interface Survey {
   updatedAt: string
 }
 
+export type SurveyAnswerValue = string | string[] | number | boolean | null
+
 export interface SurveyResponse {
   id: number
   surveyId: number
   respondentName: string
   respondentPhone: string
-  answers: Record<string, any>
+  answers: Record<number, SurveyAnswerValue>
   submittedAt: string
 }
 

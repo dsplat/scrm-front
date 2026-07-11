@@ -131,7 +131,7 @@
             </el-form-item>
 
             <el-form-item
-              v-if="question.type === 'radio' || question.type === 'checkbox' || question.type === 'select'"
+              v-if="hasOptions(question.type)"
               label="选项配置"
               :prop="'questions.' + index + '.options'"
               :rules="[{ validator: validateOptions, trigger: 'change' }]"
@@ -235,7 +235,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, h, nextTick } from 'vue'
-import { ElMessage, ElMessageBox, ElTag, ElPopover, type FormInstance, type FormRules } from 'element-plus'
+import { ElMessage, ElMessageBox, ElTag, ElPopover, type FormInstance, type FormRules, type FormItemRule } from 'element-plus'
 import { Plus, Delete, Top, Bottom, Rank } from '@element-plus/icons-vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
@@ -255,6 +255,7 @@ import {
   type CreateSurveyData,
   type UpdateSurveyData,
   type SurveyResponseListParams,
+  type SurveyAnswerValue,
 } from '@/api/scrm/survey'
 
 defineOptions({ name: 'SurveyForm' })
@@ -278,7 +279,7 @@ const responseTableRef = ref<InstanceType<typeof ProTable>>()
 const currentResponseSurveyId = ref<number | null>(null)
 const currentResponseQuestions = ref<SurveyQuestion[]>([])
 
-let questionUid = 0
+const questionUid = ref(0)
 
 interface QuestionForm {
   _uid: number
@@ -291,11 +292,11 @@ interface QuestionForm {
 }
 
 const defaultQuestion = (type: SurveyQuestion['type']): QuestionForm => ({
-  _uid: ++questionUid,
+  _uid: ++questionUid.value,
   type,
   title: '',
   required: false,
-  options: type === 'radio' || type === 'checkbox' || type === 'select' ? ['', ''] : [],
+  options: hasOptions(type) ? ['', ''] : [],
   placeholder: '',
   sortOrder: 0,
 })
@@ -320,7 +321,11 @@ function getQuestionTagType(type: string) {
   return map[type] ?? 'info'
 }
 
-function validateOptions(_rule: any, value: string[], callback: (error?: Error) => void) {
+function hasOptions(type: string): boolean {
+  return type === 'radio' || type === 'checkbox' || type === 'select'
+}
+
+function validateOptions(_rule: FormItemRule, value: string[], callback: (error?: Error) => void) {
   if (!value || value.length < 2) {
     callback(new Error('至少需要2个选项'))
   } else if (value.some((v) => !v.trim())) {
@@ -343,11 +348,10 @@ function removeQuestion(index: number) {
 function moveQuestion(index: number, direction: number) {
   const target = index + direction
   if (target < 0 || target >= formData.questions.length) return
-  const items = [...formData.questions]
-  const [removed] = items.splice(index, 1)
-  items.splice(target, 0, removed)
-  items.forEach((q, i) => (q.sortOrder = i))
-  formData.questions = items
+  const temp = formData.questions[index]
+  formData.questions.splice(index, 1)
+  formData.questions.splice(target, 0, temp)
+  formData.questions.forEach((q, i) => (q.sortOrder = i))
 }
 
 function syncSortOrder() {
@@ -419,7 +423,7 @@ const actions: ActionConfig[] = [
 
 function getAnswerText(row: SurveyResponse, question: SurveyQuestion): string {
   const answers = row.answers || {}
-  const value = answers[question.id ?? question.title]
+  const value = question.id != null ? answers[question.id] : undefined
   if (value === undefined || value === null) return '-'
   if (Array.isArray(value)) return value.join('、')
   return String(value)
@@ -513,7 +517,7 @@ async function handleEdit(row: Survey) {
     formData.description = detail.description || ''
     formData.questions = detail.questions?.length
       ? detail.questions.map((q) => ({
-          _uid: ++questionUid,
+          _uid: ++questionUid.value,
           type: q.type,
           title: q.title,
           required: q.required,
@@ -620,7 +624,7 @@ async function handleSubmit() {
       ElMessage.warning(`第${i + 1}题标题不能为空`)
       return
     }
-    if ((q.type === 'radio' || q.type === 'checkbox' || q.type === 'select') && q.options.some((o) => !o.trim())) {
+    if (hasOptions(q.type) && q.options.some((o) => !o.trim())) {
       ElMessage.warning(`第${i + 1}题存在空选项`)
       return
     }
@@ -630,7 +634,7 @@ async function handleSubmit() {
     type: q.type,
     title: q.title,
     required: q.required,
-    options: (q.type === 'radio' || q.type === 'checkbox' || q.type === 'select') ? q.options.filter((o) => o.trim()) : undefined,
+    options: hasOptions(q.type) ? q.options.filter((o) => o.trim()) : undefined,
     placeholder: q.placeholder || undefined,
     sortOrder: i,
   }))
