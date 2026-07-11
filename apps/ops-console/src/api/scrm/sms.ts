@@ -4,9 +4,9 @@ export interface SmsTemplate {
   id: number
   name: string
   content: string
-  variables: string[]
+  variables: string
   status: 'draft' | 'pending' | 'approved' | 'rejected'
-  rejectReason: string | null
+  rejectReason: string
   createdAt: string
   updatedAt: string
 }
@@ -28,37 +28,37 @@ export interface SmsTemplateListResult {
 export interface CreateSmsTemplateData {
   name: string
   content: string
+  variables?: string
 }
 
 export interface UpdateSmsTemplateData {
   name?: string
   content?: string
+  variables?: string
 }
 
-export interface SmsSendRecord {
+export interface SmsRecord {
   id: number
   templateId: number
   templateName: string
+  phone: string
   content: string
-  recipientCount: number
-  successCount: number
-  failCount: number
-  status: 'pending' | 'sending' | 'completed' | 'failed'
-  sentAt: string | null
+  status: 'sending' | 'success' | 'failed'
+  failReason: string
+  sentAt: string
   createdAt: string
 }
 
-export type SmsSendRecordStatus = SmsSendRecord['status']
-
-export interface SmsSendRecordListParams {
+export interface SmsRecordListParams {
   page: number
   pageSize: number
   templateId?: number
-  status?: SmsSendRecordStatus
+  templateName?: string
+  status?: SmsRecord['status']
 }
 
-export interface SmsSendRecordListResult {
-  data: SmsSendRecord[]
+export interface SmsRecordListResult {
+  data: SmsRecord[]
   total: number
 }
 
@@ -78,15 +78,20 @@ export async function getSmsTemplateList(
 
 export async function getSmsTemplateDetail(id: number): Promise<SmsTemplate> {
   const res = await http.get<SmsTemplate>(`/scrm/sms/templates/${id}`)
+  return res.data as SmsTemplate
+}
+
+export async function createSmsTemplate(data: CreateSmsTemplateData): Promise<SmsTemplate> {
+  const res = await http.post<SmsTemplate>('/scrm/sms/templates', data)
   return res.data
 }
 
-export async function createSmsTemplate(data: CreateSmsTemplateData): Promise<void> {
-  await http.post('/scrm/sms/templates', data)
-}
-
-export async function updateSmsTemplate(id: number, data: UpdateSmsTemplateData): Promise<void> {
-  await http.put(`/scrm/sms/templates/${id}`, data)
+export async function updateSmsTemplate(
+  id: number,
+  data: UpdateSmsTemplateData,
+): Promise<SmsTemplate> {
+  const res = await http.put<SmsTemplate>(`/scrm/sms/templates/${id}`, data)
+  return res.data
 }
 
 export async function deleteSmsTemplate(id: number): Promise<void> {
@@ -94,12 +99,10 @@ export async function deleteSmsTemplate(id: number): Promise<void> {
 }
 
 export async function submitSmsTemplateAudit(id: number): Promise<void> {
-  await http.post(`/scrm/sms/templates/${id}/submit-audit`)
+  await http.patch(`/scrm/sms/templates/${id}/submit-audit`)
 }
 
-export async function getSmsSendRecordList(
-  params: SmsSendRecordListParams,
-): Promise<SmsSendRecordListResult> {
-  const res = await http.get<SmsSendRecord[]>('/scrm/sms/send-records', { params })
+export async function getSmsRecordList(params: SmsRecordListParams): Promise<SmsRecordListResult> {
+  const res = await http.get<SmsRecord[]>('/scrm/sms/records', { params })
   return extractListResult(res)
 }
