@@ -44,10 +44,10 @@ import {
 
 defineOptions({ name: 'PosterManagement' })
 
-const tableRef = ref()
+const tableRef = ref<InstanceType<typeof ProTable>>()
 const dialogVisible = ref(false)
 const dialogTitle = ref('新建海报')
-const currentPoster = ref<Record<string, any>>({})
+const currentPoster = ref<Partial<Poster>>({})
 
 const searchConfig: SearchConfig[] = [
   { prop: 'title', label: '海报名称', type: 'input', placeholder: '请输入海报名称' },
@@ -94,13 +94,18 @@ const fields: FieldConfig[] = [
 ]
 
 async function handleRequest(params: RequestParams): Promise<RequestResult> {
-  const res = await getPosterList({
-    page: params.page,
-    pageSize: params.pageSize,
-    title: params.title,
-    status: params.status,
-  })
-  return { data: res.data ?? [], total: res.total ?? 0 }
+  try {
+    const res = await getPosterList({
+      page: params.page,
+      pageSize: params.pageSize,
+      title: params.title as string,
+      status: params.status as number,
+    })
+    return { data: res.data ?? [], total: res.total ?? 0 }
+  } catch (e: any) {
+    ElMessage.error(e.message || '获取海报列表失败')
+    return { data: [], total: 0 }
+  }
 }
 
 function handleCreate() {
@@ -116,21 +121,33 @@ function handleEdit(row: Poster) {
 }
 
 async function handleSubmit(data: Record<string, any>) {
-  if (data.id) {
-    await updatePoster(data.id, data)
-    ElMessage.success('更新成功')
-  } else {
-    await createPoster(data)
-    ElMessage.success('创建成功')
+  try {
+    if (data.id) {
+      const { id, ...updateData } = data
+      await updatePoster(id, updateData)
+      ElMessage.success('更新成功')
+    } else {
+      const { id: _id, ...createData } = data
+      await createPoster(createData as any)
+      ElMessage.success('创建成功')
+    }
+    tableRef.value?.refresh()
+  } catch (e: any) {
+    ElMessage.error(e.message || '操作失败')
   }
-  tableRef.value?.refresh()
 }
 
 async function handleDelete(row: Poster) {
-  await ElMessageBox.confirm('确定删除该海报吗？', '提示', { type: 'warning' })
-  await deletePoster(row.id)
-  ElMessage.success('删除成功')
-  tableRef.value?.refresh()
+  try {
+    await ElMessageBox.confirm('确定删除该海报吗？', '提示', { type: 'warning' })
+    await deletePoster(row.id)
+    ElMessage.success('删除成功')
+    tableRef.value?.refresh()
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e.message || '删除失败')
+    }
+  }
 }
 </script>
 
