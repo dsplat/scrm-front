@@ -78,7 +78,7 @@ export async function getSmsTemplateList(
 
 export async function getSmsTemplateDetail(id: number): Promise<SmsTemplate> {
   const res = await http.get<SmsTemplate>(`/scrm/sms/templates/${id}`)
-  return res.data as SmsTemplate
+  return res.data
 }
 
 export async function createSmsTemplate(data: CreateSmsTemplateData): Promise<SmsTemplate> {

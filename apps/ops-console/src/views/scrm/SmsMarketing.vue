@@ -78,7 +78,7 @@
           {{ currentRecord.templateName }}
         </el-descriptions-item>
         <el-descriptions-item label="手机号">
-          {{ currentRecord.phone }}
+          {{ maskPhone(currentRecord.phone) }}
         </el-descriptions-item>
         <el-descriptions-item label="短信内容">
           {{ currentRecord.content }}
@@ -131,6 +131,11 @@ import {
 } from '@/api/scrm/sms'
 
 defineOptions({ name: 'SmsMarketing' })
+
+function maskPhone(phone: string): string {
+  if (!phone || phone.length < 7) return phone
+  return phone.slice(0, 3) + '****' + phone.slice(-4)
+}
 
 const statusMap: Record<SmsTemplateStatus, string> = {
   draft: '草稿',
@@ -242,7 +247,12 @@ const recordSearchConfig: SearchConfig[] = [
 
 const recordColumns: ColumnConfig[] = [
   { prop: 'templateName', label: '模板名称', minWidth: 150 },
-  { prop: 'phone', label: '手机号', width: 140 },
+  {
+    prop: 'phone',
+    label: '手机号',
+    width: 140,
+    render: (row: SmsRecord) => h('span', maskPhone(row.phone)),
+  },
   { prop: 'content', label: '短信内容', minWidth: 200 },
   {
     prop: 'status',
@@ -355,8 +365,10 @@ async function handleDelete(row: SmsTemplate) {
     await deleteSmsTemplate(row.id)
     ElMessage.success('删除成功')
     templateTableRef.value?.refresh()
-  } catch {
-    // cancelled
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e?.message || '删除失败')
+    }
   }
 }
 
@@ -366,8 +378,10 @@ async function handleAudit(row: SmsTemplate) {
     await submitSmsTemplateAudit(row.id)
     ElMessage.success('已提交审核')
     templateTableRef.value?.refresh()
-  } catch {
-    // cancelled
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e?.message || '提交审核失败')
+    }
   }
 }
 </script>
