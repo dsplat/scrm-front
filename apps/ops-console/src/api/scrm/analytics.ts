@@ -111,3 +111,36 @@ export async function getInteractionList(
   )
   return extractListResult(res)
 }
+
+export interface FunnelStage {
+  name: string
+  count: number
+  conversionRate: number
+}
+
+export interface FunnelData {
+  stages: FunnelStage[]
+  totalVisitors: number
+  overallConversionRate: number
+}
+
+export interface FunnelFilterParams {
+  startDate?: string
+  endDate?: string
+  campaignId?: number
+}
+
+export interface CampaignOption {
+  id: number
+  name: string
+}
+
+export async function getFunnelData(params?: FunnelFilterParams): Promise<FunnelData> {
+  const res = await http.get<FunnelData>('/scrm/analytics/funnel', { params })
+  return res.data
+}
+
+export async function getCampaignOptions(): Promise<CampaignOption[]> {
+  const res = await http.get<CampaignOption[]>('/scrm/analytics/campaigns')
+  return res.data ?? []
+}
