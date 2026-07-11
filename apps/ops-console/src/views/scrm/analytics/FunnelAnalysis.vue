@@ -86,18 +86,9 @@
           </template>
         </el-table-column>
         <el-table-column label="流失率" width="120">
-          <template #default="{ row, $index }">
+          <template #default="{ $index }">
             <template v-if="$index > 0">
-              <span class="rate-danger">
-                {{
-                  (
-                    (1 -
-                      row.conversionRate /
-                        (funnelData?.stages?.[$index - 1]?.conversionRate ?? 100)) *
-                    100
-                  ).toFixed(1)
-                }}%
-              </span>
+              <span class="rate-danger"> {{ getChurnRate($index) }}% </span>
             </template>
             <span v-else>—</span>
           </template>
@@ -127,6 +118,8 @@ const dateRange = ref<[string, string] | null>(null)
 const selectedCampaignId = ref<number | undefined>(undefined)
 const campaignOptions = ref<CampaignOption[]>([])
 const funnelData = ref<FunnelData | null>(null)
+
+let funnelRequestId = 0
 
 function createDateRange(days: number) {
   const end = new Date()
@@ -186,7 +179,7 @@ const funnelChartOptions = computed<EChartsOption>(() => ({
       bottom: 20,
       width: '80%',
       min: 0,
-      max: funnelData.value?.totalVisitors ?? 100,
+      max: funnelData.value?.totalVisitors || 100,
       minSize: '0%',
       maxSize: '100%',
       sort: 'descending',
@@ -212,11 +205,7 @@ const funnelChartOptions = computed<EChartsOption>(() => ({
           fontSize: 16,
         },
       },
-      data:
-        funnelData.value?.stages?.map((stage: FunnelStage) => ({
-          name: stage.name,
-          value: stage.count,
-        })) ?? [],
+      data: funnelChartData.value,
     },
   ],
 }))
@@ -227,7 +216,17 @@ function getConversionRateClass(rate: number): string {
   return 'rate-low'
 }
 
+function getChurnRate(index: number): string {
+  const stages = funnelData.value?.stages
+  if (!stages || index <= 0 || index >= stages.length) return '—'
+  const prevRate = stages[index - 1].conversionRate
+  const currentRate = stages[index].conversionRate
+  if (prevRate === 0) return currentRate === 0 ? '0.0' : '100.0'
+  return ((1 - currentRate / prevRate) * 100).toFixed(1)
+}
+
 async function loadFunnelData() {
+  const reqId = ++funnelRequestId
   loading.value = true
   try {
     const data = await getFunnelData({
@@ -235,12 +234,16 @@ async function loadFunnelData() {
       endDate: dateRange.value?.[1],
       campaignId: selectedCampaignId.value,
     })
+    if (reqId !== funnelRequestId) return
     funnelData.value = data
   } catch {
+    if (reqId !== funnelRequestId) return
     ElMessage.error('加载漏斗数据失败')
     funnelData.value = null
   } finally {
-    loading.value = false
+    if (reqId === funnelRequestId) {
+      loading.value = false
+    }
   }
 }
 

@@ -135,9 +135,11 @@ export interface CampaignOption {
   name: string
 }
 
+const defaultFunnelData: FunnelData = { stages: [], totalVisitors: 0, overallConversionRate: 0 }
+
 export async function getFunnelData(params?: FunnelFilterParams): Promise<FunnelData> {
   const res = await http.get<FunnelData>('/scrm/analytics/funnel', { params })
-  return res.data
+  return res.data ?? defaultFunnelData
 }
 
 export async function getCampaignOptions(): Promise<CampaignOption[]> {
