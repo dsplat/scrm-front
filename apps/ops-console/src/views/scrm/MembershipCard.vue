@@ -32,8 +32,7 @@
       >
         <el-form-item label="卡片类型" prop="type">
           <el-select v-model="formData.type" placeholder="请选择卡片类型" style="width: 100%">
-            <el-option label="会员卡" value="membership" />
-            <el-option label="储值卡" value="stored_value" />
+            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="卡片名称" prop="name">
@@ -75,7 +74,7 @@
               accept="image/*"
             >
               <el-image
-                v-if="formData.coverImage"
+                v-if="formData.coverImage && isAllowedUrl(formData.coverImage)"
                 :src="formData.coverImage"
                 fit="cover"
                 class="cover-preview"
@@ -126,7 +125,7 @@
           <el-descriptions-item label="权益说明">{{ detailData.benefits || '-' }}</el-descriptions-item>
           <el-descriptions-item label="卡面背景图">
             <el-image
-              v-if="detailData.coverImage"
+              v-if="detailData.coverImage && isAllowedUrl(detailData.coverImage)"
               :src="detailData.coverImage"
               fit="cover"
               style="width: 120px; height: 72px; border-radius: 4px"
@@ -163,6 +162,8 @@ import {
   uploadMembershipCardCover,
   type MembershipCard,
   type MembershipCardListParams,
+  type CreateMembershipCardData,
+  type UpdateMembershipCardData,
 } from '@/api/scrm/membershipCard'
 
 defineOptions({ name: 'MembershipCard' })
@@ -176,7 +177,7 @@ const detailVisible = ref(false)
 const detailData = ref<MembershipCard | null>(null)
 const editingId = ref<number | null>(null)
 
-const formData = reactive({
+const defaultFormData = {
   type: 'membership' as 'membership' | 'stored_value',
   name: '',
   validityType: 'permanent' as 'permanent' | 'period',
@@ -187,15 +188,29 @@ const formData = reactive({
   coverImage: '',
   description: '',
   status: 1,
-})
+}
+
+const formData = reactive({ ...defaultFormData })
 
 const formRules: FormRules = {
   type: [{ required: true, message: '请选择卡片类型', trigger: 'change' }],
   name: [{ required: true, message: '请输入卡片名称', trigger: 'blur' }],
   validityType: [{ required: true, message: '请选择有效期类型', trigger: 'change' }],
+  validityDays: [
+    {
+      validator: (_rule: FormRules[string], _value: number | undefined, callback: (error?: Error) => void) => {
+        if (formData.validityType === 'period' && (!_value || _value < 1)) {
+          callback(new Error('请输入有效天数'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
   validityRange: [
     {
-      validator: (_rule: any, value: string[], callback: (error?: Error) => void) => {
+      validator: (_rule: FormRules[string], value: string[], callback: (error?: Error) => void) => {
         if (formData.validityType === 'period' && (!value || value.length !== 2)) {
           callback(new Error('请选择有效期范围'))
         } else {
@@ -248,7 +263,7 @@ const columns: ColumnConfig[] = [
     label: '卡面图',
     width: 80,
     render: (row: MembershipCard) =>
-      row.coverImage
+      row.coverImage && isAllowedUrl(row.coverImage)
         ? h(ElImage, { src: row.coverImage, style: 'width: 40px; height: 24px', fit: 'cover' })
         : h('span', { style: 'color: #999' }, '-'),
   },
@@ -294,16 +309,7 @@ async function handleRequest(params: RequestParams): Promise<RequestResult> {
 }
 
 function resetForm() {
-  formData.type = 'membership'
-  formData.name = ''
-  formData.validityType = 'permanent'
-  formData.validityDays = 365
-  formData.validityRange = []
-  formData.storedAmount = 0
-  formData.benefits = ''
-  formData.coverImage = ''
-  formData.description = ''
-  formData.status = 1
+  Object.assign(formData, defaultFormData)
 }
 
 function handleCreate() {
@@ -346,7 +352,7 @@ async function handleSubmit() {
     return
   }
 
-  const payload: Record<string, any> = {
+  const basePayload = {
     name: formData.name,
     type: formData.type,
     validityType: formData.validityType,
@@ -357,23 +363,24 @@ async function handleSubmit() {
   }
 
   if (formData.validityType === 'period') {
-    payload.validityDays = formData.validityDays
-    if (formData.validityRange?.length === 2) {
-      payload.validityStart = formData.validityRange[0]
-      payload.validityEnd = formData.validityRange[1]
-    }
+    Object.assign(basePayload, {
+      validityDays: formData.validityDays,
+      ...(formData.validityRange?.length === 2
+        ? { validityStart: formData.validityRange[0], validityEnd: formData.validityRange[1] }
+        : {}),
+    })
   }
 
   if (formData.type === 'stored_value') {
-    payload.storedAmount = formData.storedAmount
+    Object.assign(basePayload, { storedAmount: formData.storedAmount })
   }
 
   submitting.value = true
   try {
-    if (editingId.value) {
-      await updateMembershipCard(editingId.value, payload)
+    if (editingId.value !== null) {
+      await updateMembershipCard(editingId.value, basePayload as UpdateMembershipCardData)
     } else {
-      await createMembershipCard(payload)
+      await createMembershipCard(basePayload as CreateMembershipCardData)
     }
     ElMessage.success('操作成功')
     dialogVisible.value = false
@@ -412,12 +419,26 @@ function handleBeforeUpload(file: File) {
   return true
 }
 
+function isAllowedUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return ['https:', 'http:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
+
 async function handleUpload(options: UploadRequestOptions) {
   try {
     const url = await uploadMembershipCardCover(options.file)
+    if (!isAllowedUrl(url)) {
+      throw new Error('返回的图片地址不合法')
+    }
     formData.coverImage = url
+    options.onSuccess({ url })
     ElMessage.success('上传成功')
   } catch (e: any) {
+    options.onError(e)
     ElMessage.error(e.message || '上传失败')
   }
 }
