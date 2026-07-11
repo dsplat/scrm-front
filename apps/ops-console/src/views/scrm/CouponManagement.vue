@@ -136,6 +136,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, h } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 import { ElMessage, ElMessageBox, ElTag, type FormInstance, type FormRules } from 'element-plus'
 import ProTable from '@/components/common/ProTable/ProTable.vue'
 import type { ColumnConfig, SearchConfig, ActionConfig, RequestParams, RequestResult } from '@/components/common/ProTable/ProTable.vue'
@@ -326,7 +327,7 @@ async function handleRequest(params: RequestParams): Promise<RequestResult> {
 }
 
 function resetForm() {
-  Object.assign(formData, defaultFormData)
+  Object.assign(formData, { ...defaultFormData, validityRange: [...defaultFormData.validityRange] })
 }
 
 function handleCreate() {
@@ -363,7 +364,7 @@ async function handleSubmit() {
     name: formData.name,
     type: formData.type,
     value: formData.value,
-    minAmount: formData.minAmount || undefined,
+    minAmount: formData.minAmount ?? undefined,
     totalCount: formData.totalCount,
     validityType: formData.validityType,
     description: formData.description || undefined,
@@ -413,7 +414,7 @@ function openBatchDelete() {
   batchDeleteVisible.value = true
 }
 
-async function searchCouponsForDelete(query: string) {
+async function doSearchCouponsForDelete(query: string) {
   if (!query) {
     searchableCoupons.value = []
     return
@@ -428,6 +429,8 @@ async function searchCouponsForDelete(query: string) {
     searchLoading.value = false
   }
 }
+
+const searchCouponsForDelete = useDebounceFn(doSearchCouponsForDelete, 300)
 
 async function confirmBatchDelete() {
   if (!batchDeleteIds.value.length) return
