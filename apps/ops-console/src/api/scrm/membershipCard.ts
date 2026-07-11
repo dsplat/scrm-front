@@ -88,3 +88,12 @@ export async function updateMembershipCard(id: number, data: UpdateMembershipCar
 export async function deleteMembershipCard(id: number): Promise<void> {
   await http.delete(`/scrm/membership-cards/${id}`)
 }
+
+export async function uploadMembershipCardCover(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await http.post<{ url: string }>('/scrm/membership-cards/upload-cover', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data.url
+}

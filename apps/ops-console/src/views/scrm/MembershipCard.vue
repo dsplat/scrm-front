@@ -160,6 +160,7 @@ import {
   createMembershipCard,
   updateMembershipCard,
   deleteMembershipCard,
+  uploadMembershipCardCover,
   type MembershipCard,
   type MembershipCardListParams,
 } from '@/api/scrm/membershipCard'
@@ -192,6 +193,18 @@ const formRules: FormRules = {
   type: [{ required: true, message: '请选择卡片类型', trigger: 'change' }],
   name: [{ required: true, message: '请输入卡片名称', trigger: 'blur' }],
   validityType: [{ required: true, message: '请选择有效期类型', trigger: 'change' }],
+  validityRange: [
+    {
+      validator: (_rule: any, value: string[], callback: (error?: Error) => void) => {
+        if (formData.validityType === 'period' && (!value || value.length !== 2)) {
+          callback(new Error('请选择有效期范围'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change',
+    },
+  ],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 }
 
@@ -399,12 +412,14 @@ function handleBeforeUpload(file: File) {
   return true
 }
 
-function handleUpload(options: UploadRequestOptions) {
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    formData.coverImage = e.target?.result as string
+async function handleUpload(options: UploadRequestOptions) {
+  try {
+    const url = await uploadMembershipCardCover(options.file)
+    formData.coverImage = url
+    ElMessage.success('上传成功')
+  } catch (e: any) {
+    ElMessage.error(e.message || '上传失败')
   }
-  reader.readAsDataURL(options.file)
 }
 
 function handleDialogClose() {
