@@ -43,6 +43,7 @@ import {
   type MomentsSop,
 } from '@/api/scrm/momentsSop'
 
+// MomentsSOP — 朋友圈 SOP 管理页面
 defineOptions({ name: 'MomentsSOP' })
 
 const tableRef = ref<InstanceType<typeof ProTable>>()
