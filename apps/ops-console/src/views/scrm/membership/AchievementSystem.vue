@@ -1,1 +1,0 @@
-<template><div class="page-container"><el-card><template #header><span>成就体系</span></template><el-empty description="功能开发中" /></el-card></div></template><script setup lang="ts">defineOptions({ name: 'AchievementSystem' })</script>
