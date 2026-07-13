@@ -6,8 +6,9 @@ export interface ListResult<T> {
 }
 
 export function extractListResult<T>(res: ApiResponse<T[]>): ListResult<T> {
+  const rawData = res.data
   return {
-    data: res.data ?? [],
+    data: Array.isArray(rawData) ? rawData : [],
     total: res.meta?.total ?? res.total ?? 0,
   }
 }

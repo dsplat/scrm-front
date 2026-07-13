@@ -176,7 +176,7 @@ async function fetchData() {
       params.sortOrder = sortState.order || undefined
     }
     const result = await props.request(params)
-    tableData.value = result.data ?? []
+    tableData.value = Array.isArray(result.data) ? result.data : []
     pagination.total = result.total ?? 0
   } catch {
     ElMessage.error('数据加载失败')

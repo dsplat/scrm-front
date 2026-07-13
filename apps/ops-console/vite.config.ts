@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   base: '/scrm-console/',
   build: {
-    outDir: resolve(__dirname, '../../../scrm/public/scrm-console'),
+    outDir: resolve(__dirname, '../../dist/console'),
     emptyOutDir: true,
   },
   resolve: {

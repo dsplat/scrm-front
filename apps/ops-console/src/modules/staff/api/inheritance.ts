@@ -74,8 +74,9 @@ export interface AssignmentRecordListResult {
 }
 
 function extractListResult<T>(res: ApiResponse<T[]>): { data: T[]; total: number } {
+  const rawData = res.data
   return {
-    data: res.data ?? [],
+    data: Array.isArray(rawData) ? rawData : [],
     total: res.meta?.total ?? res.total ?? 0,
   }
 }

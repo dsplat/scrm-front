@@ -244,10 +244,11 @@ async function loadData() {
       pageSize: pagination.pageSize,
       name: searchForm.name || undefined,
     })
-    tableData.value = res.data as any
-    pagination.total = res.total
+    tableData.value = Array.isArray(res.data) ? res.data : []
+    pagination.total = res.total ?? 0
   } catch {
     ElMessage.error('加载离职员工列表失败')
+    tableData.value = []
   } finally {
     loading.value = false
   }
@@ -285,10 +286,11 @@ async function loadCustomers() {
       employeeId: currentEmployee.value.id,
       name: customerSearchForm.name || undefined,
     })
-    customerList.value = res.data
-    customerPagination.total = res.total
+    customerList.value = Array.isArray(res.data) ? res.data : []
+    customerPagination.total = res.total ?? 0
   } catch {
     ElMessage.error('加载客户列表失败')
+    customerList.value = []
   } finally {
     customerLoading.value = false
   }
@@ -326,7 +328,9 @@ async function handleAssign() {
 }
 
 function handleAssignDialogClose() {
-  customerTableRef.value?.clearSelection()
+  // 重置数据而非调用 clearSelection（避免 dialog 销毁期间 vnodes 已 null）
+  customerList.value = []
+  selectedCustomers.value = []
 }
 
 function openRecordDialog(row: ResignedEmployee) {
@@ -345,10 +349,11 @@ async function loadRecords() {
       pageSize: recordPagination.pageSize,
       employeeId: currentRecordEmployeeId.value ?? undefined,
     })
-    recordList.value = res.data
-    recordPagination.total = res.total
+    recordList.value = Array.isArray(res.data) ? res.data : []
+    recordPagination.total = res.total ?? 0
   } catch {
     ElMessage.error('加载分配记录失败')
+    recordList.value = []
   } finally {
     recordLoading.value = false
   }
