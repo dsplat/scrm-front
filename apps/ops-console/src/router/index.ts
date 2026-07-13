@@ -29,6 +29,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '客户分组' },
       },
       {
+        path: 'customers/new',
+        name: 'CustomerCreate',
+        component: () => import('@/modules/customer/views/customers/CustomerDetail.vue'),
+        meta: { title: '新建客户' },
+      },
+      {
         path: 'customers/:id',
         name: 'CustomerDetail',
         component: () => import('@/modules/customer/views/customers/CustomerDetail.vue'),
@@ -45,6 +51,12 @@ const routes: RouteRecordRaw[] = [
         name: 'ConversationList',
         component: () => import('@/modules/ai/views/conversations/ConversationList.vue'),
         meta: { title: '会话记录' },
+      },
+      {
+        path: 'conversations/new',
+        name: 'ConversationCreate',
+        component: () => import('@/modules/ai/views/conversations/ConversationDetail.vue'),
+        meta: { title: '新建会话' },
       },
       {
         path: 'conversations/:id',
@@ -73,6 +85,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '渠道管理' },
       },
       {
+        path: 'channels/new',
+        name: 'ChannelCreate',
+        component: () => import('@/modules/channel/views/channels/ChannelDetail.vue'),
+        meta: { title: '新建渠道' },
+      },
+      {
         path: 'channels/:id',
         name: 'ChannelDetail',
         component: () => import('@/modules/channel/views/channels/ChannelDetail.vue'),
@@ -85,6 +103,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '活码管理' },
       },
       {
+        path: 'live-codes/new',
+        name: 'LiveCodeCreate',
+        component: () => import('@/modules/channel/views/live-codes/LiveCodeDetail.vue'),
+        meta: { title: '新建活码' },
+      },
+      {
         path: 'live-codes/:id',
         name: 'LiveCodeDetail',
         component: () => import('@/modules/channel/views/live-codes/LiveCodeDetail.vue'),
@@ -95,6 +119,12 @@ const routes: RouteRecordRaw[] = [
         name: 'CommunityList',
         component: () => import('@/modules/community/views/communities/CommunityList.vue'),
         meta: { title: '社群管理' },
+      },
+      {
+        path: 'communities/new',
+        name: 'CommunityCreate',
+        component: () => import('@/modules/community/views/communities/CommunityDetail.vue'),
+        meta: { title: '新建社群' },
       },
       {
         path: 'communities/:id',
@@ -129,6 +159,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '自动化规则' },
       },
       {
+        path: 'automations/new',
+        name: 'RuleCreate',
+        component: () => import('@/modules/marketing/views/automations/RuleEditor.vue'),
+        meta: { title: '新建规则' },
+      },
+      {
         path: 'automations/editor',
         name: 'RuleEditor',
         component: () => import('@/modules/marketing/views/automations/RuleEditor.vue'),
@@ -159,6 +195,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '知识库' },
       },
       {
+        path: 'knowledge/new',
+        name: 'KBCreate',
+        component: () => import('@/modules/knowledge/views/knowledge/KBDetail.vue'),
+        meta: { title: '新建知识库' },
+      },
+      {
         path: 'knowledge/:id',
         name: 'KBDetail',
         component: () => import('@/modules/knowledge/views/knowledge/KBDetail.vue'),
@@ -171,6 +213,12 @@ const routes: RouteRecordRaw[] = [
         name: 'AgentList',
         component: () => import('@/modules/ai/views/agents/AgentList.vue'),
         meta: { title: 'AI Agent' },
+      },
+      {
+        path: 'agents/new',
+        name: 'AgentCreate',
+        component: () => import('@/modules/ai/views/agents/AgentDetail.vue'),
+        meta: { title: '新建 Agent' },
       },
       {
         path: 'agents/:id',
@@ -311,7 +359,7 @@ const routes: RouteRecordRaw[] = [
 
       // 私域运营 — 数据分析
       {
-        path: 'analytics/profile',
+        path: 'analytics/profile/:id',
         name: 'CustomerProfile',
         component: () => import('@/modules/analytics/views/CustomerProfile.vue'),
         meta: { title: '客户深度画像' },
