@@ -113,9 +113,15 @@
               <el-icon><Picture /></el-icon>
               <span>内容营销</span>
             </template>
-            <el-menu-item index="/posters"><span>海报管理</span></el-menu-item>
-            <el-menu-item index="/moments-sop"><span>朋友圈 SOP</span></el-menu-item>
-            <el-menu-item index="/scripts"><span>话术库</span></el-menu-item>
+            <el-menu-item index="/posters">
+              <span>海报管理</span>
+            </el-menu-item>
+            <el-menu-item index="/moments-sop">
+              <span>朋友圈 SOP</span>
+            </el-menu-item>
+            <el-menu-item index="/scripts">
+              <span>话术库</span>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="group-membership">
@@ -123,10 +129,18 @@
               <el-icon><User /></el-icon>
               <span>会员运营</span>
             </template>
-            <el-menu-item index="/membership/levels"><span>会员等级</span></el-menu-item>
-            <el-menu-item index="/membership/points"><span>积分系统</span></el-menu-item>
-            <el-menu-item index="/membership/achievements"><span>成就体系</span></el-menu-item>
-            <el-menu-item index="/membership/cards"><span>会员卡/储值卡</span></el-menu-item>
+            <el-menu-item index="/membership/levels">
+              <span>会员等级</span>
+            </el-menu-item>
+            <el-menu-item index="/membership/points">
+              <span>积分系统</span>
+            </el-menu-item>
+            <el-menu-item index="/membership/achievements">
+              <span>成就体系</span>
+            </el-menu-item>
+            <el-menu-item index="/membership/cards">
+              <span>会员卡/储值卡</span>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="group-fission">
@@ -134,11 +148,21 @@
               <el-icon><Present /></el-icon>
               <span>裂变活动</span>
             </template>
-            <el-menu-item index="/coupons"><span>优惠券</span></el-menu-item>
-            <el-menu-item index="/fissions"><span>裂变活动</span></el-menu-item>
-            <el-menu-item index="/lotteries"><span>抽奖活动</span></el-menu-item>
-            <el-menu-item index="/surveys"><span>问卷表单</span></el-menu-item>
-            <el-menu-item index="/votings"><span>投票活动</span></el-menu-item>
+            <el-menu-item index="/coupons">
+              <span>优惠券</span>
+            </el-menu-item>
+            <el-menu-item index="/fissions">
+              <span>裂变活动</span>
+            </el-menu-item>
+            <el-menu-item index="/lotteries">
+              <span>抽奖活动</span>
+            </el-menu-item>
+            <el-menu-item index="/surveys">
+              <span>问卷表单</span>
+            </el-menu-item>
+            <el-menu-item index="/votings">
+              <span>投票活动</span>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="group-wecom">
@@ -146,9 +170,15 @@
               <el-icon><ChatDotRound /></el-icon>
               <span>企微运营</span>
             </template>
-            <el-menu-item index="/mass-push"><span>群发助手</span></el-menu-item>
-            <el-menu-item index="/welcome"><span>欢迎语</span></el-menu-item>
-            <el-menu-item index="/inheritance"><span>离职继承</span></el-menu-item>
+            <el-menu-item index="/mass-push">
+              <span>群发助手</span>
+            </el-menu-item>
+            <el-menu-item index="/welcome">
+              <span>欢迎语</span>
+            </el-menu-item>
+            <el-menu-item index="/inheritance">
+              <span>离职继承</span>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="group-analytics">
@@ -156,10 +186,18 @@
               <el-icon><DataLine /></el-icon>
               <span>数据分析</span>
             </template>
-            <el-menu-item index="/analytics/profile"><span>客户深度画像</span></el-menu-item>
-            <el-menu-item index="/analytics/funnel"><span>转化漏斗</span></el-menu-item>
-            <el-menu-item index="/analytics/churn"><span>流失预警</span></el-menu-item>
-            <el-menu-item index="/analytics/community"><span>社群活跃度</span></el-menu-item>
+            <el-menu-item index="/analytics/profile">
+              <span>客户深度画像</span>
+            </el-menu-item>
+            <el-menu-item index="/analytics/funnel">
+              <span>转化漏斗</span>
+            </el-menu-item>
+            <el-menu-item index="/analytics/churn">
+              <span>流失预警</span>
+            </el-menu-item>
+            <el-menu-item index="/analytics/community">
+              <span>社群活跃度</span>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="group-reach">
@@ -167,8 +205,12 @@
               <el-icon><Bell /></el-icon>
               <span>触达运营</span>
             </template>
-            <el-menu-item index="/scheduled-reach"><span>定时触达</span></el-menu-item>
-            <el-menu-item index="/sms"><span>短信营销</span></el-menu-item>
+            <el-menu-item index="/scheduled-reach">
+              <span>定时触达</span>
+            </el-menu-item>
+            <el-menu-item index="/sms">
+              <span>短信营销</span>
+            </el-menu-item>
           </el-sub-menu>
 
           <el-sub-menu index="group-commerce">
@@ -176,8 +218,12 @@
               <el-icon><ShoppingCart /></el-icon>
               <span>交易转化</span>
             </template>
-            <el-menu-item index="/products"><span>商品管理</span></el-menu-item>
-            <el-menu-item index="/distribution"><span>分销管理</span></el-menu-item>
+            <el-menu-item index="/products">
+              <span>商品管理</span>
+            </el-menu-item>
+            <el-menu-item index="/distribution">
+              <span>分销管理</span>
+            </el-menu-item>
           </el-sub-menu>
         </el-menu>
       </el-scrollbar>
@@ -191,8 +237,10 @@
             <Expand v-else />
           </el-icon>
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="route.meta.title">{{ route.meta.title }}</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/' }"> 首页 </el-breadcrumb-item>
+            <el-breadcrumb-item v-if="route.meta.title">
+              {{ route.meta.title }}
+            </el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="header-right">
@@ -212,8 +260,8 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="goToConsole">租户管理</el-dropdown-item>
-                <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
+                <el-dropdown-item @click="goToConsole"> 租户管理 </el-dropdown-item>
+                <el-dropdown-item divided @click="handleLogout"> 退出登录 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -232,7 +280,9 @@
         :class="{ active: activeMenu === '/dashboard' }"
         @click="router.push('/dashboard')"
       >
-        <el-icon :size="22"><Odometer /></el-icon>
+        <el-icon :size="22">
+          <Odometer />
+        </el-icon>
         <span>看板</span>
       </div>
       <div
@@ -240,7 +290,9 @@
         :class="{ active: activeMenu.startsWith('/customers') }"
         @click="router.push('/customers')"
       >
-        <el-icon :size="22"><User /></el-icon>
+        <el-icon :size="22">
+          <User />
+        </el-icon>
         <span>客户</span>
       </div>
       <div
@@ -248,7 +300,9 @@
         :class="{ active: activeMenu.startsWith('/communities') }"
         @click="router.push('/communities')"
       >
-        <el-icon :size="22"><ChatSquare /></el-icon>
+        <el-icon :size="22">
+          <ChatSquare />
+        </el-icon>
         <span>社群</span>
       </div>
       <div
@@ -256,11 +310,15 @@
         :class="{ active: activeMenu.startsWith('/agents') }"
         @click="router.push('/agents')"
       >
-        <el-icon :size="22"><Cpu /></el-icon>
+        <el-icon :size="22">
+          <Cpu />
+        </el-icon>
         <span>Agent</span>
       </div>
       <div class="tabbar-item" @click="moreDrawer = true">
-        <el-icon :size="22"><MoreFilled /></el-icon>
+        <el-icon :size="22">
+          <MoreFilled />
+        </el-icon>
         <span>更多</span>
       </div>
     </div>
@@ -268,51 +326,51 @@
     <!-- 移动端「更多」菜单 -->
     <el-drawer v-model="moreDrawer" title="全部菜单" direction="btt" size="60%">
       <el-menu :default-active="activeMenu" router @select="moreDrawer = false">
-        <el-menu-item index="/channels"
-          ><el-icon><Share /></el-icon>渠道管理</el-menu-item
-        >
-        <el-menu-item index="/live-codes"
-          ><el-icon><Iphone /></el-icon>活码管理</el-menu-item
-        >
-        <el-menu-item index="/tags"
-          ><el-icon><PriceTag /></el-icon>标签管理</el-menu-item
-        >
-        <el-menu-item index="/conversations"
-          ><el-icon><ChatDotRound /></el-icon>会话记录</el-menu-item
-        >
-        <el-menu-item index="/journey"
-          ><el-icon><Position /></el-icon>客户旅程</el-menu-item
-        >
-        <el-menu-item index="/staff"
-          ><el-icon><Avatar /></el-icon>员工管理</el-menu-item
-        >
-        <el-menu-item index="/materials"
-          ><el-icon><Picture /></el-icon>素材管理</el-menu-item
-        >
-        <el-menu-item index="/automations"
-          ><el-icon><Setting /></el-icon>自动化规则</el-menu-item
-        >
-        <el-menu-item index="/wechat"
-          ><el-icon><ChatLineRound /></el-icon>微信配置</el-menu-item
-        >
-        <el-menu-item index="/knowledge"
-          ><el-icon><Document /></el-icon>知识库</el-menu-item
-        >
-        <el-menu-item index="/external-kb"
-          ><el-icon><Collection /></el-icon>外部知识库</el-menu-item
-        >
-        <el-menu-item index="/campaign"
-          ><el-icon><Present /></el-icon>营销活动</el-menu-item
-        >
-        <el-menu-item index="/pipeline"
-          ><el-icon><Files /></el-icon>管道/阶段</el-menu-item
-        >
-        <el-menu-item index="/risk"
-          ><el-icon><WarnTriangleFilled /></el-icon>风控合规</el-menu-item
-        >
-        <el-menu-item index="/permission"
-          ><el-icon><Lock /></el-icon>角色权限</el-menu-item
-        >
+        <el-menu-item index="/channels">
+          <el-icon><Share /></el-icon>渠道管理
+        </el-menu-item>
+        <el-menu-item index="/live-codes">
+          <el-icon><Iphone /></el-icon>活码管理
+        </el-menu-item>
+        <el-menu-item index="/tags">
+          <el-icon><PriceTag /></el-icon>标签管理
+        </el-menu-item>
+        <el-menu-item index="/conversations">
+          <el-icon><ChatDotRound /></el-icon>会话记录
+        </el-menu-item>
+        <el-menu-item index="/journey">
+          <el-icon><Position /></el-icon>客户旅程
+        </el-menu-item>
+        <el-menu-item index="/staff">
+          <el-icon><Avatar /></el-icon>员工管理
+        </el-menu-item>
+        <el-menu-item index="/materials">
+          <el-icon><Picture /></el-icon>素材管理
+        </el-menu-item>
+        <el-menu-item index="/automations">
+          <el-icon><Setting /></el-icon>自动化规则
+        </el-menu-item>
+        <el-menu-item index="/wechat">
+          <el-icon><ChatLineRound /></el-icon>微信配置
+        </el-menu-item>
+        <el-menu-item index="/knowledge">
+          <el-icon><Document /></el-icon>知识库
+        </el-menu-item>
+        <el-menu-item index="/external-kb">
+          <el-icon><Collection /></el-icon>外部知识库
+        </el-menu-item>
+        <el-menu-item index="/campaign">
+          <el-icon><Present /></el-icon>营销活动
+        </el-menu-item>
+        <el-menu-item index="/pipeline">
+          <el-icon><Files /></el-icon>管道/阶段
+        </el-menu-item>
+        <el-menu-item index="/risk">
+          <el-icon><WarnTriangleFilled /></el-icon>风控合规
+        </el-menu-item>
+        <el-menu-item index="/permission">
+          <el-icon><Lock /></el-icon>角色权限
+        </el-menu-item>
       </el-menu>
     </el-drawer>
 
@@ -323,7 +381,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
 import { useUiStore } from '@/stores/ui'
@@ -340,6 +398,13 @@ const moreDrawer = ref(false)
 const isMobile = useMediaQuery('(max-width: 1023px)')
 const isCollapse = computed(() => uiStore.sidebarCollapsed)
 const activeMenu = computed(() => route.path)
+
+// 页面加载时恢复用户信息
+onMounted(() => {
+  if (authStore.isAuthenticated && !authStore.user) {
+    authStore.fetchProfile()
+  }
+})
 
 function toggleCollapse() {
   uiStore.toggleSidebar()

@@ -26,7 +26,7 @@
         </el-table-column>
       </el-table>
       <div class="pagination-wrapper">
-        <el-pagination layout="total, prev, pager, next" :total="0" :page-size="20" />
+        <el-pagination layout="total, prev, pager, next" :total="total" :page-size="20" />
       </div>
     </el-card>
   </div>
@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { http } from '@scrm/shared'
 
 interface TableItem {
@@ -50,12 +50,15 @@ interface TableItem {
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
+const total = ref(0)
 
 async function loadData() {
   loading.value = true
   try {
-    const res = await http.get('/scrm/knowledge-bases')
-    tableData.value = (res.data as any) ?? []
+    const res = (await http.get('/scrm/knowledge-bases')) as any
+    const items = res?.data ?? res ?? []
+    tableData.value = Array.isArray(items) ? items : []
+    total.value = res?.total ?? 0
   } catch {
     ElMessage.error('加载知识库列表失败')
   } finally {
@@ -68,7 +71,9 @@ function handleCreate() {
 function handleEdit(row: TableItem) {
   router.push(`/knowledge/${row.id}`)
 }
-function handleDelete(_row: TableItem) {
+async function handleDelete(row: TableItem) {
+  await ElMessageBox.confirm(`确定删除知识库「${row.name}」？`)
+  await http.delete(`/scrm/knowledge-bases/${row.id}`)
   ElMessage.success('已删除')
   loadData()
 }

@@ -3,16 +3,18 @@ import { ref, computed } from 'vue'
 import { http } from '@scrm/shared'
 
 interface User {
-  id: number
+  user_id: number
   name: string
   email: string
+  role?: string
 }
 
 interface LoginResponse {
   success: boolean
   data: {
-    token: string
+    auth_token: string
     user: User
+    tenant_id: number | null
   }
 }
 
@@ -28,10 +30,10 @@ export const useAuthStore = defineStore('auth', () => {
       password,
     })
 
-    const { token: newToken, user: userData } = (res.data as any).data
-    token.value = newToken
+    const { auth_token, user: userData } = (res as any).data
+    token.value = auth_token
     user.value = userData
-    localStorage.setItem('scrm_token', newToken)
+    localStorage.setItem('scrm_token', auth_token)
   }
 
   function logout() {
@@ -43,11 +45,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchProfile() {
     try {
-      const res = await http.get('/auth/me')
-      user.value = res.data as any
-    } catch {
-      // Token might be invalid
-      logout()
+      const res = await http.get<{ user: User; tenant_id: number | null }>('/auth/me')
+      user.value = (res as any).data?.user ?? (res as any).user ?? null
+    } catch (err: any) {
+      // 仅当 token 确实失效时才清除登录态
+      if (err?.response?.status === 401) {
+        logout()
+      }
     }
   }
 

@@ -26,7 +26,7 @@
         </el-table-column>
       </el-table>
       <div class="pagination-wrapper">
-        <el-pagination layout="total, prev, pager, next" :total="0" :page-size="20" />
+        <el-pagination layout="total, prev, pager, next" :total="total" :page-size="20" />
       </div>
     </el-card>
   </div>
@@ -35,8 +35,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { listAgents } from '@/api/agents'
+import { http } from '@scrm/shared'
 
 interface TableItem {
   id: number
@@ -50,12 +51,15 @@ interface TableItem {
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
+const total = ref(0)
 
 async function loadData() {
   loading.value = true
   try {
-    const res = await listAgents()
-    tableData.value = (res ?? []) as any
+    const res = (await listAgents()) as any
+    const items = res?.data ?? res ?? []
+    tableData.value = Array.isArray(items) ? items : []
+    total.value = res?.total ?? 0
   } catch {
     ElMessage.error('加载 Agent 列表失败')
   } finally {
@@ -69,8 +73,11 @@ function handleCreate() {
 function handleEdit(row: TableItem) {
   router.push(`/agents/${row.id}`)
 }
-function handleDelete(row: TableItem) {
-  ElMessage.info(`删除 Agent: ${row.name}`)
+async function handleDelete(row: TableItem) {
+  await ElMessageBox.confirm(`确定删除 Agent「${row.name}」？`)
+  await http.delete(`/scrm/agents/${row.id}`)
+  ElMessage.success('已删除')
+  loadData()
 }
 
 onMounted(loadData)

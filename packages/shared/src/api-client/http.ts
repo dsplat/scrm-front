@@ -58,10 +58,7 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('scrm_token')
-      window.location.href = '/scrm-console/login'
-    }
+    // 不在拦截器层清 token / 跳转，由业务层（auth store）统一处理
     return Promise.reject(error)
   },
 )

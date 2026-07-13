@@ -46,7 +46,7 @@ const tableData = ref<TableItem[]>([])
 async function loadData() {
   loading.value = true
   try {
-    const res = await http.get('/scrm/wechat-templates')
+    const res = await http.get('/scrm/wechat/templates')
     tableData.value = (res.data as any) ?? []
   } catch {
     ElMessage.error('加载模板列表失败')

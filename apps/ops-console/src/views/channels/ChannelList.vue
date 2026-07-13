@@ -26,7 +26,7 @@
         </el-table-column>
       </el-table>
       <div class="pagination-wrapper">
-        <el-pagination layout="total, prev, pager, next" :total="0" :page-size="20" />
+        <el-pagination layout="total, prev, pager, next" :total="total" :page-size="20" />
       </div>
     </el-card>
   </div>
@@ -49,12 +49,15 @@ interface TableItem {
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
+const total = ref(0)
 
 async function loadData() {
   loading.value = true
   try {
-    const res = await listChannels()
-    tableData.value = (res ?? []) as any
+    const res = (await listChannels()) as any
+    const items = res?.data ?? res ?? []
+    tableData.value = Array.isArray(items) ? items : []
+    total.value = res?.total ?? 0
   } catch {
     ElMessage.error('加载渠道列表失败')
   } finally {

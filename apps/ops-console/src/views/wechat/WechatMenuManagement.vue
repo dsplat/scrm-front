@@ -51,7 +51,7 @@ const tableData = ref<TableItem[]>([])
 async function loadData() {
   loading.value = true
   try {
-    const res = await http.get('/scrm/wechat-menus')
+    const res = await http.get('/scrm/wechat/menus')
     tableData.value = (res.data as any) ?? []
   } catch {
     ElMessage.error('加载菜单列表失败')

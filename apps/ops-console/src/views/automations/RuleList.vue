@@ -26,7 +26,7 @@
         </el-table-column>
       </el-table>
       <div class="pagination-wrapper">
-        <el-pagination layout="total, prev, pager, next" :total="0" :page-size="20" />
+        <el-pagination layout="total, prev, pager, next" :total="total" :page-size="20" />
       </div>
     </el-card>
   </div>
@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { http } from '@scrm/shared'
 
 interface TableItem {
@@ -50,12 +50,15 @@ interface TableItem {
 const router = useRouter()
 const loading = ref(false)
 const tableData = ref<TableItem[]>([])
+const total = ref(0)
 
 async function loadData() {
   loading.value = true
   try {
-    const res = await http.get('/scrm/automations')
-    tableData.value = (res.data as any) ?? []
+    const res = (await http.get('/scrm/automations')) as any
+    const items = res?.data ?? res ?? []
+    tableData.value = Array.isArray(items) ? items : []
+    total.value = res?.total ?? 0
   } catch {
     ElMessage.error('加载规则列表失败')
   } finally {
@@ -68,8 +71,11 @@ function handleCreate() {
 function handleEdit(row: TableItem) {
   router.push(`/automations/${row.id}`)
 }
-function handleDelete(row: TableItem) {
-  ElMessage.info(`删除规则: ${row.name}`)
+async function handleDelete(row: TableItem) {
+  await ElMessageBox.confirm(`确定删除规则「${row.name}」？`)
+  await http.delete(`/scrm/automations/${row.id}`)
+  ElMessage.success('已删除')
+  loadData()
 }
 onMounted(loadData)
 </script>

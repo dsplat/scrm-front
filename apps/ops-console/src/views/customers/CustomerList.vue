@@ -26,7 +26,11 @@
         </el-table-column>
       </el-table>
       <div class="pagination-wrapper">
-        <el-pagination layout="total, prev, pager, next" :total="0" :page-size="20" />
+        <el-pagination
+          layout="total, prev, pager, next"
+          :total="pagination.total"
+          :page-size="20"
+        />
       </div>
     </el-card>
   </div>
@@ -36,6 +40,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { http } from '@scrm/shared'
 import { listCustomers } from '@/api/customers'
 
 interface TableItem {
@@ -60,7 +65,9 @@ async function loadData() {
       page: pagination.value.page,
       per_page: pagination.value.pageSize,
     })) as any
-    tableData.value = res ?? []
+    // 后端返回 { data: { data: [...], total, page, ... } }
+    const items = res?.data ?? res ?? []
+    tableData.value = Array.isArray(items) ? items : []
     pagination.value.total = res?.total ?? 0
   } catch {
     ElMessage.error('加载客户列表失败')
@@ -77,6 +84,7 @@ function handleEdit(row: TableItem) {
 }
 async function handleDelete(row: TableItem) {
   await ElMessageBox.confirm(`确定删除客户「${row.name}」？`)
+  await http.delete(`/scrm/customers/${row.id}`)
   ElMessage.success('已删除')
   loadData()
 }
