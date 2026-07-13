@@ -208,13 +208,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useDebounceFn } from '@vueuse/core'
 import type { EChartsOption } from 'echarts'
 import LineChart from '@/components/common/Charts/LineChart.vue'
 import PieChart from '@/components/common/Charts/PieChart.vue'
-import { listCustomers } from '@/api/customers'
+import { listCustomers, getCustomer } from '@/api/customers'
 import {
   getCustomerProfile,
   getConsumptionTrend,
@@ -227,6 +228,8 @@ import {
 } from '@/modules/analytics/api/analytics'
 
 defineOptions({ name: 'CustomerProfile' })
+
+const route = useRoute()
 
 interface CustomerListItem {
   id: number
@@ -249,6 +252,26 @@ const interactionPagination = ref({ page: 1, pageSize: 10, total: 0 })
 
 let profileRequestId = 0
 let interactionRequestId = 0
+
+onMounted(async () => {
+  const idParam = route.params.id
+  if (idParam) {
+    const id = Number(idParam)
+    if (!isNaN(id)) {
+      selectedCustomerId.value = id
+      // Fetch customer name for the select
+      try {
+        const customer = (await getCustomer(id)) as { id: number; name?: string }
+        if (customer) {
+          customerOptions.value = [{ id: customer.id, name: customer.name || String(customer.id) }]
+        }
+      } catch {
+        customerOptions.value = [{ id, name: String(id) }]
+      }
+      loadAllData()
+    }
+  }
+})
 
 function maskPhone(phone?: string): string {
   if (!phone) return '—'

@@ -69,7 +69,7 @@ function handleCreate() {
   router.push('/automations/new')
 }
 function handleEdit(row: TableItem) {
-  router.push(`/automations/${row.id}`)
+  router.push(`/automations/editor/${row.id}`)
 }
 async function handleDelete(row: TableItem) {
   await ElMessageBox.confirm(`确定删除规则「${row.name}」？`)

@@ -359,7 +359,7 @@ const routes: RouteRecordRaw[] = [
 
       // 私域运营 — 数据分析
       {
-        path: 'analytics/profile/:id',
+        path: 'analytics/profile/:id?',
         name: 'CustomerProfile',
         component: () => import('@/modules/analytics/views/CustomerProfile.vue'),
         meta: { title: '客户深度画像' },
