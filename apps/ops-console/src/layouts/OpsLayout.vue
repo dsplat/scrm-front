@@ -386,7 +386,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
 import { useUiStore } from '@/stores/ui'
 import { useAuthStore } from '@/stores/auth'
-import NotificationCenter from '@/views/notifications/NotificationCenter.vue'
+import NotificationCenter from '@/modules/platform/views/notifications/NotificationCenter.vue'
 
 const route = useRoute()
 const router = useRouter()
