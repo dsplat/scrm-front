@@ -31,6 +31,14 @@
     {
       "path": "pages/live-code/index",
       "style": { "navigationBarTitleText": "扫码欢迎" }
+    },
+    {
+      "path": "pages/profile/password",
+      "style": { "navigationBarTitleText": "修改密码" }
+    },
+    {
+      "path": "pages/member/index",
+      "style": { "navigationBarTitleText": "我的积分" }
     }
   ],
   "globalStyle": {

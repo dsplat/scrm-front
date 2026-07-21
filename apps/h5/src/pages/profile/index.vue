@@ -37,6 +37,10 @@
           <text class="menu-label"> 修改密码 </text>
           <text class="menu-arrow"> › </text>
         </view>
+        <view class="menu-item" @tap="goMember">
+          <text class="menu-label"> 我的积分 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
         <view class="menu-item" @tap="goMyActivities">
           <text class="menu-label"> 我的活动 </text>
           <text class="menu-arrow"> › </text>
@@ -79,7 +83,11 @@ function goEdit() {
 }
 
 function goChangePassword() {
-  uni.showToast({ title: '功能开发中', icon: 'none' })
+  uni.navigateTo({ url: '/pages/profile/password' })
+}
+
+function goMember() {
+  uni.navigateTo({ url: '/pages/member/index' })
 }
 
 function goMyActivities() {
