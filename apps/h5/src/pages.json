@@ -1,20 +1,36 @@
 {
   "pages": [
     {
-      "path": "pages/live-code/index",
-      "style": { "navigationBarTitleText": "扫码欢迎" }
-    },
-    {
-      "path": "pages/self-service/index",
-      "style": { "navigationBarTitleText": "客户自助" }
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "首页" }
     },
     {
       "path": "pages/campaign/index",
       "style": { "navigationBarTitleText": "活动详情" }
     },
     {
-      "path": "pages/index/index",
-      "style": { "navigationBarTitleText": "首页" }
+      "path": "pages/self-service/index",
+      "style": { "navigationBarTitleText": "客服中心" }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/auth/login",
+      "style": { "navigationBarTitleText": "登录" }
+    },
+    {
+      "path": "pages/auth/register",
+      "style": { "navigationBarTitleText": "注册" }
+    },
+    {
+      "path": "pages/profile/edit",
+      "style": { "navigationBarTitleText": "编辑资料" }
+    },
+    {
+      "path": "pages/live-code/index",
+      "style": { "navigationBarTitleText": "扫码欢迎" }
     }
   ],
   "globalStyle": {
@@ -22,5 +38,29 @@
     "navigationBarTitleText": "SCRM",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#07c160",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/campaign/index",
+        "text": "活动"
+      },
+      {
+        "pagePath": "pages/self-service/index",
+        "text": "客服"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的"
+      }
+    ]
   }
 }

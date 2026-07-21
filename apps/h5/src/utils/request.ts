@@ -58,7 +58,7 @@ async function request<T = any>(options: RequestOptions): Promise<T> {
 
         if (res.statusCode === 401) {
           clearToken()
-          uni.navigateTo({ url: '/pages/index/index' })
+          uni.reLaunch({ url: '/pages/auth/login' })
           reject(new Error('未登录或登录已过期'))
           return
         }
