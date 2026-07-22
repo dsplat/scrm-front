@@ -1,53 +1,56 @@
 <template>
   <view class="pwd-page">
-    <view class="form-section">
-      <view class="form-item">
-        <text class="label"> 当前密码 </text>
-        <input
-          v-model="currentPassword"
-          type="password"
-          placeholder="请输入当前密码"
-          class="input"
-          :disabled="saving"
-        />
+    <NavBar title="修改密码" />
+    <view class="page-body">
+      <view class="form-section">
+        <view class="form-item">
+          <text class="label"> 当前密码 </text>
+          <input
+            v-model="currentPassword"
+            type="password"
+            placeholder="请输入当前密码"
+            class="input"
+            :disabled="saving"
+          />
+        </view>
+        <view class="form-item">
+          <text class="label"> 新密码 </text>
+          <input
+            v-model="newPassword"
+            type="password"
+            placeholder="至少8位"
+            class="input"
+            :disabled="saving"
+          />
+        </view>
+        <view class="form-item">
+          <text class="label"> 确认新密码 </text>
+          <input
+            v-model="confirmPassword"
+            type="password"
+            placeholder="再次输入新密码"
+            class="input"
+            :disabled="saving"
+            @confirm="handleSubmit"
+          />
+        </view>
       </view>
-      <view class="form-item">
-        <text class="label"> 新密码 </text>
-        <input
-          v-model="newPassword"
-          type="password"
-          placeholder="至少8位"
-          class="input"
-          :disabled="saving"
-        />
+
+      <view v-if="errorMsg" class="error-msg">
+        <text>{{ errorMsg }}</text>
       </view>
-      <view class="form-item">
-        <text class="label"> 确认新密码 </text>
-        <input
-          v-model="confirmPassword"
-          type="password"
-          placeholder="再次输入新密码"
-          class="input"
-          :disabled="saving"
-          @confirm="handleSubmit"
-        />
+
+      <view class="btn-section">
+        <button class="btn-save" :disabled="saving || !canSubmit" @tap="handleSubmit">
+          {{ saving ? '提交中...' : '确认修改' }}
+        </button>
       </view>
-    </view>
 
-    <view v-if="errorMsg" class="error-msg">
-      <text>{{ errorMsg }}</text>
-    </view>
-
-    <view class="btn-section">
-      <button class="btn-save" :disabled="saving || !canSubmit" @tap="handleSubmit">
-        {{ saving ? '提交中...' : '确认修改' }}
-      </button>
-    </view>
-
-    <view class="tips">
-      <text class="tips-title"> 密码要求 </text>
-      <text class="tips-item"> · 长度至少 8 位 </text>
-      <text class="tips-item"> · 修改后需使用新密码重新登录 </text>
+      <view class="tips">
+        <text class="tips-title"> 密码要求 </text>
+        <text class="tips-item"> · 长度至少 8 位 </text>
+        <text class="tips-item"> · 修改后需使用新密码重新登录 </text>
+      </view>
     </view>
   </view>
 </template>
@@ -55,9 +58,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { changePassword } from '../../api/auth'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 const currentPassword = ref('')
 const newPassword = ref('')
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 const confirmPassword = ref('')
 const saving = ref(false)
 const errorMsg = ref('')
@@ -105,6 +113,8 @@ async function handleSubmit() {
 .pwd-page {
   min-height: 100vh;
   background: #f5f6fa;
+}
+.page-body {
   padding: 24rpx;
 }
 .form-section {

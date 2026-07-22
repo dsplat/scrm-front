@@ -39,9 +39,34 @@
     {
       "path": "pages/member/index",
       "style": { "navigationBarTitleText": "我的积分" }
+    },
+    {
+      "path": "pages/event/detail",
+      "style": { "navigationBarTitleText": "活动详情" }
+    },
+    {
+      "path": "pages/event/register",
+      "style": { "navigationBarTitleText": "活动报名" }
+    },
+    {
+      "path": "pages/event/order",
+      "style": { "navigationBarTitleText": "订单详情" }
+    },
+    {
+      "path": "pages/event/evaluate",
+      "style": { "navigationBarTitleText": "活动评价" }
+    },
+    {
+      "path": "pages/distribution/index",
+      "style": { "navigationBarTitleText": "分销中心" }
+    },
+    {
+      "path": "pages/distribution/apply",
+      "style": { "navigationBarTitleText": "申请分销员" }
     }
   ],
   "globalStyle": {
+    "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "SCRM",
     "navigationBarBackgroundColor": "#F8F8F8",

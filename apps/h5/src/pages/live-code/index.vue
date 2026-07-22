@@ -1,20 +1,23 @@
 <template>
   <view class="live-code-page">
-    <view class="brand-header">
-      <image class="logo" src="/static/logo.png" mode="aspectFit" />
-      <text class="brand-name">
-        {{ brandName }}
-      </text>
-    </view>
-    <view class="welcome-card">
-      <text class="welcome-title">
-        {{ welcomeTitle }}
-      </text>
-      <text class="welcome-desc">
-        {{ welcomeDesc }}
-      </text>
-      <button class="action-btn primary" @tap="addContact">添加客服</button>
-      <button class="action-btn" @tap="joinGroup">加入社群</button>
+    <NavBar title="扫码欢迎" />
+    <view class="page-body">
+      <view class="brand-header">
+        <image class="logo" src="/static/logo.png" mode="aspectFit" />
+        <text class="brand-name">
+          {{ brandName }}
+        </text>
+      </view>
+      <view class="welcome-card">
+        <text class="welcome-title">
+          {{ welcomeTitle }}
+        </text>
+        <text class="welcome-desc">
+          {{ welcomeDesc }}
+        </text>
+        <button class="action-btn primary" @tap="addContact">添加客服</button>
+        <button class="action-btn" @tap="joinGroup">加入社群</button>
+      </view>
     </view>
   </view>
 </template>
@@ -22,9 +25,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getLiveCodeInfo, recordLiveCodeScan } from '../../api/scrm'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 const brandName = ref('SCRM')
 const welcomeTitle = ref('欢迎扫码！')
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 const welcomeDesc = ref('您已通过扫码进入，请添加客服或加入社群')
 
 onMounted(async () => {
@@ -63,9 +71,11 @@ function joinGroup() {
 
 <style scoped>
 .live-code-page {
-  padding: 20rpx;
   min-height: 100vh;
   background: #f5f6fa;
+}
+.page-body {
+  padding: 20rpx;
 }
 .brand-header {
   display: flex;

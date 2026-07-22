@@ -1,5 +1,6 @@
 <template>
   <view class="self-service-page">
+    <NavBar title="客服中心" :show-back="false" />
     <view class="section">
       <text class="section-title"> 常见问题 </text>
       <view v-for="faq in faqs" :key="faq.id" class="faq-item" @tap="toggleFaq(faq.id)">
@@ -31,6 +32,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getFAQs, submitFeedback, startAgentConversation } from '../../api/scrm'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 interface FAQ {
   id: number
@@ -43,6 +46,9 @@ const feedback = ref('')
 const submitting = ref(false)
 const loading = ref(true)
 const faqs = ref<FAQ[]>([])
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 
 onMounted(async () => {
   try {

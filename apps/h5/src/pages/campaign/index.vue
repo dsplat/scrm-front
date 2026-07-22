@@ -1,5 +1,6 @@
 <template>
   <view class="campaign-page">
+    <NavBar title="活动" :show-back="false" />
     <image class="banner" src="/static/campaign-banner.png" mode="widthFix" />
     <view class="campaign-info">
       <text class="title">
@@ -22,6 +23,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getCampaignDetail, joinCampaign } from '../../api/scrm'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 const title = ref('限时优惠活动')
 const description = ref('参与活动即可获得专属优惠和积分奖励')
@@ -30,6 +33,9 @@ const joining = ref(false)
 const countdown = ref('')
 const endDate = ref<number | null>(null)
 let timer: number | null = null
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 
 onMounted(async () => {
   // 从页面参数获取活动 ID

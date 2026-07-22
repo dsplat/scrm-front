@@ -1,31 +1,34 @@
 <template>
   <view class="edit-page">
-    <view class="form-section">
-      <view class="form-item">
-        <text class="label"> 昵称 </text>
-        <input
-          v-model="name"
-          type="text"
-          placeholder="请输入昵称"
-          class="input"
-          :disabled="saving"
-        />
+    <NavBar title="编辑资料" />
+    <view class="page-body">
+      <view class="form-section">
+        <view class="form-item">
+          <text class="label"> 昵称 </text>
+          <input
+            v-model="name"
+            type="text"
+            placeholder="请输入昵称"
+            class="input"
+            :disabled="saving"
+          />
+        </view>
+        <view class="form-item">
+          <text class="label"> 邮箱 </text>
+          <input :value="email" type="text" class="input disabled" disabled />
+          <text class="hint"> 邮箱不可修改 </text>
+        </view>
       </view>
-      <view class="form-item">
-        <text class="label"> 邮箱 </text>
-        <input :value="email" type="text" class="input disabled" disabled />
-        <text class="hint"> 邮箱不可修改 </text>
+
+      <view v-if="errorMsg" class="error-msg">
+        <text>{{ errorMsg }}</text>
       </view>
-    </view>
 
-    <view v-if="errorMsg" class="error-msg">
-      <text>{{ errorMsg }}</text>
-    </view>
-
-    <view class="btn-section">
-      <button class="btn-save" :disabled="saving || !name.trim()" @tap="handleSave">
-        {{ saving ? '保存中...' : '保存' }}
-      </button>
+      <view class="btn-section">
+        <button class="btn-save" :disabled="saving || !name.trim()" @tap="handleSave">
+          {{ saving ? '保存中...' : '保存' }}
+        </button>
+      </view>
     </view>
   </view>
 </template>
@@ -34,8 +37,13 @@
 import { ref, onMounted } from 'vue'
 import { updateProfile } from '../../api/auth'
 import { useUserStore } from '../../store/user'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 const name = ref('')
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 const email = ref('')
 const saving = ref(false)
 const errorMsg = ref('')
@@ -79,6 +87,8 @@ async function handleSave() {
 .edit-page {
   min-height: 100vh;
   background: #f5f6fa;
+}
+.page-body {
   padding: 24rpx;
 }
 .form-section {

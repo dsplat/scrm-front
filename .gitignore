@@ -31,3 +31,7 @@ Thumbs.db
 # Generated types
 packages/shared/src/types/
 opencode.json
+
+# 部署本地配置（含服务器凭证，勿提交）
+deploy/config.env
+deploy/__pycache__/

@@ -1,5 +1,6 @@
 <template>
   <view class="profile-page">
+    <NavBar title="我的" :show-back="false" />
     <!-- 未登录状态 -->
     <view v-if="!loggedIn" class="login-prompt">
       <image class="default-avatar" src="/static/logo.png" mode="aspectFit" />
@@ -45,6 +46,10 @@
           <text class="menu-label"> 我的活动 </text>
           <text class="menu-arrow"> › </text>
         </view>
+        <view class="menu-item" @tap="goDistribution">
+          <text class="menu-label"> 分销中心 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
       </view>
 
       <!-- 退出登录 -->
@@ -61,9 +66,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { isLoggedIn } from '../../api/auth'
 import { useUserStore } from '../../store/user'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 const { state, fetchUser, logout } = useUserStore()
 const loggingOut = ref(false)
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 
 const loggedIn = computed(() => isLoggedIn())
 const user = computed(() => state.user)
@@ -92,6 +102,10 @@ function goMember() {
 
 function goMyActivities() {
   uni.showToast({ title: '功能开发中', icon: 'none' })
+}
+
+function goDistribution() {
+  uni.navigateTo({ url: '/pages/distribution/index' })
 }
 
 async function handleLogout() {

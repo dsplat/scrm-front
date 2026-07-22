@@ -1,5 +1,6 @@
 <template>
   <view class="member-page">
+    <NavBar title="我的积分" />
     <!-- 积分卡片 -->
     <view class="points-card">
       <view class="points-header">
@@ -61,8 +62,13 @@
 import { ref, onMounted } from 'vue'
 import { getMyPointsBalance, getMyPointsFlow } from '../../api/member'
 import type { PointsBalance, PointsFlowItem } from '../../api/member'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 const balanceData = ref<PointsBalance>({ balance: 0, linked: false })
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
 const flowItems = ref<PointsFlowItem[]>([])
 const loading = ref(false)
 const activeTab = ref('')

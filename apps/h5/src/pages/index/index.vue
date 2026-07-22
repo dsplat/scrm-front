@@ -1,5 +1,6 @@
 <template>
   <view class="home-page">
+    <NavBar :title="homeTitle" :show-back="false" />
     <!-- Banner -->
     <view class="banner">
       <view class="banner-content">
@@ -82,9 +83,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { isLoggedIn } from '../../api/auth'
 import { useUserStore } from '../../store/user'
+import { useTenantStore } from '../../store/tenant'
+import { useTenantTitle } from '../../composables/useTenantTitle'
+import NavBar from '../../components/NavBar.vue'
 
 interface CampaignItem {
   id: string
@@ -94,6 +98,12 @@ interface CampaignItem {
 
 const campaigns = ref<CampaignItem[]>([])
 const { fetchUser } = useUserStore()
+const { state: tenantState } = useTenantStore()
+
+// 微信原生栏标题统一为租户名
+useTenantTitle()
+
+const homeTitle = computed(() => tenantState.tenant?.name || '首页')
 
 onMounted(async () => {
   // 已登录则拉取用户信息
