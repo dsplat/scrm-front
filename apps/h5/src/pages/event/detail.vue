@@ -79,6 +79,7 @@
     </view>
     <!-- 底部报名栏 -->
     <view class="bottom-bar">
+      <button class="share-btn" @tap="goPoster">分享海报</button>
       <button class="register-btn" :disabled="!canRegister" @tap="goRegister">
         {{ canRegister ? '立即报名' : '报名未开放' }}
       </button>
@@ -89,6 +90,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { getEventDetail, getEventTicketTypes } from '../../api/event'
+import { getStoredRef } from '../../utils/referral'
 import NavBar from '../../components/NavBar.vue'
 
 const event = ref<any>({})
@@ -124,6 +126,14 @@ function goRegister() {
   })
 }
 
+function goPoster() {
+  // 携带当前分销员 ref（若有），生成专属归因海报
+  const distributorId = getStoredRef() || ''
+  uni.navigateTo({
+    url: `/pages/event/poster?eventId=${event.value.event_id}&distributorId=${distributorId}`,
+  })
+}
+
 onMounted(async () => {
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
@@ -134,8 +144,9 @@ onMounted(async () => {
     getEventDetail(eventId),
     getEventTicketTypes(eventId),
   ])
-  event.value = eventRes.data || {}
-  ticketTypes.value = (ticketRes.data || []).map((t: any) => ({
+  // request 封装已解包 body.data：eventRes 即活动对象，ticketRes 即票种数组
+  event.value = (eventRes as any) || {}
+  ticketTypes.value = ((ticketRes as any) || []).map((t: any) => ({
     ...t,
     remaining: t.capacity > 0 ? t.capacity - t.sold_count : '不限',
   }))
@@ -251,7 +262,20 @@ onMounted(async () => {
   background: #fff;
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
+.bottom-bar {
+  display: flex;
+  gap: 16rpx;
+}
+.share-btn {
+  flex: 1;
+  background: #fff;
+  color: #4a90d9;
+  border: 2rpx solid #4a90d9;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+}
 .register-btn {
+  flex: 2;
   background: #4a90d9;
   color: #fff;
   border-radius: 44rpx;

@@ -57,6 +57,10 @@
       "style": { "navigationBarTitleText": "活动评价" }
     },
     {
+      "path": "pages/event/poster",
+      "style": { "navigationBarTitleText": "活动海报" }
+    },
+    {
       "path": "pages/distribution/index",
       "style": { "navigationBarTitleText": "分销中心" }
     },

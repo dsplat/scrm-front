@@ -140,6 +140,8 @@
 import { ref, computed } from 'vue'
 import { emailLogin, mfaVerify } from '../../api/auth'
 import type { LoginResult } from '../../api/auth'
+import { bindAttribution } from '../../api/distribution'
+import { getStoredRef, clearReferral } from '../../utils/referral'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -260,7 +262,20 @@ async function handleMfaVerify() {
 
 function onLoginSuccess(result: LoginResult) {
   setUser(result.user, result.tenant_id)
+  // 登录成功后静默绑定分销归因（扫码海报进入的 ref），不阻断跳转
+  bindReferralSilently()
   uni.switchTab({ url: '/pages/index/index' })
+}
+
+async function bindReferralSilently() {
+  const ref = getStoredRef()
+  if (!ref) return
+  try {
+    await bindAttribution(ref, 'poster')
+    clearReferral()
+  } catch (e) {
+    // 归因失败静默降级（自绑/分销员未激活等），不影响登录体验
+  }
 }
 
 function handleOAuth(item: OAuthItem) {

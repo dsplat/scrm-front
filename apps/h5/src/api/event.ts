@@ -55,3 +55,11 @@ export function submitEvaluation(
 export function getEvaluations(eventId: string | number, params?: { per_page?: number }) {
   return request({ url: `/scrm/events/${eventId}/evaluations`, method: 'GET', data: params })
 }
+
+// 渲染活动海报（服务端合成，返回可访问图片 URL）
+export function renderEventPoster(
+  eventId: string | number,
+  data?: { distributor_id?: number; channel_code?: string; utm_source?: string },
+) {
+  return request({ url: `/scrm/events/${eventId}/poster/render`, method: 'POST', data: data || {} })
+}

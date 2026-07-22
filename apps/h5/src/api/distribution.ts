@@ -57,6 +57,18 @@ export async function getDistributionProfile(): Promise<DistributionCenterProfil
   })
 }
 
+/** 客户归因绑定（扫码海报/邀请链接进入后绑定到分销员） */
+export async function bindAttribution(
+  distributorId: number | string,
+  source = 'poster',
+): Promise<any> {
+  return request({
+    url: '/scrm/distribution-center/bind',
+    method: 'POST',
+    data: { distributor_id: Number(distributorId), source },
+  })
+}
+
 /** 申请成为分销员 */
 export async function applyDistributor(data: {
   name?: string

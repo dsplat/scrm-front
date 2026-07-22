@@ -59,6 +59,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { emailRegister } from '../../api/auth'
+import { bindAttribution } from '../../api/distribution'
+import { getStoredRef, clearReferral } from '../../utils/referral'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -118,6 +120,8 @@ async function handleRegister() {
     })
 
     setUser(result.user, result.tenant_id)
+    // 注册成功后静默绑定分销归因（扫码海报进入的 ref）
+    bindReferralSilently()
     uni.showToast({ title: '注册成功', icon: 'success' })
 
     setTimeout(() => {
@@ -127,6 +131,17 @@ async function handleRegister() {
     errorMsg.value = e.message || '注册失败，请稍后再试'
   } finally {
     loading.value = false
+  }
+}
+
+async function bindReferralSilently() {
+  const ref = getStoredRef()
+  if (!ref) return
+  try {
+    await bindAttribution(ref, 'poster')
+    clearReferral()
+  } catch (e) {
+    // 归因失败静默降级，不影响注册体验
   }
 }
 

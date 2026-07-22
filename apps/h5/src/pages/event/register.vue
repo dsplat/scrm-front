@@ -54,12 +54,19 @@ async function handleSubmit() {
   }
   submitting.value = true
   try {
-    const res = await registerEvent(eventId, {
+    const res: any = await registerEvent(eventId, {
       ticket_type_id: ticketTypeId,
       quantity: valid.length,
-      attendees: valid,
+      // 表单 age 为字符串，提交时转为数字（空值转 undefined）
+      attendees: valid.map((a) => ({
+        name: a.name.trim(),
+        phone: a.phone || undefined,
+        age: a.age ? Number(a.age) : undefined,
+        relation: a.relation || undefined,
+      })),
     })
-    const orderNo = res.data?.order_no
+    // request 封装已解包 body.data，res 即订单对象
+    const orderNo = res?.order_no
     uni.redirectTo({ url: `/pages/event/order?orderNo=${orderNo}` })
   } catch (e: any) {
     uni.showToast({ title: e.message || '报名失败', icon: 'none' })
@@ -75,8 +82,9 @@ onMounted(async () => {
   ticketTypeId = Number(page.$page?.options?.ticketTypeId || page.options?.ticketTypeId || 0)
 
   if (eventId && ticketTypeId) {
-    const res = await getEventTicketTypes(eventId)
-    const ticket = (res.data || []).find((t: any) => t.ticket_type_id === ticketTypeId)
+    const res: any = await getEventTicketTypes(eventId)
+    // request 封装已解包 body.data，res 即票种数组
+    const ticket = (res || []).find((t: any) => t.ticket_type_id === ticketTypeId)
     if (ticket) {
       ticketName.value = ticket.name
       ticketPrice.value = Number(ticket.price)
