@@ -25,6 +25,14 @@
       "style": { "navigationBarTitleText": "注册" }
     },
     {
+      "path": "pages/auth/bindcontact",
+      "style": { "navigationBarTitleText": "绑定联系方式" }
+    },
+    {
+      "path": "pages/auth/callback",
+      "style": { "navigationBarTitleText": "登录中" }
+    },
+    {
       "path": "pages/profile/edit",
       "style": { "navigationBarTitleText": "编辑资料" }
     },

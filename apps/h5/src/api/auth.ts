@@ -139,6 +139,36 @@ export async function mfaVerify(userId: number, type: string, code: string): Pro
 }
 
 /**
+ * 发送短信验证码（登录/注册）
+ */
+export async function sendSmsCode(phone: string): Promise<{ expires_in: number }> {
+  return request({
+    url: '/auth/sms/send-code',
+    method: 'POST',
+    data: { phone },
+    needAuth: false,
+  })
+}
+
+/**
+ * 短信验证码登录（未注册自动注册）
+ */
+export async function smsLogin(phone: string, code: string): Promise<LoginResult> {
+  const result = await request<LoginResult>({
+    url: '/auth/sms/login',
+    method: 'POST',
+    data: { phone, code },
+    needAuth: false,
+  })
+
+  if (result.auth_token) {
+    setToken(result.auth_token)
+  }
+
+  return result
+}
+
+/**
  * 微信 OAuth 登录（H5 / 小程序）
  */
 export async function wechatLogin(code: string): Promise<LoginResult> {
@@ -189,5 +219,5 @@ export async function mpWeixinLogin(): Promise<LoginResult> {
  */
 export function isLoggedIn(): boolean {
   // @ts-ignore - uni is provided by uni-app runtime
-  return !!uni.getStorageSync('scrm_token')
+  return !!uni.getStorageSync('user_token')
 }

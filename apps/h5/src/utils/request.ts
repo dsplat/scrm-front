@@ -13,6 +13,8 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   data?: Record<string, any>
   needAuth?: boolean
+  /** 自定义 token（覆盖默认 user_token，用于 pending token 场景） */
+  customToken?: string
 }
 
 interface ApiResponse<T = any> {
@@ -22,25 +24,27 @@ interface ApiResponse<T = any> {
 }
 
 function getToken(): string | null {
-  return uni.getStorageSync('scrm_token') || null
+  return uni.getStorageSync('user_token') || null
 }
 
 function setToken(token: string): void {
-  uni.setStorageSync('scrm_token', token)
+  uni.setStorageSync('user_token', token)
 }
 
 function clearToken(): void {
-  uni.removeStorageSync('scrm_token')
+  uni.removeStorageSync('user_token')
 }
 
 async function request<T = any>(options: RequestOptions): Promise<T> {
-  const { url, method = 'GET', data, needAuth = true } = options
+  const { url, method = 'GET', data, needAuth = true, customToken } = options
 
   const header: Record<string, string> = {
     'Content-Type': 'application/json',
   }
 
-  if (needAuth) {
+  if (customToken) {
+    header['Authorization'] = `Bearer ${customToken}`
+  } else if (needAuth) {
     const token = getToken()
     if (token) {
       header['Authorization'] = `Bearer ${token}`

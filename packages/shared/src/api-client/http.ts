@@ -46,7 +46,7 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('scrm_token')
+    const token = localStorage.getItem('user_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

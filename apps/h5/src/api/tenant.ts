@@ -39,6 +39,8 @@ export interface LoginConfig {
   sso_providers: SsoProvider[]
   allow_register: boolean
   email_domain_restriction: string | null
+  /** delegated 模式：公司认证中心接管，email/SMS 互斥关闭 */
+  delegated: boolean
 }
 
 /** 按当前域名解析租户基础信息与品牌配置 */

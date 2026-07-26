@@ -38,7 +38,7 @@ export function getConfig(): UserCoreConfig {
   return _config
 }
 
-const TOKEN_KEY = 'scrm_token'
+const TOKEN_KEY = 'user_token'
 const BASE_URL = '/api/v1'
 
 /** uni.request 适配器实现 */

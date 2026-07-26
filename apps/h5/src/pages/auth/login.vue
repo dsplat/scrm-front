@@ -28,86 +28,12 @@
       </view>
 
       <template v-else>
-        <!-- 邮箱密码登录 -->
-        <view v-if="emailEnabled && !mfaRequired" class="auth-form">
-          <view class="form-item">
-            <input
-              v-model="email"
-              type="text"
-              placeholder="邮箱"
-              class="input"
-              :disabled="loading"
-            />
+        <!-- ===== delegated 模式：仅 OAuth（公司认证中心接管） ===== -->
+        <template v-if="isDelegated">
+          <view class="delegated-hint">
+            <text class="delegated-hint-text"> 通过公司认证中心登录 </text>
           </view>
-          <view class="form-item">
-            <input
-              v-model="password"
-              type="password"
-              placeholder="密码"
-              class="input"
-              :disabled="loading"
-              @confirm="handleLogin"
-            />
-          </view>
-
-          <view v-if="errorMsg" class="error-msg">
-            <text>{{ errorMsg }}</text>
-          </view>
-
-          <button
-            class="btn-primary"
-            hover-class="btn-primary--hover"
-            :disabled="loading || !canSubmit"
-            @tap="handleLogin"
-          >
-            {{ loading ? '登录中...' : '登 录' }}
-          </button>
-        </view>
-
-        <!-- MFA 二次验证 -->
-        <view v-else-if="mfaRequired" class="auth-form">
-          <view class="mfa-hint">
-            <text>请输入验证码完成二次验证</text>
-          </view>
-          <view class="form-item">
-            <input
-              v-model="mfaCode"
-              type="number"
-              placeholder="验证码"
-              class="input"
-              maxlength="6"
-              :disabled="loading"
-              @confirm="handleMfaVerify"
-            />
-          </view>
-
-          <view v-if="errorMsg" class="error-msg">
-            <text>{{ errorMsg }}</text>
-          </view>
-
-          <button
-            class="btn-primary"
-            hover-class="btn-primary--hover"
-            :disabled="loading || mfaCode.length < 6"
-            @tap="handleMfaVerify"
-          >
-            {{ loading ? '验证中...' : '验 证' }}
-          </button>
-        </view>
-
-        <!-- 无可用账号登录方式 -->
-        <view v-else class="no-method">
-          <text class="no-method-text"> 该租户暂未开放账号密码登录 </text>
-        </view>
-
-        <!-- 第三方登录（OAuth + SSO） -->
-        <view v-if="oauthList.length > 0" class="oauth-zone">
-          <view class="divider">
-            <view class="divider-line" />
-            <text class="divider-text"> 其他登录方式 </text>
-            <view class="divider-line" />
-          </view>
-          <view class="oauth-buttons">
+          <view class="oauth-buttons oauth-buttons--primary">
             <view
               v-for="item in oauthList"
               :key="item.key"
@@ -125,12 +51,180 @@
               </text>
             </view>
           </view>
-        </view>
+          <view v-if="oauthList.length === 0" class="no-method">
+            <text class="no-method-text"> 认证中心暂未配置登录方式 </text>
+          </view>
+        </template>
 
-        <!-- 注册入口（allow_register 守卫） -->
-        <view v-if="allowRegister" class="auth-footer">
-          <text class="link" @tap="goRegister"> 没有账号？立即注册 </text>
-        </view>
+        <!-- ===== direct 模式：email/SMS + OAuth ===== -->
+        <template v-else>
+          <!-- 登录方式 Tab（email + sms 双开时显示） -->
+          <view v-if="emailEnabled && smsEnabled && !mfaRequired" class="login-tabs">
+            <view
+              class="tab-item"
+              :class="{ 'tab-item--active': activeTab === 'email' }"
+              @tap="switchTab('email')"
+            >
+              <text>邮箱登录</text>
+            </view>
+            <view
+              class="tab-item"
+              :class="{ 'tab-item--active': activeTab === 'sms' }"
+              @tap="switchTab('sms')"
+            >
+              <text>短信登录</text>
+            </view>
+          </view>
+
+          <!-- 邮箱密码登录 -->
+          <view v-if="emailEnabled && activeTab === 'email' && !mfaRequired" class="auth-form">
+            <view class="form-item">
+              <input
+                v-model="email"
+                type="text"
+                placeholder="邮箱"
+                class="input"
+                :disabled="loading"
+              />
+            </view>
+            <view class="form-item">
+              <input
+                v-model="password"
+                type="password"
+                placeholder="密码"
+                class="input"
+                :disabled="loading"
+                @confirm="handleLogin"
+              />
+            </view>
+
+            <view v-if="errorMsg" class="error-msg">
+              <text>{{ errorMsg }}</text>
+            </view>
+
+            <button
+              class="btn-primary"
+              hover-class="btn-primary--hover"
+              :disabled="loading || !canSubmit"
+              @tap="handleLogin"
+            >
+              {{ loading ? '登录中...' : '登 录' }}
+            </button>
+          </view>
+
+          <!-- 短信验证码登录 -->
+          <view v-else-if="smsEnabled && activeTab === 'sms' && !mfaRequired" class="auth-form">
+            <view class="form-item">
+              <input
+                v-model="phone"
+                type="number"
+                placeholder="手机号"
+                class="input"
+                maxlength="11"
+                :disabled="loading"
+              />
+            </view>
+            <view class="form-item sms-code-row">
+              <input
+                v-model="smsCode"
+                type="number"
+                placeholder="验证码"
+                class="input sms-code-input"
+                maxlength="6"
+                :disabled="loading"
+                @confirm="handleSmsLogin"
+              />
+              <button
+                class="btn-send-code"
+                :disabled="smsCountdown > 0 || !/^1[3-9]\d{9}$/.test(phone)"
+                @tap="handleSendCode"
+              >
+                {{ smsCountdown > 0 ? `${smsCountdown}s` : '获取验证码' }}
+              </button>
+            </view>
+
+            <view v-if="errorMsg" class="error-msg">
+              <text>{{ errorMsg }}</text>
+            </view>
+
+            <button
+              class="btn-primary"
+              hover-class="btn-primary--hover"
+              :disabled="loading || !canSubmitSms"
+              @tap="handleSmsLogin"
+            >
+              {{ loading ? '登录中...' : '登 录' }}
+            </button>
+          </view>
+
+          <!-- MFA 二次验证 -->
+          <view v-else-if="mfaRequired" class="auth-form">
+            <view class="mfa-hint">
+              <text>请输入验证码完成二次验证</text>
+            </view>
+            <view class="form-item">
+              <input
+                v-model="mfaCode"
+                type="number"
+                placeholder="验证码"
+                class="input"
+                maxlength="6"
+                :disabled="loading"
+                @confirm="handleMfaVerify"
+              />
+            </view>
+
+            <view v-if="errorMsg" class="error-msg">
+              <text>{{ errorMsg }}</text>
+            </view>
+
+            <button
+              class="btn-primary"
+              hover-class="btn-primary--hover"
+              :disabled="loading || mfaCode.length < 6"
+              @tap="handleMfaVerify"
+            >
+              {{ loading ? '验证中...' : '验 证' }}
+            </button>
+          </view>
+
+          <!-- 无可用账号登录方式 -->
+          <view v-else class="no-method">
+            <text class="no-method-text"> 该租户暂未开放账号密码登录 </text>
+          </view>
+
+          <!-- 第三方登录（OAuth + SSO） -->
+          <view v-if="oauthList.length > 0" class="oauth-zone">
+            <view class="divider">
+              <view class="divider-line" />
+              <text class="divider-text"> 其他登录方式 </text>
+              <view class="divider-line" />
+            </view>
+            <view class="oauth-buttons">
+              <view
+                v-for="item in oauthList"
+                :key="item.key"
+                class="oauth-item"
+                hover-class="oauth-item--hover"
+                @tap="handleOAuth(item)"
+              >
+                <view class="oauth-icon">
+                  <text class="oauth-icon-text">
+                    {{ item.short }}
+                  </text>
+                </view>
+                <text class="oauth-name">
+                  {{ item.name }}
+                </text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 注册入口（allow_register 守卫） -->
+          <view v-if="allowRegister" class="auth-footer">
+            <text class="link" @tap="goRegister"> 没有账号？立即注册 </text>
+          </view>
+        </template>
       </template>
     </view>
   </view>
@@ -138,7 +232,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { emailLogin, mfaVerify } from '../../api/auth'
+import { emailLogin, mfaVerify, sendSmsCode, smsLogin } from '../../api/auth'
 import type { LoginResult } from '../../api/auth'
 import { bindAttribution } from '../../api/distribution'
 import { getStoredRef, clearReferral } from '../../utils/referral'
@@ -150,6 +244,15 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
+
+// 登录方式 tab: 'email' | 'sms'
+const activeTab = ref<'email' | 'sms'>('email')
+
+// SMS 登录状态
+const phone = ref('')
+const smsCode = ref('')
+const smsCountdown = ref(0)
+let smsTimer: ReturnType<typeof setInterval> | null = null
 
 // MFA 状态
 const mfaRequired = ref(false)
@@ -170,7 +273,12 @@ const welcomeMessage = computed(() => tenantState.tenant?.branding?.login_page_m
 useTenantTitle()
 
 // ---- 登录配置消费 ----
+const isDelegated = computed(() => {
+  return tenantState.loginConfig?.delegated === true
+})
+
 const emailEnabled = computed(() => {
+  if (isDelegated.value) return false
   const methods = tenantState.loginConfig?.login_methods || ['email']
   return methods.includes('email')
 })
@@ -187,6 +295,17 @@ interface OAuthItem {
   url: string
 }
 
+// provider → 中文名称 + 图标缩写映射
+const PROVIDER_LABELS: Record<string, { name: string; short: string }> = {
+  wechat: { name: '微信', short: '微' },
+  wechat_work: { name: '企业微信', short: '企' },
+  dingtalk: { name: '钉钉', short: '钉' },
+  feishu: { name: '飞书', short: '飞' },
+  github: { name: 'GitHub', short: 'G' },
+  google: { name: 'Google', short: 'G' },
+  alipay: { name: '支付宝', short: '支' },
+}
+
 // 聚合 OAuth + SSO 为统一第三方登录列表
 const oauthList = computed<OAuthItem[]>(() => {
   const list: OAuthItem[] = []
@@ -194,19 +313,21 @@ const oauthList = computed<OAuthItem[]>(() => {
   if (!cfg) return list
 
   for (const p of cfg.oauth_providers || []) {
+    const label = PROVIDER_LABELS[p.provider] || { name: p.name, short: p.name.slice(0, 1) }
     list.push({
       key: p.provider,
-      name: p.name,
-      short: p.name.slice(0, 1),
+      name: label.name,
+      short: label.short,
       url: `/api/v1/auth/${p.provider}/redirect`,
     })
   }
   for (const p of cfg.sso_providers || []) {
     const ssoName = p.provider.replace(/^sso:/, '')
+    const label = PROVIDER_LABELS[ssoName] || { name: p.name, short: p.name.slice(0, 1) }
     list.push({
       key: p.provider,
-      name: p.name,
-      short: p.name.slice(0, 1),
+      name: label.name,
+      short: label.short,
       url: `/api/v1/auth/sso/${ssoName}/redirect`,
     })
   }
@@ -216,6 +337,58 @@ const oauthList = computed<OAuthItem[]>(() => {
 const canSubmit = computed(() => {
   return email.value.trim() !== '' && password.value.length >= 8
 })
+
+// SMS 登录配置
+const smsEnabled = computed(() => {
+  if (isDelegated.value) return false
+  const methods = tenantState.loginConfig?.login_methods || ['email']
+  return methods.includes('sms')
+})
+
+const canSubmitSms = computed(() => {
+  return /^1[3-9]\d{9}$/.test(phone.value) && smsCode.value.length === 6
+})
+
+async function handleSendCode() {
+  if (smsCountdown.value > 0 || !/^1[3-9]\d{9}$/.test(phone.value)) return
+
+  errorMsg.value = ''
+  try {
+    await sendSmsCode(phone.value)
+    // 开始 60 秒倒计时
+    smsCountdown.value = 60
+    smsTimer = setInterval(() => {
+      smsCountdown.value--
+      if (smsCountdown.value <= 0 && smsTimer) {
+        clearInterval(smsTimer)
+        smsTimer = null
+      }
+    }, 1000)
+  } catch (e: any) {
+    errorMsg.value = e.message || '验证码发送失败'
+  }
+}
+
+async function handleSmsLogin() {
+  if (!canSubmitSms.value || loading.value) return
+
+  loading.value = true
+  errorMsg.value = ''
+
+  try {
+    const result = await smsLogin(phone.value, smsCode.value)
+    onLoginSuccess(result)
+  } catch (e: any) {
+    errorMsg.value = e.message || '验证码错误'
+  } finally {
+    loading.value = false
+  }
+}
+
+function switchTab(tab: 'email' | 'sms') {
+  activeTab.value = tab
+  errorMsg.value = ''
+}
 
 async function handleLogin() {
   if (!canSubmit.value || loading.value) return
@@ -278,9 +451,19 @@ async function bindReferralSilently() {
   }
 }
 
-function handleOAuth(item: OAuthItem) {
+async function handleOAuth(item: OAuthItem) {
   // #ifdef H5
-  window.location.href = item.url
+  try {
+    const res = await fetch(item.url, { headers: { Accept: 'application/json' } })
+    const json = await res.json()
+    if (json.success && json.data?.url) {
+      window.location.href = json.data.url
+    } else {
+      uni.showToast({ title: json.message || 'OAuth 跳转失败', icon: 'none' })
+    }
+  } catch (e) {
+    uni.showToast({ title: '网络错误', icon: 'none' })
+  }
   // #endif
 }
 
@@ -414,6 +597,62 @@ function goRegister() {
 .auth-form {
   width: 100%;
 }
+
+/* ---- 登录 Tab ---- */
+.login-tabs {
+  display: flex;
+  margin-bottom: 32rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #999;
+  position: relative;
+  transition: color 0.2s;
+}
+.tab-item--active {
+  color: var(--scrm-primary, #07c160);
+  font-weight: 600;
+}
+.tab-item--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  border-radius: 4rpx;
+  background: var(--scrm-primary, #07c160);
+}
+
+/* ---- SMS 验证码行 ---- */
+.sms-code-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+.sms-code-input {
+  flex: 1;
+}
+.btn-send-code {
+  flex-shrink: 0;
+  height: 96rpx;
+  line-height: 96rpx;
+  padding: 0 28rpx;
+  font-size: 26rpx;
+  color: var(--scrm-primary, #07c160);
+  background: rgba(7, 193, 96, 0.08);
+  border-radius: 16rpx;
+  white-space: nowrap;
+}
+.btn-send-code[disabled] {
+  color: #ccc;
+  background: #f7f8fa;
+}
 .form-item {
   margin-bottom: 28rpx;
 }
@@ -475,6 +714,17 @@ function goRegister() {
 /* ---- 第三方登录 ---- */
 .oauth-zone {
   margin-top: 40rpx;
+}
+.delegated-hint {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+.delegated-hint-text {
+  font-size: 28rpx;
+  color: #666;
+}
+.oauth-buttons--primary {
+  padding: 20rpx 0;
 }
 .divider {
   display: flex;
