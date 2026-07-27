@@ -30,8 +30,16 @@
       <template v-else>
         <!-- ===== delegated 模式：仅 OAuth（公司认证中心接管） ===== -->
         <template v-if="isDelegated">
-          <view class="delegated-hint">
-            <text class="delegated-hint-text"> 通过公司认证中心登录 </text>
+          <button
+            class="btn-primary btn-idp"
+            hover-class="btn-primary--hover"
+            :disabled="idpLoading"
+            @tap="handleIdpLogin"
+          >
+            {{ idpLoading ? '跳转中...' : '通过公司认证中心登录' }}
+          </button>
+          <view v-if="oauthList.length > 0" class="delegated-hint">
+            <text class="delegated-hint-text"> 或选择登录方式 </text>
           </view>
           <view class="oauth-buttons oauth-buttons--primary">
             <view
@@ -50,9 +58,6 @@
                 {{ item.name }}
               </text>
             </view>
-          </view>
-          <view v-if="oauthList.length === 0" class="no-method">
-            <text class="no-method-text"> 认证中心暂未配置登录方式 </text>
           </view>
         </template>
 
@@ -467,6 +472,23 @@ async function handleOAuth(item: OAuthItem) {
   // #endif
 }
 
+// delegated 模式主入口：直连认证中心（后端对任意 provider 均转发 IdP，用通用 idp 标识）
+const idpLoading = ref(false)
+async function handleIdpLogin() {
+  if (idpLoading.value) return
+  idpLoading.value = true
+  try {
+    await handleOAuth({
+      key: 'idp',
+      name: '认证中心',
+      short: 'ID',
+      url: '/api/v1/auth/idp/redirect',
+    })
+  } finally {
+    idpLoading.value = false
+  }
+}
+
 function goRegister() {
   uni.navigateTo({ url: '/pages/auth/register' })
 }
@@ -717,6 +739,9 @@ function goRegister() {
 }
 .delegated-hint {
   text-align: center;
+  margin-bottom: 40rpx;
+}
+.btn-idp {
   margin-bottom: 40rpx;
 }
 .delegated-hint-text {
