@@ -28,7 +28,7 @@
       </view>
 
       <template v-else>
-        <!-- ===== delegated 模式：仅 OAuth（公司认证中心接管） ===== -->
+        <!-- ===== delegated 模式：公司认证中心接管，与其他登录方式互斥 ===== -->
         <template v-if="isDelegated">
           <button
             class="btn-primary btn-idp"
@@ -38,26 +38,8 @@
           >
             {{ idpLoading ? '跳转中...' : '通过公司认证中心登录' }}
           </button>
-          <view v-if="oauthList.length > 0" class="delegated-hint">
-            <text class="delegated-hint-text"> 或选择登录方式 </text>
-          </view>
-          <view class="oauth-buttons oauth-buttons--primary">
-            <view
-              v-for="item in oauthList"
-              :key="item.key"
-              class="oauth-item"
-              hover-class="oauth-item--hover"
-              @tap="handleOAuth(item)"
-            >
-              <view class="oauth-icon">
-                <text class="oauth-icon-text">
-                  {{ item.short }}
-                </text>
-              </view>
-              <text class="oauth-name">
-                {{ item.name }}
-              </text>
-            </view>
+          <view class="delegated-hint">
+            <text class="delegated-hint-text"> 本系统已启用统一认证，由公司认证中心完成登录 </text>
           </view>
         </template>
 
