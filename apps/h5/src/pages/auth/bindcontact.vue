@@ -125,10 +125,15 @@ const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
 
 // pending token 从 URL 参数或 storage 获取
+// 后端 OAuth 回跳带 pending_token=；callback 页内部跳转带 token=，两种来源都兼容
 const pendingToken = ref('')
 // #ifdef H5
 const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
-pendingToken.value = params.get('token') || uni.getStorageSync('pending_token') || ''
+pendingToken.value =
+  params.get('pending_token') || params.get('token') || uni.getStorageSync('pending_token') || ''
+if (pendingToken.value) {
+  uni.setStorageSync('pending_token', pendingToken.value)
+}
 // #endif
 
 const canSubmit = computed(() => {
