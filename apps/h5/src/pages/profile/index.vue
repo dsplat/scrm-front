@@ -46,6 +46,10 @@
           <text class="menu-label"> 我的活动 </text>
           <text class="menu-arrow"> › </text>
         </view>
+        <view class="menu-item" @tap="goCheckIn">
+          <text class="menu-label"> 打卡中心 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
         <view class="menu-item" @tap="goDistribution">
           <text class="menu-label"> 分销中心 </text>
           <text class="menu-arrow"> › </text>
@@ -102,6 +106,10 @@ function goMember() {
 
 function goMyActivities() {
   uni.showToast({ title: '功能开发中', icon: 'none' })
+}
+
+function goCheckIn() {
+  uni.navigateTo({ url: '/pages/checkin/index' })
 }
 
 function goDistribution() {

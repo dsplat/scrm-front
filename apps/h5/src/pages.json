@@ -75,6 +75,14 @@
     {
       "path": "pages/distribution/apply",
       "style": { "navigationBarTitleText": "申请分销员" }
+    },
+    {
+      "path": "pages/checkin/index",
+      "style": { "navigationBarTitleText": "打卡中心" }
+    },
+    {
+      "path": "pages/checkin/detail",
+      "style": { "navigationBarTitleText": "打卡" }
     }
   ],
   "globalStyle": {
