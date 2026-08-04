@@ -37,6 +37,17 @@
         <button class="checkin-btn" :disabled="submitting" @tap="handleCheckIn">
           {{ submitting ? '打卡中...' : '立即打卡' }}
         </button>
+        <view v-if="backfillWindowDays > 0" class="backfill-row">
+          <picker
+            mode="date"
+            :value="backfillDate"
+            :start="backfillStart"
+            :end="backfillEnd"
+            @change="onBackfillDateChange"
+          >
+            <text class="backfill-link"> 漏打卡了？补卡 </text>
+          </picker>
+        </view>
       </view>
     </view>
 
@@ -100,6 +111,7 @@ import { ref, onMounted } from 'vue'
 import {
   getCheckInActivity,
   checkIn,
+  backfillCheckIn,
   getCheckInRecords,
   getCheckInLeaderboard,
   type CheckInActivity,
@@ -151,6 +163,8 @@ onMounted(async () => {
 async function loadActivity() {
   try {
     activity.value = (await getCheckInActivity(activityId)) as any
+    backfillWindowDays.value = Number(activity.value?.reward_config?.backfill_days ?? 7)
+    backfillStart.value = getBackfillStart()
   } catch {
     // 活动不存在时提示并保持空态
   }
@@ -213,11 +227,16 @@ async function handleCheckIn() {
   if (submitting.value) return
   submitting.value = true
   try {
-    const record: any = await checkIn(activityId, note.value ? { note: note.value } : undefined)
+    const res: any = await checkIn(activityId, note.value ? { note: note.value } : undefined)
+    const record = res?.record
     checkedToday.value = true
     streakCount.value = record?.streak_count ?? streakCount.value + 1
     note.value = ''
-    uni.showToast({ title: '打卡成功', icon: 'success' })
+    const pts = Number(res?.points_awarded ?? 0)
+    uni.showToast({
+      title: pts > 0 ? `打卡成功！+${pts}积分` : '打卡成功',
+      icon: pts > 0 ? 'none' : 'success',
+    })
     await loadRecords()
   } catch (e: any) {
     uni.showToast({ title: e?.message || '打卡失败', icon: 'none' })
@@ -230,6 +249,48 @@ function maskUserId(userId: number): string {
   const str = String(userId)
   if (str.length <= 4) return `用户${str}`
   return `用户${str.slice(-4)}`
+}
+
+// ===== 补打卡 =====
+const backfillDate = ref('')
+const submittingBackfill = ref(false)
+const backfillWindowDays = ref(7)
+
+function dateStrOf(d: Date): string {
+  const m = `${d.getMonth() + 1}`.padStart(2, '0')
+  const day = `${d.getDate()}`.padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+// 补卡窗口上限：昨日
+const backfillEnd = dateStrOf(new Date(Date.now() - 86400000))
+
+// 补卡窗口下限：取回溯窗口与活动开始日期中较晚者
+function getBackfillStart(): string {
+  const windowDays = Number(activity.value?.reward_config?.backfill_days ?? 7)
+  const windowStart = dateStrOf(new Date(Date.now() - windowDays * 86400000))
+  const activityStart = activity.value?.start_date || ''
+  return activityStart > windowStart ? activityStart : windowStart
+}
+const backfillStart = ref(backfillEnd)
+
+async function onBackfillDateChange(e: any) {
+  const date = e?.detail?.value
+  if (!date || submittingBackfill.value) return
+  submittingBackfill.value = true
+  try {
+    const res: any = await backfillCheckIn(activityId, { date })
+    const pts = Number(res?.points_awarded ?? 0)
+    uni.showToast({
+      title: pts > 0 ? `补卡成功！+${pts}积分` : '补卡成功',
+      icon: pts > 0 ? 'none' : 'success',
+    })
+    await Promise.all([loadMyStatus(), loadRecords()])
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '补卡失败', icon: 'none' })
+  } finally {
+    submittingBackfill.value = false
+  }
 }
 </script>
 
@@ -308,6 +369,14 @@ function maskUserId(userId: number): string {
   border-radius: 40rpx;
   margin-top: 24rpx;
   font-size: 30rpx;
+}
+.backfill-row {
+  text-align: center;
+  margin-top: 20rpx;
+}
+.backfill-link {
+  font-size: 24rpx;
+  color: #576b95;
 }
 .tabs {
   display: flex;

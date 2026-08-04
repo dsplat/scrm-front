@@ -9,6 +9,12 @@ export interface CheckInActivity {
   end_date: string | null
   status: 'draft' | 'active' | 'paused' | 'ended'
   total_participants: number
+  reward_config?: {
+    points_per_checkin?: number
+    first_checkin_bonus?: number
+    streak_milestones?: Record<string, number>
+    backfill_days?: number
+  } | null
 }
 
 export interface CheckInRecord {
@@ -44,10 +50,22 @@ export function getCheckInActivity(activityId: string | number) {
 
 // 打卡（user_id 由后端从登录态解析，无需传入）
 export function checkIn(activityId: string | number, data?: { note?: string }) {
-  return request<CheckInRecord>({
+  return request<{ record: CheckInRecord; points_awarded: number }>({
     url: `/scrm/check-in-activities/${activityId}/check-in`,
     method: 'POST',
     data: data || {},
+  })
+}
+
+// 补打卡（仅限窗口内过往日期，user_id 由后端解析）
+export function backfillCheckIn(
+  activityId: string | number,
+  data: { date: string; note?: string },
+) {
+  return request<{ record: CheckInRecord; points_awarded: number }>({
+    url: `/scrm/check-in-activities/${activityId}/backfill`,
+    method: 'POST',
+    data,
   })
 }
 
