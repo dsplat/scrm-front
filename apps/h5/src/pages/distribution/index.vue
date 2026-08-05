@@ -55,6 +55,9 @@
             <view class="action-btn ghost" @tap="showInvite">
               <text>邀请好友</text>
             </view>
+            <view class="action-btn ghost" @tap="goPosters">
+              <text>推广海报</text>
+            </view>
           </view>
           <view v-if="distributor.status !== 'active'" class="status-tip">
             <text>{{ statusText(distributor.status) }}</text>
@@ -291,6 +294,10 @@ function switchTab(value: string) {
 
 function goApply() {
   uni.navigateTo({ url: '/pages/distribution/apply' })
+}
+
+function goPosters() {
+  uni.navigateTo({ url: '/pages/distribution/posters' })
 }
 
 async function showInvite() {

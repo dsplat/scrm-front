@@ -38,12 +38,12 @@ let timer: number | null = null
 useTenantTitle()
 
 onMounted(async () => {
-  // 从页面参数获取活动 ID
+  // 从页面参数获取活动 ID（兼容 id / campaign_id / campaignId 三种写法）
   // @ts-ignore - uni is provided by uni-app runtime
   const pages = getCurrentPages()
   // @ts-ignore
   const page = pages[pages.length - 1]
-  const campaignId = page?.options?.id || page?.options?.campaign_id
+  const campaignId = page?.options?.id || page?.options?.campaign_id || page?.options?.campaignId
 
   if (campaignId) {
     try {
@@ -88,7 +88,7 @@ async function handleJoinCampaign() {
   const pages = getCurrentPages()
   // @ts-ignore
   const page = pages[pages.length - 1]
-  const campaignId = page?.options?.id || page?.options?.campaign_id
+  const campaignId = page?.options?.id || page?.options?.campaign_id || page?.options?.campaignId
 
   if (!campaignId) {
     // @ts-ignore

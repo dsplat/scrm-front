@@ -29,10 +29,10 @@ export async function startAgentConversation(agentId: number, message: string) {
   })
 }
 
-/** 获取活动详情 */
+/** 获取活动详情（公开端点，海报二维码落地页匿名可访问） */
 export async function getCampaignDetail(campaignId: string) {
   return request({
-    url: `/scrm/campaigns/${campaignId}`,
+    url: `/scrm/public/campaigns/${campaignId}`,
     needAuth: false,
   })
 }
