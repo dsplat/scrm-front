@@ -50,3 +50,15 @@ export async function getPointsProducts(): Promise<PointsProduct[]> {
     method: 'GET',
   })
 }
+
+/** 积分兑换（创建统一订单，虚拟支付即时完成） */
+export async function exchangePointsProduct(
+  productId: number,
+  quantity = 1,
+): Promise<{ order_id: number; order_no: string; status: string }> {
+  return request({
+    url: '/scrm/member/points/exchange',
+    method: 'POST',
+    data: { product_id: productId, quantity },
+  })
+}

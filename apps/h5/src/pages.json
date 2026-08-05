@@ -87,6 +87,26 @@
     {
       "path": "pages/checkin/detail",
       "style": { "navigationBarTitleText": "打卡" }
+    },
+    {
+      "path": "pages/shop/index",
+      "style": { "navigationBarTitleText": "商城" }
+    },
+    {
+      "path": "pages/shop/detail",
+      "style": { "navigationBarTitleText": "商品详情" }
+    },
+    {
+      "path": "pages/course/index",
+      "style": { "navigationBarTitleText": "课程中心" }
+    },
+    {
+      "path": "pages/course/detail",
+      "style": { "navigationBarTitleText": "课程详情" }
+    },
+    {
+      "path": "pages/course/learn",
+      "style": { "navigationBarTitleText": "课程学习" }
     }
   ],
   "globalStyle": {

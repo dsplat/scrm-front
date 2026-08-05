@@ -23,6 +23,18 @@
         </view>
         <text class="entry-label"> 活动 </text>
       </view>
+      <view class="entry-item" @tap="goShop">
+        <view class="entry-icon shop-icon">
+          <text class="icon-text"> 商 </text>
+        </view>
+        <text class="entry-label"> 商城 </text>
+      </view>
+      <view class="entry-item" @tap="goCourse">
+        <view class="entry-icon course-icon">
+          <text class="icon-text"> 课 </text>
+        </view>
+        <text class="entry-label"> 课程 </text>
+      </view>
       <view class="entry-item" @tap="goService">
         <view class="entry-icon service-icon">
           <text class="icon-text"> 服 </text>
@@ -141,6 +153,14 @@ function goCampaign() {
   uni.switchTab({ url: '/pages/campaign/index' })
 }
 
+function goShop() {
+  uni.navigateTo({ url: '/pages/shop/index' })
+}
+
+function goCourse() {
+  uni.navigateTo({ url: '/pages/course/index' })
+}
+
 function goService() {
   uni.switchTab({ url: '/pages/self-service/index' })
 }
@@ -211,6 +231,12 @@ function goCampaignDetail(id: string) {
 }
 .campaign-icon {
   background: #ff6b6b;
+}
+.shop-icon {
+  background: #e64340;
+}
+.course-icon {
+  background: #6366f1;
 }
 .service-icon {
   background: #576b95;
