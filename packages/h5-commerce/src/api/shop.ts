@@ -1,7 +1,8 @@
 /**
  * C端商城 API — 商品浏览 / 统一下单 / 支付 / 我的订单
+ * （Product + Order 框架模块 C 端端点）
  */
-import { request } from '../utils/request'
+import { request } from '../request'
 
 export interface ShopProduct {
   product_id: number
@@ -66,7 +67,7 @@ export interface OrderVO {
 /** 商城商品列表（仅上架） */
 export async function getShopProducts(): Promise<{ data: ShopProduct[]; total: number }> {
   return request({
-    url: '/scrm/shop/products',
+    url: 'shop/products',
     method: 'GET',
   })
 }
@@ -74,7 +75,7 @@ export async function getShopProducts(): Promise<{ data: ShopProduct[]; total: n
 /** 商城商品详情（含 SKU） */
 export async function getShopProductDetail(id: number): Promise<ShopDetailResult> {
   return request({
-    url: `/scrm/shop/products/${id}`,
+    url: `shop/products/${id}`,
     method: 'GET',
   })
 }
@@ -82,7 +83,7 @@ export async function getShopProductDetail(id: number): Promise<ShopDetailResult
 /** 创建统一订单 */
 export async function createOrder(payload: CreateOrderPayload): Promise<OrderVO> {
   return request({
-    url: '/scrm/orders',
+    url: 'orders',
     method: 'POST',
     data: payload,
   })
@@ -91,7 +92,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<OrderVO>
 /** 发起支付（积分支付即时完成；现金返回网关参数） */
 export async function payOrder(orderNo: string, openid?: string): Promise<Record<string, unknown>> {
   return request({
-    url: `/scrm/orders/${orderNo}/pay`,
+    url: `orders/${orderNo}/pay`,
     method: 'POST',
     data: openid ? { openid } : {},
   })
@@ -108,7 +109,7 @@ export async function getMyOrders(params?: {
   if (params?.status) query.push(`status=${params.status}`)
   if (params?.per_page) query.push(`per_page=${params.per_page}`)
   return request({
-    url: `/scrm/my/orders${query.length ? `?${query.join('&')}` : ''}`,
+    url: `my/orders${query.length ? `?${query.join('&')}` : ''}`,
     method: 'GET',
   })
 }

@@ -1,7 +1,8 @@
 /**
  * C端课程 API — 浏览 / 购买 / 学习进度 / 我的课程
+ * （Course 框架模块 C 端端点）
  */
-import { request } from '../utils/request'
+import { request } from '../request'
 import type { OrderVO } from './shop'
 
 export interface CourseVO {
@@ -42,7 +43,7 @@ export interface MyCourseItem {
 /** 已发布课程列表 */
 export async function getPublishedCourses(): Promise<{ data: CourseVO[]; total: number }> {
   return request({
-    url: '/scrm/courses/published',
+    url: 'courses/published',
     method: 'GET',
   })
 }
@@ -50,7 +51,7 @@ export async function getPublishedCourses(): Promise<{ data: CourseVO[]; total: 
 /** 课程详情（未购买隐藏章节内容） */
 export async function getCourseDetail(id: number): Promise<CourseDetailResult> {
   return request({
-    url: `/scrm/courses/${id}/detail`,
+    url: `courses/${id}/detail`,
     method: 'GET',
   })
 }
@@ -61,7 +62,7 @@ export async function purchaseCourse(
   opts?: { pay_method?: 'cash' | 'points' | 'mixed'; points_to_use?: number },
 ): Promise<OrderVO> {
   return request({
-    url: `/scrm/courses/${id}/purchase`,
+    url: `courses/${id}/purchase`,
     method: 'POST',
     data: opts ?? {},
   })
@@ -73,7 +74,7 @@ export async function reportLearningProgress(
   chapterId: number,
 ): Promise<{ completed_now: boolean; reward_granted: number }> {
   return request({
-    url: '/scrm/learning-records',
+    url: 'learning-records',
     method: 'POST',
     data: { course_id: courseId, chapter_id: chapterId },
   })
@@ -82,7 +83,7 @@ export async function reportLearningProgress(
 /** 我的课程 */
 export async function getMyCourses(): Promise<MyCourseItem[]> {
   return request({
-    url: '/scrm/my/courses',
+    url: 'my/courses',
     method: 'GET',
   })
 }

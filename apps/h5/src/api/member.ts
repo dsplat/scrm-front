@@ -1,5 +1,7 @@
 /**
- * C端会员 API — 积分余额、流水、商城
+ * C端会员 API — 积分余额、流水
+ *
+ * 积分商城商品/兑换已上移至 @scrm/h5-commerce（api/exchange）
  */
 import { request } from '../utils/request'
 
@@ -17,14 +19,6 @@ export interface PointsFlowItem {
   created_at: string
 }
 
-export interface PointsProduct {
-  id: number
-  name: string
-  points_cost: number
-  stock?: number
-  image?: string
-}
-
 /** 我的积分余额 */
 export async function getMyPointsBalance(): Promise<PointsBalance> {
   return request({
@@ -40,25 +34,5 @@ export async function getMyPointsFlow(
   return request({
     url: `/scrm/member/points/flow${type ? `?type=${type}` : ''}`,
     method: 'GET',
-  })
-}
-
-/** 积分商城商品 */
-export async function getPointsProducts(): Promise<PointsProduct[]> {
-  return request({
-    url: '/scrm/member/points/products',
-    method: 'GET',
-  })
-}
-
-/** 积分兑换（创建统一订单，虚拟支付即时完成） */
-export async function exchangePointsProduct(
-  productId: number,
-  quantity = 1,
-): Promise<{ order_id: number; order_no: string; status: string }> {
-  return request({
-    url: '/scrm/member/points/exchange',
-    method: 'POST',
-    data: { product_id: productId, quantity },
   })
 }
