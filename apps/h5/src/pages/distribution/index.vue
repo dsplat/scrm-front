@@ -238,7 +238,8 @@ function fmt(n: number | string): string {
 
 function formatTime(dateStr: string): string {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
+  // 后端日期序列化为 Y-m-d H:i:s；iOS WebView/Safari 不认空格分隔，转 ISO 分隔符再解析
+  const d = new Date(dateStr.replace(' ', 'T'))
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 

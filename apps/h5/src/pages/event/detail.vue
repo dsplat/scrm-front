@@ -103,7 +103,7 @@ const canRegister = computed(() => {
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ''
-  return new Date(dateStr).toLocaleString('zh-CN', {
+  return new Date(dateStr.replace(' ', 'T')).toLocaleString('zh-CN', {
     month: 'long',
     day: 'numeric',
     hour: '2-digit',

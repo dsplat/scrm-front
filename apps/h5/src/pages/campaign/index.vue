@@ -51,7 +51,7 @@ onMounted(async () => {
       title.value = data.name || title.value
       description.value = data.goal || data.description || description.value
       if (data.end_date) {
-        endDate.value = new Date(data.end_date).getTime()
+        endDate.value = new Date(String(data.end_date).replace(' ', 'T')).getTime()
         startCountdown()
       }
     } catch {
