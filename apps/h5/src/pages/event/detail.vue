@@ -6,10 +6,7 @@
     <!-- 基本信息 -->
     <view class="info-section">
       <text class="title">
-        {{ event.title }}
-      </text>
-      <text v-if="event.subtitle" class="subtitle">
-        {{ event.subtitle }}
+        {{ event.name }}
       </text>
       <view class="meta">
         <view class="meta-item">
@@ -90,7 +87,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { getEventDetail, getEventTicketTypes } from '../../api/event'
-import { getStoredRef } from '../../utils/referral'
 import NavBar from '../../components/NavBar.vue'
 
 const event = ref<any>({})
@@ -98,7 +94,8 @@ const ticketTypes = ref<any[]>([])
 const selectedTicket = ref<number | null>(null)
 
 const canRegister = computed(() => {
-  return ['published', 'ongoing'].includes(event.value.status)
+  // Activity 状态机：scheduled（已排期）/running（进行中）可报名
+  return ['scheduled', 'running'].includes(event.value.status)
 })
 
 function formatDate(dateStr: string) {
@@ -122,15 +119,14 @@ function goRegister() {
     return
   }
   uni.navigateTo({
-    url: `/pages/event/register?eventId=${event.value.event_id}&ticketTypeId=${selectedTicket.value}`,
+    url: `/pages/event/register?eventId=${event.value.activity_id}&ticketTypeId=${selectedTicket.value}`,
   })
 }
 
 function goPoster() {
-  // 携带当前分销员 ref（若有），生成专属归因海报
-  const distributorId = getStoredRef() || ''
+  // 分销归因由后端从登录态解析，前端仅传活动 ID
   uni.navigateTo({
-    url: `/pages/event/poster?eventId=${event.value.event_id}&distributorId=${distributorId}`,
+    url: `/pages/event/poster?eventId=${event.value.activity_id}`,
   })
 }
 

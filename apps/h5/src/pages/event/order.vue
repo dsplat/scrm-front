@@ -11,18 +11,18 @@
       <view class="info-row">
         <text class="label"> 活动 </text>
         <text class="value">
-          {{ order.event?.title }}
+          {{ activityTitle }}
         </text>
       </view>
-      <view class="info-row">
+      <view v-if="ticketName" class="info-row">
         <text class="label"> 票种 </text>
         <text class="value">
-          {{ order.ticket_type?.name }}
+          {{ ticketName }}
         </text>
       </view>
       <view class="info-row">
         <text class="label"> 数量 </text>
-        <text class="value"> {{ order.quantity }} 人 </text>
+        <text class="value"> {{ quantity }} 人 </text>
       </view>
       <view class="info-row">
         <text class="label"> 金额 </text>
@@ -32,12 +32,6 @@
         <text class="label"> 支付时间 </text>
         <text class="value">
           {{ order.paid_at }}
-        </text>
-      </view>
-      <view v-if="order.checked_in_at" class="info-row">
-        <text class="label"> 签到时间 </text>
-        <text class="value">
-          {{ order.checked_in_at }}
         </text>
       </view>
     </view>
@@ -57,10 +51,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getOrderDetail, payOrder } from '../../api/event'
+import { getOrderDetail, payOrder, getEventDetail, getEventTicketTypes } from '../../api/event'
 import NavBar from '../../components/NavBar.vue'
 
 const order = ref<any>({})
+const activityTitle = ref('')
+const ticketName = ref('')
+const quantity = ref(1)
 let orderNo = ''
 
 const statusText = computed(() => {
@@ -163,14 +160,30 @@ function pollOrderStatus(retries = 5) {
 
 function goEvaluate() {
   uni.navigateTo({
-    url: `/pages/event/evaluate?eventId=${order.value.event_id}&orderNo=${orderNo}`,
+    url: `/pages/event/evaluate?eventId=${order.value.entity_id}&orderNo=${orderNo}`,
   })
 }
 
 async function loadOrder() {
-  // request 封装已解包 body.data，res 即订单对象
+  // request 封装已解包 body.data，res 即统一订单对象（entity_type/entity_id/metadata）
   const res: any = await getOrderDetail(orderNo)
   order.value = res || {}
+  quantity.value = Number(res?.items?.[0]?.quantity || res?.metadata?.attendees?.length || 1)
+  // 补充活动标题与票种名（统一订单不冗余实体详情）
+  if (order.value.entity_type === 'activity' && order.value.entity_id) {
+    try {
+      const detail: any = await getEventDetail(order.value.entity_id)
+      activityTitle.value = detail?.name || ''
+      const ticketTypeId = Number(order.value.metadata?.ticket_type_id || 0)
+      if (ticketTypeId) {
+        const tickets: any = await getEventTicketTypes(order.value.entity_id)
+        ticketName.value =
+          ((tickets || []).find((t: any) => t.ticket_type_id === ticketTypeId) as any)?.name || ''
+      }
+    } catch {
+      /* 补充信息失败不影响订单主体展示 */
+    }
+  }
 }
 
 onMounted(() => {

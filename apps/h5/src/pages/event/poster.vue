@@ -41,7 +41,6 @@ import NavBar from '../../components/NavBar.vue'
 const loading = ref(true)
 const posterUrl = ref('')
 let eventId = ''
-let distributorId = ''
 
 /** 将后端返回的相对路径补全为绝对 URL（H5 展示/预览需要） */
 function toAbsoluteUrl(url: string): string {
@@ -59,9 +58,8 @@ async function loadPoster() {
   loading.value = true
   posterUrl.value = ''
   try {
-    const data: any = { utm_source: 'poster_share' }
-    if (distributorId) data.distributor_id = Number(distributorId)
-    const res: any = await renderEventPoster(eventId, data)
+    // 新海报体系：取活动绑定的分销海报并以登录身份渲染，归因由后端从登录态解析
+    const res: any = await renderEventPoster(eventId)
     // request 封装已解包 body.data，res 即 { url, path, cached }
     posterUrl.value = toAbsoluteUrl(res?.url || '')
   } catch (e: any) {
@@ -80,7 +78,6 @@ onMounted(() => {
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
   eventId = page.$page?.options?.eventId || page.options?.eventId || ''
-  distributorId = page.$page?.options?.distributorId || page.options?.distributorId || ''
   if (eventId) {
     loadPoster()
   } else {
