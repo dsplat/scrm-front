@@ -87,11 +87,24 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { getEventDetail, getEventTicketTypes } from '../../api/event'
+import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
 
 const event = ref<any>({})
 const ticketTypes = ref<any[]>([])
 const selectedTicket = ref<number | null>(null)
+const eventId = ref('')
+
+// 页面级 SEO：活动实体拉取后自动更新标题/描述（去 HTML 取前 80 字），canonical 带 eventId 自指
+useSeoMeta(() => ({
+  title: event.value.name ? `${event.value.name} - 活动详情` : '活动详情',
+  description: event.value.description
+    ? String(event.value.description)
+        .replace(/<[^>]+>/g, '')
+        .slice(0, 80)
+    : undefined,
+  canonicalPath: eventId.value ? `/h5/pages/event/detail?eventId=${eventId.value}` : undefined,
+}))
 
 const canRegister = computed(() => {
   // Activity 状态机：scheduled（已排期）/running（进行中）可报名
@@ -133,13 +146,11 @@ function goPoster() {
 onMounted(async () => {
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
-  const eventId = page.$page?.options?.eventId || page.options?.eventId
-  if (!eventId) return
+  const eid = page.$page?.options?.eventId || page.options?.eventId
+  if (!eid) return
+  eventId.value = String(eid)
 
-  const [eventRes, ticketRes] = await Promise.all([
-    getEventDetail(eventId),
-    getEventTicketTypes(eventId),
-  ])
+  const [eventRes, ticketRes] = await Promise.all([getEventDetail(eid), getEventTicketTypes(eid)])
   // request 封装已解包 body.data：eventRes 即活动对象，ticketRes 即票种数组
   event.value = (eventRes as any) || {}
   ticketTypes.value = ((ticketRes as any) || []).map((t: any) => ({

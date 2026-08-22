@@ -112,7 +112,7 @@
   "globalStyle": {
     "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "SCRM",
+    "navigationBarTitleText": "内行商城",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
