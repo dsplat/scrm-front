@@ -1,5 +1,8 @@
 /**
  * C端 SCRM API — 活码、客服、活动、反馈
+ *
+ * 活动域已统一：Campaign/Event 旧 API 已软下线(410)，一律走 Activity 模块
+ * （/scrm/activities，type 区分 marketing/offline_event/hybrid/course/training_camp）。
  */
 import { request } from '../utils/request'
 
@@ -29,19 +32,12 @@ export async function startAgentConversation(agentId: number, message: string) {
   })
 }
 
-/** 获取活动详情（公开端点，海报二维码落地页匿名可访问） */
-export async function getCampaignDetail(campaignId: string) {
+/** 获取活动列表（统一 Activity 模块，需登录；列表页默认只展示可参与状态） */
+export async function getActivityList(params: Record<string, unknown> = {}) {
   return request({
-    url: `/scrm/public/campaigns/${campaignId}`,
-    needAuth: false,
-  })
-}
-
-/** 参与活动 */
-export async function joinCampaign(campaignId: string) {
-  return request({
-    url: `/scrm/campaigns/${campaignId}/participants`,
-    method: 'POST',
+    url: '/scrm/activities',
+    method: 'GET',
+    data: params,
   })
 }
 

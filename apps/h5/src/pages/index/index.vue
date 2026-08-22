@@ -97,9 +97,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { isLoggedIn } from '../../api/auth'
+import { getActivityList } from '../../api/scrm'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
+import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
 
 interface CampaignItem {
@@ -115,19 +117,39 @@ const { state: tenantState } = useTenantStore()
 // 微信原生栏标题统一为租户名
 useTenantTitle()
 
+// 页面级 SEO：租户名 + 品牌词，canonical 自指首页路径（不带 query）
+useSeoMeta(() => ({
+  title: tenantState.tenant?.name
+    ? `${tenantState.tenant.name} - 课程・商城・活动`
+    : '内行商城 - 课程・商城・活动一站式服务平台',
+  description: tenantState.tenant?.name
+    ? `${tenantState.tenant.name}提供在线课程、商品购买与活动报名服务，一站式私域运营与消费体验。`
+    : '内行商城提供在线课程、商品购买与活动报名服务，支持多租户品牌定制。',
+  canonicalPath: '/h5/pages/index/index',
+}))
+
 const homeTitle = computed(() => tenantState.tenant?.name || '首页')
 
 onMounted(async () => {
-  // 已登录则拉取用户信息
+  // 已登录则拉取用户信息 + 推荐活动（活动列表接口需登录，匿名时展示空态）
   if (isLoggedIn()) {
     await fetchUser()
+    try {
+      const res: any = await getActivityList({ per_page: 3 })
+      campaigns.value = (res?.list || [])
+        .filter((a: any) => !['draft', 'planning', 'cancelled'].includes(a.status))
+        .slice(0, 3)
+        .map((a: any) => ({
+          id: a.activity_id,
+          name: a.name,
+          description: String(a.description || '')
+            .replace(/<[^>]+>/g, '')
+            .slice(0, 40),
+        }))
+    } catch {
+      campaigns.value = []
+    }
   }
-
-  // 加载推荐活动（预留接口，暂用静态数据）
-  campaigns.value = [
-    { id: '1', name: '新人专享礼', description: '注册即送积分大礼包' },
-    { id: '2', name: '邀请好友', description: '邀请好友注册，双方获得奖励' },
-  ]
 })
 
 function goScan() {
@@ -170,7 +192,8 @@ function goProfile() {
 }
 
 function goCampaignDetail(id: string) {
-  uni.navigateTo({ url: `/pages/campaign/index?id=${id}` })
+  // 活动域已统一：详情页为 event 目录（API 已迁 Activity 模块）
+  uni.navigateTo({ url: `/pages/event/detail?eventId=${id}` })
 }
 </script>
 
