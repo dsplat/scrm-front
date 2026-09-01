@@ -107,6 +107,34 @@
     {
       "path": "pages/course/learn",
       "style": { "navigationBarTitleText": "课程学习" }
+    },
+    {
+      "path": "pages/exam/index",
+      "style": { "navigationBarTitleText": "考试中心" }
+    },
+    {
+      "path": "pages/exam/detail",
+      "style": { "navigationBarTitleText": "答题" }
+    },
+    {
+      "path": "pages/exam/result",
+      "style": { "navigationBarTitleText": "考试结果" }
+    },
+    {
+      "path": "pages/practice/wrong",
+      "style": { "navigationBarTitleText": "错题本" }
+    },
+    {
+      "path": "pages/practice/practice",
+      "style": { "navigationBarTitleText": "练习" }
+    },
+    {
+      "path": "pages/live/index",
+      "style": { "navigationBarTitleText": "直播" }
+    },
+    {
+      "path": "pages/live/watch",
+      "style": { "navigationBarTitleText": "观看直播" }
     }
   ],
   "globalStyle": {
