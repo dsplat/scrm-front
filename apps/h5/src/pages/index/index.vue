@@ -35,13 +35,6 @@
         </view>
         <text class="entry-label"> 课程 </text>
       </view>
-      <!-- 线下班培训入口：我的班级（50_01 学员端首页对标；未登录进页后引导登录） -->
-      <view class="entry-item" @tap="goTraining">
-        <view class="entry-icon class-icon">
-          <text class="icon-text"> 班 </text>
-        </view>
-        <text class="entry-label"> 班级 </text>
-      </view>
       <view class="entry-item" @tap="goService">
         <view class="entry-icon service-icon">
           <text class="icon-text"> 服 </text>
@@ -190,10 +183,6 @@ function goCourse() {
   uni.navigateTo({ url: '/pages/course/index' })
 }
 
-function goTraining() {
-  uni.navigateTo({ url: '/pages/training/index' })
-}
-
 function goService() {
   uni.switchTab({ url: '/pages/self-service/index' })
 }
@@ -234,7 +223,7 @@ function goCampaignDetail(id: string) {
 }
 .quick-entry {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-around;
   background: #fff;
   margin: -30rpx 24rpx 24rpx;
   border-radius: 16rpx;
@@ -245,8 +234,6 @@ function goCampaignDetail(id: string) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 25%;
-  margin-bottom: 20rpx;
 }
 .entry-icon {
   width: 88rpx;
@@ -273,9 +260,6 @@ function goCampaignDetail(id: string) {
 }
 .course-icon {
   background: #6366f1;
-}
-.class-icon {
-  background: #14b8a6;
 }
 .service-icon {
   background: #576b95;

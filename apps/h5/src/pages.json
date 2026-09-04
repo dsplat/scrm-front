@@ -89,18 +89,6 @@
       "style": { "navigationBarTitleText": "打卡" }
     },
     {
-      "path": "pages/training/index",
-      "style": { "navigationBarTitleText": "我的班级" }
-    },
-    {
-      "path": "pages/training/detail",
-      "style": { "navigationBarTitleText": "班级详情" }
-    },
-    {
-      "path": "pages/training/submit",
-      "style": { "navigationBarTitleText": "提交作业" }
-    },
-    {
       "path": "pages/shop/index",
       "style": { "navigationBarTitleText": "商城" }
     },
