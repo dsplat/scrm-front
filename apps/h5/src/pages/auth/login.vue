@@ -219,7 +219,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { emailLogin, mfaVerify, sendSmsCode, smsLogin } from '../../api/auth'
+import { emailLogin, mfaVerify, mpWeixinLogin, sendSmsCode, smsLogin } from '../../api/auth'
 import type { LoginResult } from '../../api/auth'
 import { bindAttribution } from '../../api/distribution'
 import { getStoredRef, clearReferral } from '../../utils/referral'
@@ -439,6 +439,17 @@ async function bindReferralSilently() {
 }
 
 async function handleOAuth(item: OAuthItem) {
+  // #ifdef MP-WEIXIN
+  // 小程序端：微信登录走 jscode2session 登录桥（uni.login 换 code，非 OAuth 跳转）；
+  // 其余 provider（企微/钉钉等）未落地 MP 端实现，给出提示避免无响应
+  if (item.key === 'wechat') {
+    await handleMpWeixinLogin()
+    return
+  }
+  uni.showToast({ title: '该方式暂不支持小程序登录', icon: 'none' })
+  return
+  // #endif
+
   // #ifdef H5
   try {
     const res = await fetch(item.url, { headers: { Accept: 'application/json' } })
@@ -452,6 +463,32 @@ async function handleOAuth(item: OAuthItem) {
     uni.showToast({ title: '网络错误', icon: 'none' })
   }
   // #endif
+}
+
+// ---- 小程序微信登录（登录桥 pending 编排，与 callback.vue 同构） ----
+const mpWeixinLoading = ref(false)
+async function handleMpWeixinLogin() {
+  if (mpWeixinLoading.value) return
+  mpWeixinLoading.value = true
+  errorMsg.value = ''
+  try {
+    const result = await mpWeixinLogin()
+
+    // 新壳用户（无已验证联系方式）：pending token → 绑定页补联系方式
+    // （bindcontact onLoad 兼容 token= 与 pending_token= 双参数）
+    if (result.needs_bindcontact) {
+      uni.setStorageSync('pending_token', result.pending_token)
+      uni.redirectTo({ url: `/pages/auth/bindcontact?token=${result.pending_token}` })
+      return
+    }
+
+    // 存量已验证用户：正式 token 已由 mpWeixinLogin 落 storage，直入首页
+    onLoginSuccess(result)
+  } catch (e: any) {
+    errorMsg.value = e.message || '微信登录失败'
+  } finally {
+    mpWeixinLoading.value = false
+  }
 }
 
 // delegated 模式主入口：直连认证中心（后端对任意 provider 均转发 IdP，用通用 idp 标识）
@@ -487,7 +524,7 @@ function goRegister() {
 /* ---- 品牌区 ---- */
 .brand-zone {
   position: relative;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
   background-image: linear-gradient(165deg, rgba(255, 255, 255, 0.14) 0%, rgba(0, 0, 0, 0.1) 100%);
   padding-bottom: 96rpx;
   overflow: hidden;
@@ -583,7 +620,7 @@ function goRegister() {
   height: 56rpx;
   border-radius: 50%;
   border: 5rpx solid #eee;
-  border-top-color: var(--scrm-primary, #07c160);
+  border-top-color: var(--scrm-primary, var(--scrm-primary));
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin {
@@ -618,7 +655,7 @@ function goRegister() {
   transition: color 0.2s;
 }
 .tab-item--active {
-  color: var(--scrm-primary, #07c160);
+  color: var(--scrm-primary, var(--scrm-primary));
   font-weight: 600;
 }
 .tab-item--active::after {
@@ -630,7 +667,7 @@ function goRegister() {
   width: 48rpx;
   height: 4rpx;
   border-radius: 4rpx;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
 }
 
 /* ---- SMS 验证码行 ---- */
@@ -648,7 +685,7 @@ function goRegister() {
   line-height: 96rpx;
   padding: 0 28rpx;
   font-size: 26rpx;
-  color: var(--scrm-primary, #07c160);
+  color: var(--scrm-primary, var(--scrm-primary));
   background: rgba(7, 193, 96, 0.08);
   border-radius: 16rpx;
   white-space: nowrap;
@@ -674,7 +711,7 @@ function goRegister() {
 }
 .input:focus {
   background: #fff;
-  border-color: var(--scrm-primary, #07c160);
+  border-color: var(--scrm-primary, var(--scrm-primary));
 }
 .error-msg {
   color: #e64340;
@@ -686,7 +723,7 @@ function goRegister() {
   width: 100%;
   height: 96rpx;
   line-height: 96rpx;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
   color: #fff;
   font-size: 32rpx;
   font-weight: 600;
@@ -767,7 +804,7 @@ function goRegister() {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
   display: flex;
   align-items: center;
   justify-content: center;

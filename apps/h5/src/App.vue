@@ -17,4 +17,14 @@ onHide(() => {
   console.log('App Hide')
 })
 </script>
-<style></style>
+
+<style>
+/* #ifdef H5 */
+/* 主题色兜底：正常由租户品牌配置在 applyBranding 中覆盖 */
+:root {
+  --scrm-primary: #07c160;
+  --scrm-primary-deep: #06ad56;
+  --scrm-primary-soft: rgba(7, 193, 96, 0.08);
+}
+/* #endif */
+</style>

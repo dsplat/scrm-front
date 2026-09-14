@@ -72,7 +72,7 @@ status.value = String(options.status ?? '')
 }
 
 .result-score.pass .score-num {
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 
 .result-score.fail .score-num {
@@ -100,7 +100,7 @@ status.value = String(options.status ?? '')
 }
 
 .btn.primary {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
 }
 </style>

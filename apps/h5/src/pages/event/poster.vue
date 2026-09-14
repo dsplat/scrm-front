@@ -141,7 +141,7 @@ onMounted(() => {
   width: 100%;
   height: 88rpx;
   line-height: 88rpx;
-  background: #4a90d9;
+  background: var(--scrm-primary, #07c160);
   color: #fff;
   border-radius: 44rpx;
   font-size: 30rpx;
@@ -161,7 +161,7 @@ onMounted(() => {
   width: 320rpx;
   height: 80rpx;
   line-height: 80rpx;
-  background: #4a90d9;
+  background: var(--scrm-primary, #07c160);
   color: #fff;
   border-radius: 40rpx;
   font-size: 28rpx;

@@ -71,7 +71,7 @@ onMounted(async () => {
   height: 64rpx;
   border-radius: 50%;
   border: 6rpx solid #eee;
-  border-top-color: var(--scrm-primary, #07c160);
+  border-top-color: var(--scrm-primary, var(--scrm-primary));
   animation: spin 0.8s linear infinite;
   margin-bottom: 24rpx;
 }

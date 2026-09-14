@@ -119,7 +119,7 @@ function joinGroup() {
   margin: 12rpx auto;
 }
 .action-btn.primary {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
 }
 </style>

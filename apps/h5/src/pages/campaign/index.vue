@@ -175,7 +175,7 @@ function formatTime(dateStr: string) {
 }
 .status-running {
   background: #e6f7ee;
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .status-scheduled {
   background: #fff7e6;

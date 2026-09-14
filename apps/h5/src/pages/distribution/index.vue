@@ -410,7 +410,7 @@ onMounted(async () => {
 .balance-card {
   margin: 24rpx;
   padding: 36rpx;
-  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+  background: linear-gradient(135deg, var(--scrm-primary) 0%, var(--scrm-primary-deep) 100%);
   border-radius: 20rpx;
   color: #fff;
 }
@@ -455,7 +455,7 @@ onMounted(async () => {
   text-align: center;
   padding: 18rpx 0;
   background: #fff;
-  color: #07c160;
+  color: var(--scrm-primary);
   border-radius: 40rpx;
   font-size: 28rpx;
   font-weight: 600;
@@ -484,9 +484,9 @@ onMounted(async () => {
   border-bottom: 4rpx solid transparent;
 }
 .tab-item.active {
-  color: #07c160;
+  color: var(--scrm-primary);
   font-weight: 600;
-  border-bottom-color: #07c160;
+  border-bottom-color: var(--scrm-primary);
 }
 .panel {
   margin: 16rpx 24rpx;
@@ -510,7 +510,7 @@ onMounted(async () => {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -574,7 +574,7 @@ onMounted(async () => {
 .record-amount {
   font-size: 32rpx;
   font-weight: 600;
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .record-amount.spend {
   color: #e64340;
@@ -586,7 +586,7 @@ onMounted(async () => {
 }
 .record-status.settled,
 .record-status.paid {
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .record-status.cancelled,
 .record-status.rejected,
@@ -646,7 +646,7 @@ onMounted(async () => {
   color: #666;
 }
 .modal-btn.confirm {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
 }
 </style>

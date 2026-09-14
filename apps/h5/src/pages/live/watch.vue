@@ -154,7 +154,7 @@ onUnmounted(() => {
 .chat-tip {
   padding: 20rpx 30rpx;
   font-size: 26rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
   background: #1c1c1c;
 }
 

@@ -155,7 +155,7 @@ async function handleLogout() {
   width: 300rpx;
   height: 80rpx;
   line-height: 80rpx;
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   font-size: 30rpx;
   border-radius: 40rpx;
@@ -193,12 +193,12 @@ async function handleLogout() {
 }
 .edit-btn {
   padding: 12rpx 28rpx;
-  border: 1px solid #07c160;
+  border: 1px solid var(--scrm-primary);
   border-radius: 32rpx;
 }
 .edit-btn text {
   font-size: 26rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .menu-section {
   background: #fff;

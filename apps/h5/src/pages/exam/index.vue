@@ -132,7 +132,7 @@ onMounted(load)
 
 .action-btn {
   font-size: 26rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
   font-weight: 600;
 }
 
@@ -157,7 +157,7 @@ onMounted(load)
 }
 
 .record-score.pass {
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 
 .record-score.fail {

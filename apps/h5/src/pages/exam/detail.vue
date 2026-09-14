@@ -230,7 +230,7 @@ onUnmounted(() => {
 
 .q-type {
   font-size: 22rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
   background: #e8f8ef;
   border-radius: 6rpx;
   padding: 2rpx 12rpx;
@@ -262,7 +262,7 @@ onUnmounted(() => {
 }
 
 .option-item.selected {
-  border-color: #07c160;
+  border-color: var(--scrm-primary);
   background: #f0fff6;
 }
 
@@ -287,7 +287,7 @@ onUnmounted(() => {
 }
 
 .submit-btn {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   font-size: 30rpx;
   border-radius: 44rpx;

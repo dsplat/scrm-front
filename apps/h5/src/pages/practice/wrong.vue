@@ -131,7 +131,7 @@ onMounted(async () => {
 }
 
 .submit-btn {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   font-size: 30rpx;
   border-radius: 44rpx;

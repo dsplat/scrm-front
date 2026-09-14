@@ -196,7 +196,7 @@ function goLogin() {
   transition: border-color 0.2s;
 }
 .input:focus {
-  border-color: var(--scrm-primary, #07c160);
+  border-color: var(--scrm-primary, var(--scrm-primary));
 }
 .error-msg {
   color: #e64340;
@@ -208,7 +208,7 @@ function goLogin() {
   width: 100%;
   height: 96rpx;
   line-height: 96rpx;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
   color: #fff;
   font-size: 32rpx;
   border-radius: 12rpx;

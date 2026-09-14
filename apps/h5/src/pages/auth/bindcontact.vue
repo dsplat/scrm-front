@@ -5,7 +5,58 @@
       <text class="bind-desc"> 为保障账号安全，请绑定手机号或邮箱 </text>
     </view>
 
-    <view class="bind-card">
+    <!-- 占用确认卡（告知式确认）：预检命中或 bind 409 兜底时展示，确认才合并 -->
+    <view v-if="summary" class="bind-card confirm-card">
+      <view class="confirm-avatar-wrap">
+        <image
+          v-if="summary.avatar_url"
+          :src="summary.avatar_url"
+          class="confirm-avatar"
+          mode="aspectFill"
+        />
+        <view v-else class="confirm-avatar confirm-avatar--fallback">
+          {{ (summary.nickname || '?').slice(0, 1) }}
+        </view>
+      </view>
+      <view class="confirm-nickname">
+        {{ summary.nickname }}
+      </view>
+      <view class="confirm-contact">
+        {{ summary.masked_contact }}
+      </view>
+      <view v-if="summary.registered_at" class="confirm-meta">
+        该账号注册于 {{ summary.registered_at.slice(0, 10) }}
+      </view>
+      <view class="confirm-tip">
+        该{{
+          activeTab === 'phone' ? '手机号' : '邮箱'
+        }}已绑定账号，绑定后此渠道将直接登录该账号，原微信壳账号将合并停用
+      </view>
+      <view v-if="errorMsg" class="error-msg">
+        <text>{{ errorMsg }}</text>
+      </view>
+      <view class="confirm-actions">
+        <button
+          class="btn-cancel"
+          hover-class="btn-cancel--hover"
+          :disabled="loading"
+          @tap="cancelConfirm"
+        >
+          取消
+        </button>
+        <button
+          class="btn-primary"
+          hover-class="btn-primary--hover"
+          :disabled="loading"
+          @tap="handleSubmit"
+        >
+          {{ loading ? '绑定中...' : '确认绑定' }}
+        </button>
+      </view>
+    </view>
+
+    <!-- 表单绑定态 -->
+    <view v-else class="bind-card">
       <!-- Tab 切换 -->
       <view class="bind-tabs">
         <view
@@ -101,7 +152,7 @@
       </button>
 
       <view class="bind-hint">
-        <text class="hint-text"> 若该联系方式已注册，将自动合并账号 </text>
+        <text class="hint-text"> 该联系方式已绑定其他账号时，需确认后合并，不会自动覆盖 </text>
       </view>
     </view>
   </view>
@@ -109,9 +160,19 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { request, setToken } from '../../utils/request'
 import { sendSmsCode } from '../../api/auth'
 import { useUserStore } from '../../store/user'
+
+/** 占用账号可判断摘要（后端 buildConflictSummary，联系方式一律脱敏） */
+interface BindSummary {
+  user_id: number
+  masked_contact: string
+  nickname?: string
+  avatar_url?: string | null
+  registered_at?: string | null
+}
 
 const { setUser } = useUserStore()
 
@@ -124,17 +185,19 @@ const errorMsg = ref('')
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
 
-// pending token 从 URL 参数或 storage 获取
-// 后端 OAuth 回跳带 pending_token=；callback 页内部跳转带 token=，两种来源都兼容
+// 占用命中摘要：非空 → 展示确认卡（等待用户确认后走 confirm 合并）
+const summary = ref<BindSummary | null>(null)
+
+// pending token：优先 URL 参数（H5 OAuth 回跳 pending_token= / 小程序登录桥 token=，
+// 双端 onLoad 均携带 query），storage 兜底（callback.vue 先存后跳）；两种来源都兼容
 const pendingToken = ref('')
-// #ifdef H5
-const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
-pendingToken.value =
-  params.get('pending_token') || params.get('token') || uni.getStorageSync('pending_token') || ''
-if (pendingToken.value) {
-  uni.setStorageSync('pending_token', pendingToken.value)
-}
-// #endif
+onLoad((options) => {
+  const fromQuery = String(options?.pending_token || options?.token || '')
+  pendingToken.value = fromQuery || uni.getStorageSync('pending_token') || ''
+  if (pendingToken.value) {
+    uni.setStorageSync('pending_token', pendingToken.value)
+  }
+})
 
 const canSubmit = computed(() => {
   if (activeTab.value === 'phone') {
@@ -181,13 +244,42 @@ async function handleSendEmailCode() {
   }
 }
 
+/**
+ * 确认绑定（表单态先预检，命中则弹确认卡等二次确认；确认态直接走合并）
+ *
+ * 预检（check，只读）失败不阻断：bind 自身 409（contact_conflict + summary）兜底弹卡。
+ * 后端验证码先验后消：409 不消耗验证码，确认合并同码重提仍有效。
+ */
 async function handleSubmit() {
-  if (!canSubmit.value || loading.value) return
+  if (loading.value) return
+  if (!summary.value && !canSubmit.value) return
 
   loading.value = true
   errorMsg.value = ''
 
+  const type = activeTab.value
+  const value = type === 'phone' ? phone.value : email.value
+
   try {
+    // 1. 告知式预检（只读）：占用命中 → 渲染确认卡，等待用户决策（验证码已就位，不额外消耗）
+    if (!summary.value) {
+      try {
+        const check = await request<{ matched: boolean; summary?: BindSummary }>({
+          url: '/auth/bind-contact/check',
+          method: 'POST',
+          data: { type, value },
+          customToken: pendingToken.value,
+        })
+        if (check.matched && check.summary) {
+          summary.value = check.summary
+          return
+        }
+      } catch {
+        // 预检异常（限频/网络）不阻断：bind 自身 409 兜底弹确认卡
+      }
+    }
+
+    // 2. 绑定：占用态带 confirm + expected_user_id（二次占用校验）；空闲态直绑
     const result = await request<{
       user: any
       tenant_id?: number
@@ -196,9 +288,11 @@ async function handleSubmit() {
       url: '/auth/bind-contact',
       method: 'POST',
       data: {
-        type: activeTab.value,
-        value: activeTab.value === 'phone' ? phone.value : email.value,
+        type,
+        value,
         code: code.value,
+        confirm: summary.value ? true : undefined,
+        expected_user_id: summary.value ? summary.value.user_id : undefined,
       },
       customToken: pendingToken.value,
     })
@@ -211,10 +305,21 @@ async function handleSubmit() {
     // 跳转首页
     uni.switchTab({ url: '/pages/index/index' })
   } catch (e: any) {
-    errorMsg.value = e.message || '绑定失败'
+    // 3. 409 占用冲突（预检后被抢占/目标变化）→ 就地更新确认卡；验证码未被消耗，可同码确认重提
+    if (e?.code === 'contact_conflict' && e?.summary) {
+      summary.value = e.summary
+      return
+    }
+    errorMsg.value = e?.message || '绑定失败'
   } finally {
     loading.value = false
   }
+}
+
+/** 取消确认：回到表单态（验证码保留，可改号重新预检） */
+function cancelConfirm() {
+  summary.value = null
+  errorMsg.value = ''
 }
 </script>
 
@@ -259,7 +364,7 @@ async function handleSubmit() {
   position: relative;
 }
 .tab-item--active {
-  color: var(--scrm-primary, #07c160);
+  color: var(--scrm-primary, var(--scrm-primary));
   font-weight: 600;
 }
 .tab-item--active::after {
@@ -271,7 +376,7 @@ async function handleSubmit() {
   width: 48rpx;
   height: 4rpx;
   border-radius: 4rpx;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
 }
 .bind-form {
   margin-bottom: 24rpx;
@@ -290,7 +395,7 @@ async function handleSubmit() {
 }
 .input:focus {
   background: #fff;
-  border-color: var(--scrm-primary, #07c160);
+  border-color: var(--scrm-primary, var(--scrm-primary));
 }
 .code-row {
   display: flex;
@@ -306,7 +411,7 @@ async function handleSubmit() {
   line-height: 96rpx;
   padding: 0 28rpx;
   font-size: 26rpx;
-  color: var(--scrm-primary, #07c160);
+  color: var(--scrm-primary, var(--scrm-primary));
   background: rgba(7, 193, 96, 0.08);
   border-radius: 16rpx;
   white-space: nowrap;
@@ -325,7 +430,7 @@ async function handleSubmit() {
   width: 100%;
   height: 96rpx;
   line-height: 96rpx;
-  background: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary, var(--scrm-primary));
   color: #fff;
   font-size: 32rpx;
   font-weight: 600;
@@ -345,5 +450,86 @@ async function handleSubmit() {
 .hint-text {
   font-size: 24rpx;
   color: #bbb;
+}
+
+/* 占用确认卡：告知式确认（合并前展示占用账号可判断摘要） */
+.confirm-card {
+  text-align: center;
+}
+.confirm-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+.confirm-avatar {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  background: #f0f0f0;
+}
+.confirm-avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #07c160, #059a4d);
+}
+.confirm-nickname {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+.confirm-contact {
+  display: inline-block;
+  font-size: 30rpx;
+  color: var(--scrm-primary, #07c160);
+  background: rgba(7, 193, 96, 0.08);
+  padding: 8rpx 28rpx;
+  border-radius: 32rpx;
+  margin-bottom: 16rpx;
+}
+.confirm-meta {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 24rpx;
+}
+.confirm-tip {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.7;
+  background: #fffbe6;
+  border: 2rpx solid #ffe58f;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 12rpx;
+  text-align: left;
+}
+.confirm-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+.btn-cancel {
+  flex: 1;
+  height: 96rpx;
+  line-height: 96rpx;
+  font-size: 32rpx;
+  color: #666;
+  background: #f7f8fa;
+  border-radius: 16rpx;
+  margin: 0;
+}
+.btn-cancel--hover {
+  opacity: 0.8;
+}
+.btn-cancel[disabled] {
+  opacity: 0.5;
+}
+.confirm-actions .btn-primary {
+  flex: 2;
+  margin: 0;
 }
 </style>

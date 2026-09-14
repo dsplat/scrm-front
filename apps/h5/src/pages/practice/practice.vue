@@ -200,7 +200,7 @@ onMounted(async () => {
 
 .q-type {
   font-size: 22rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
   background: #e8f8ef;
   border-radius: 6rpx;
   padding: 2rpx 12rpx;
@@ -226,12 +226,12 @@ onMounted(async () => {
 }
 
 .option-item.selected {
-  border-color: #07c160;
+  border-color: var(--scrm-primary);
   background: #f0fff6;
 }
 
 .option-item.correct {
-  border-color: #07c160;
+  border-color: var(--scrm-primary);
   background: #f0fff6;
 }
 
@@ -251,7 +251,7 @@ onMounted(async () => {
 }
 
 .submit-btn {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   font-size: 30rpx;
   border-radius: 44rpx;
@@ -259,7 +259,7 @@ onMounted(async () => {
 
 .result-tip {
   text-align: center;
-  color: #07c160;
+  color: var(--scrm-primary);
   font-size: 28rpx;
   padding: 20rpx;
 }

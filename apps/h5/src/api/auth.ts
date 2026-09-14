@@ -10,8 +10,8 @@ export interface UserInfo {
   user_id: number
   name: string
   email: string
-  phone?: string
-  avatar?: string
+  phone?: string | null
+  avatar?: string | null
   email_verified_at?: string | null
 }
 
@@ -30,6 +30,34 @@ export interface MfaRequiredResult {
 }
 
 export type LoginResponse = LoginResult | MfaRequiredResult
+
+/**
+ * 小程序登录桥用户结构（对齐后端 userToArray：role / email_verified）
+ */
+export interface MpWeixinUser {
+  user_id: number
+  name: string
+  email: string
+  avatar?: string | null
+  role?: string | null
+  email_verified?: boolean
+}
+
+/** 存量已验证用户：直接落地正式登录态 */
+export interface MpWeixinLoginSuccess {
+  needs_bindcontact: false
+  user: MpWeixinUser
+  tenant_id: number
+  auth_token: string
+}
+
+/** 新壳用户（无已验证联系方式）：引导绑定页，pending token 不落地正式登录态 */
+export interface MpWeixinLoginPending {
+  needs_bindcontact: true
+  pending_token: string
+}
+
+export type MpWeixinLoginResponse = MpWeixinLoginSuccess | MpWeixinLoginPending
 
 /**
  * 邮箱密码登录
@@ -198,9 +226,16 @@ export function redirectToWechatAuth(appId: string, redirectUri: string): void {
 }
 
 /**
- * 小程序登录
+ * 小程序微信登录（登录桥 POST /auth/mp-weixin/login）
+ *
+ * 仅 MP-WEIXIN 端使用：uni.login 换一次性 code → 服务端 jscode2session
+ * （self 自建 / component 服务商代换双 driver）→ 存量已验证用户直接落
+ * 正式 token；新壳用户（无已验证联系方式）返回 needs_bindcontact +
+ * pending_token，由登录页编排跳转 bindcontact（与 H5 公众号 OAuth
+ * pending 语义一致）。原 /auth/wechat/callback 为公众号 OAuth code
+ * 语义，小程序不可用。
  */
-export async function mpWeixinLogin(): Promise<LoginResult> {
+export async function mpWeixinLogin(): Promise<MpWeixinLoginResponse> {
   // @ts-ignore - uni is provided by uni-app runtime
   const { code } = await new Promise<UniApp.LoginRes>((resolve, reject) => {
     // @ts-ignore
@@ -211,7 +246,19 @@ export async function mpWeixinLogin(): Promise<LoginResult> {
     })
   })
 
-  return wechatLogin(code)
+  const result = await request<MpWeixinLoginResponse>({
+    url: '/auth/mp-weixin/login',
+    method: 'POST',
+    data: { code },
+    needAuth: false,
+  })
+
+  // 正式登录态才落 user_token（pending token 不覆盖正式态，由登录页单独编排）
+  if (result.needs_bindcontact === false) {
+    setToken(result.auth_token)
+  }
+
+  return result
 }
 
 /**

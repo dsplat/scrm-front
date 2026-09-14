@@ -4,7 +4,7 @@
     <!-- Banner -->
     <view class="banner">
       <view class="banner-content">
-        <text class="banner-title"> 欢迎使用 SCRM 会员服务 </text>
+        <text class="banner-title"> 欢迎使用 社群 会员服务 </text>
         <text class="banner-desc"> 社群营销 · 智能客服 · 专属活动 </text>
       </view>
     </view>
@@ -87,7 +87,7 @@
       <view class="notice-list">
         <view class="notice-item">
           <text class="notice-dot"> ● </text>
-          <text class="notice-text"> 欢迎加入 SCRM 会员体系，享受专属权益 </text>
+          <text class="notice-text"> 欢迎加入社群会员体系，享受专属权益 </text>
         </view>
       </view>
     </view>
@@ -204,7 +204,7 @@ function goCampaignDetail(id: string) {
   padding-bottom: 20rpx;
 }
 .banner {
-  background: linear-gradient(135deg, #07c160, #06ad56);
+  background: linear-gradient(135deg, var(--scrm-primary), var(--scrm-primary-deep));
   padding: 60rpx 40rpx;
 }
 .banner-content {
@@ -250,7 +250,7 @@ function goCampaignDetail(id: string) {
   font-weight: bold;
 }
 .scan-icon {
-  background: #07c160;
+  background: var(--scrm-primary);
 }
 .campaign-icon {
   background: #ff6b6b;
@@ -333,7 +333,7 @@ function goCampaignDetail(id: string) {
   padding: 16rpx 0;
 }
 .notice-dot {
-  color: #07c160;
+  color: var(--scrm-primary);
   font-size: 16rpx;
   margin-right: 16rpx;
 }

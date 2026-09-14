@@ -6,7 +6,9 @@
  * - 支持 /api/v1 前缀
  */
 
-const BASE_URL = '/api/v1'
+// BASE_URL 默认同源 /api/v1（H5 不设 env 行为不变）；
+// 小程序构建经 Console 注入 VITE_API_BASE=https://{租户API域}（见 build:mp-weixin）
+const BASE_URL = import.meta.env.VITE_API_BASE || '/api/v1'
 
 interface RequestOptions {
   url: string
@@ -21,6 +23,25 @@ interface ApiResponse<T = any> {
   success: boolean
   data: T
   message?: string
+  /** 业务错误码（如 bind 冲突 contact_conflict / pending_token_expired） */
+  code?: string
+  /** 业务错误附带的上下文（如冲突摘要 summary） */
+  summary?: Record<string, any>
+}
+
+/** 结构化业务错误：message 供直接展示，code/summary 供流程分支（如 409 确认态） */
+export interface ApiError extends Error {
+  code?: string
+  summary?: Record<string, any>
+  statusCode?: number
+}
+
+function toApiError(body: ApiResponse, statusCode: number): ApiError {
+  const err = new Error(body.message || `请求失败 (${statusCode})`) as ApiError
+  err.code = body.code
+  err.summary = body.summary
+  err.statusCode = statusCode
+  return err
 }
 
 function getToken(): string | null {
@@ -68,7 +89,7 @@ async function request<T = any>(options: RequestOptions): Promise<T> {
         }
 
         if (res.statusCode >= 400) {
-          reject(new Error(body.message || `请求失败 (${res.statusCode})`))
+          reject(toApiError(body as ApiResponse, res.statusCode))
           return
         }
 

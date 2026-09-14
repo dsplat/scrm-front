@@ -156,7 +156,7 @@ async function handleSubmit() {
   width: 100%;
   height: 96rpx;
   line-height: 96rpx;
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   font-size: 32rpx;
   border-radius: 12rpx;

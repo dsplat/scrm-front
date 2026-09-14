@@ -189,9 +189,9 @@ eventId = page?.$page?.options?.eventId || page?.options?.eventId || ''
   color: #666;
 }
 .tag.selected {
-  border-color: #4a90d9;
-  color: #4a90d9;
-  background: #f0f7ff;
+  border-color: var(--scrm-primary, #07c160);
+  color: var(--scrm-primary, #07c160);
+  background: var(--scrm-primary-soft, rgba(7, 193, 96, 0.08));
 }
 .comment-section {
   padding: 0 32rpx;
@@ -207,7 +207,7 @@ eventId = page?.$page?.options?.eventId || page?.options?.eventId || ''
 }
 .submit-btn {
   margin: 32rpx;
-  background: #4a90d9;
+  background: var(--scrm-primary, #07c160);
   color: #fff;
   border-radius: 44rpx;
   font-size: 32rpx;

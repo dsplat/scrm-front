@@ -340,7 +340,7 @@ async function onBackfillDateChange(e: any) {
 .streak-num {
   font-size: 72rpx;
   font-weight: bold;
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .streak-label {
   font-size: 26rpx;
@@ -351,7 +351,7 @@ async function onBackfillDateChange(e: any) {
   background: #f0faf4;
   border-radius: 40rpx;
   padding: 20rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
   font-size: 30rpx;
 }
 .note-input {
@@ -364,7 +364,7 @@ async function onBackfillDateChange(e: any) {
   box-sizing: border-box;
 }
 .checkin-btn {
-  background: #07c160;
+  background: var(--scrm-primary);
   color: #fff;
   border-radius: 40rpx;
   margin-top: 24rpx;
@@ -392,9 +392,9 @@ async function onBackfillDateChange(e: any) {
   color: #666;
 }
 .tab-item.active {
-  color: #07c160;
+  color: var(--scrm-primary);
   font-weight: bold;
-  border-bottom: 4rpx solid #07c160;
+  border-bottom: 4rpx solid var(--scrm-primary);
 }
 .records-section,
 .leaderboard-section {
@@ -426,7 +426,7 @@ async function onBackfillDateChange(e: any) {
 }
 .record-date .streak {
   font-size: 24rpx;
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .record-note {
   font-size: 26rpx;

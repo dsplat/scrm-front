@@ -146,7 +146,7 @@ onMounted(() => {
 .points-card {
   margin: 24rpx;
   padding: 40rpx 36rpx;
-  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+  background: linear-gradient(135deg, var(--scrm-primary) 0%, var(--scrm-primary-deep) 100%);
   border-radius: 20rpx;
   color: #fff;
 }
@@ -196,9 +196,9 @@ onMounted(() => {
   border-bottom: 4rpx solid transparent;
 }
 .tab-item.active {
-  color: #07c160;
+  color: var(--scrm-primary);
   font-weight: 600;
-  border-bottom-color: #07c160;
+  border-bottom-color: var(--scrm-primary);
 }
 .flow-list {
   margin: 16rpx 24rpx;
@@ -241,7 +241,7 @@ onMounted(() => {
   font-weight: 600;
 }
 .flow-points.earn {
-  color: #07c160;
+  color: var(--scrm-primary);
 }
 .flow-points.spend {
   color: #e64340;

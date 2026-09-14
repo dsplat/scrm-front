@@ -110,7 +110,7 @@ onMounted(load)
 }
 
 .filter-item.active {
-  color: #07c160;
+  color: var(--scrm-primary);
   background: #e8f8ef;
 }
 
