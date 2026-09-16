@@ -226,6 +226,23 @@ export function redirectToWechatAuth(appId: string, redirectUri: string): void {
 }
 
 /**
+ * 取小程序 URL Link（手机非微信浏览器的微信登录出口）
+ *
+ * 必须服务端生成，前端拼不出来：微信官方约束 —— 仅非个人主体小程序开放、
+ * 最长 30 天有效、50 万/日额度，后端按 path+query 缓存复用避免打爆额度。
+ *
+ * ⚠️ 导流非打通：跳过去后登录态留在小程序，不会回传浏览器 H5 会话
+ * （跨 app 无回传通道），调用方文案需如实说明「将在微信小程序中继续」。
+ */
+export async function getMiniappUrlLink(): Promise<{ url_link: string }> {
+  return request({
+    url: '/auth/wechat/miniapp/url-link',
+    method: 'GET',
+    needAuth: false,
+  })
+}
+
+/**
  * 小程序微信登录（登录桥 POST /auth/mp-weixin/login）
  *
  * 仅 MP-WEIXIN 端使用：uni.login 换一次性 code → 服务端 jscode2session

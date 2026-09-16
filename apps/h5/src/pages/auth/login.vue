@@ -180,6 +180,13 @@
             <text class="no-method-text"> 该租户暂未开放账号密码登录 </text>
           </view>
 
+          <!-- 手机非微信浏览器：微信入口整体不渲染时的解释条 -->
+          <view v-if="wechatBlockedHint" class="env-hint">
+            <text class="env-hint-text">
+              {{ wechatBlockedHintText }}
+            </text>
+          </view>
+
           <!-- 第三方登录（OAuth + SSO） -->
           <view v-if="oauthList.length > 0" class="oauth-zone">
             <view class="divider">
@@ -218,13 +225,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { emailLogin, mfaVerify, mpWeixinLogin, sendSmsCode, smsLogin } from '../../api/auth'
+import { ref, computed, watch } from 'vue'
+import {
+  emailLogin,
+  getMiniappUrlLink,
+  mfaVerify,
+  mpWeixinLogin,
+  sendSmsCode,
+  smsLogin,
+} from '../../api/auth'
 import type { LoginResult } from '../../api/auth'
 import type { OAuthProvider } from '../../api/tenant'
 import { bindAttribution } from '../../api/distribution'
 import { getStoredRef, clearReferral } from '../../utils/referral'
-import { isWechatBrowser } from '../../utils/platform'
+import { isMobileBrowser, isWechatBrowser } from '../../utils/platform'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -282,6 +296,8 @@ interface OAuthItem {
   name: string
   short: string
   url: string
+  /** 'miniapp-link' = 手机非微信浏览器的小程序导流入口（非 OAuth 重定向） */
+  kind?: 'oauth' | 'miniapp-link'
 }
 
 // provider → 中文名称 + 图标缩写映射
@@ -296,7 +312,12 @@ const PROVIDER_LABELS: Record<string, { name: string; short: string }> = {
 }
 
 // 微信登录场景：'' = 非微信 provider（不区分场景）
-type WechatScene = '' | 'h5' | 'pc' | 'miniapp'
+// 'miniapp-link' = 手机非微信浏览器改走小程序 URL Link 导流
+// 'blocked' = 当前环境无任何可用微信载体，不渲染入口
+type WechatScene = '' | 'h5' | 'pc' | 'miniapp' | 'miniapp-link' | 'blocked'
+
+/** 小程序 URL Link 端点（kind='miniapp-link' 的入口据此走导流分支） */
+const MINIAPP_LINK_URL = '/api/v1/auth/wechat/miniapp/url-link'
 
 // 微信登录场景分发：返回当前运行环境应使用的场景，null 表示该环境不可用（隐藏入口）
 //
@@ -304,6 +325,11 @@ type WechatScene = '' | 'h5' | 'pc' | 'miniapp'
 // 只在 PC 浏览器可用，用错载体微信直接报 40029 或 PC 被 UA 拦截且不报错。
 // 后端 redirect 端点也会按 UA 判定，但前端显式带 scene 可避免 UA 与实际载体
 // 不一致时静默走错分支；小程序端不走 OAuth 重定向（wx.login → jscode2session）。
+//
+// 第三分支（手机非微信 UA）是死角：公众号授权只认微信 UA；qrconnect 虽不拦移动
+// UA（2026-09-16 实测手机 Safari 与 PC Chrome 拿到字节级相同的页面），但手机无法
+// 扫自己屏幕上的二维码。故租户小程序探活可用时改走 URL Link 导流，否则不提供
+// 微信入口（后端 resolveWechatScene 同口径抛 422，此处提前分流避免死路）。
 function wechatSceneOf(p: OAuthProvider): WechatScene | null {
   if (p.provider !== 'wechat') return ''
 
@@ -314,8 +340,19 @@ function wechatSceneOf(p: OAuthProvider): WechatScene | null {
   // #endif
 
   // #ifndef MP-WEIXIN
-  target = isWechatBrowser() ? 'h5' : 'pc'
+  if (isWechatBrowser()) {
+    target = 'h5'
+  } else if (isMobileBrowser()) {
+    // scenes.miniapp 已含后端凭证探活（占位假 appid 会降级为 false）
+    target = p.scenes?.miniapp === true ? 'miniapp-link' : 'blocked'
+  } else {
+    target = 'pc'
+  }
   // #endif
+
+  // 环境本身不支持：不渲染入口，也无需再看凭证配置
+  if (target === 'blocked') return null
+  if (target === 'miniapp-link') return 'miniapp-link'
 
   const scenes = p.scenes
   // 老后端不返回 scenes：保持既有 UA 判定，不隐藏任何入口
@@ -337,6 +374,20 @@ const oauthList = computed<OAuthItem[]>(() => {
     if (scene === null) continue
 
     const label = PROVIDER_LABELS[p.provider] || { name: p.name, short: p.name.slice(0, 1) }
+    // 手机非微信浏览器的小程序导流入口：文案与 URL 都与 OAuth 重定向不同。
+    // 不写「微信登录」而写「微信小程序」：跳过去后登录态留在小程序、不会回到
+    // 本浏览器会话，命名如实才不会让用户误以为登录完会自动返回本页。
+    if (scene === 'miniapp-link') {
+      list.push({
+        key: p.provider,
+        name: '微信小程序',
+        short: '微',
+        url: MINIAPP_LINK_URL,
+        kind: 'miniapp-link',
+      })
+      continue
+    }
+
     list.push({
       key: p.provider,
       name: label.name,
@@ -374,6 +425,51 @@ const smsEnabled = computed(() => {
 const canSubmitSms = computed(() => {
   return /^1[3-9]\d{9}$/.test(phone.value) && smsCode.value.length === 6
 })
+
+/** 手机非微信浏览器：微信 OAuth 的两个载体在此环境都不可用 */
+const isMobileNonWechat = computed(() => {
+  // #ifdef H5
+  return !isWechatBrowser() && isMobileBrowser()
+  // #endif
+  // #ifndef H5
+  return false
+  // #endif
+})
+
+/**
+ * 是否需要解释「微信登录去哪了」
+ *
+ * 租户配了微信、但当前环境既不能网页授权（非微信 UA）、也不能扫码（手机只有一块屏），
+ * 且小程序探活不可用时，微信入口会整体消失。静默消失会让用户以为系统坏了，
+ * 故补一行说明，并把默认 tab 切到短信（见下方 watch）。
+ */
+const wechatBlockedHint = computed(() => {
+  if (!isMobileNonWechat.value) return false
+  const providers = tenantState.loginConfig?.oauth_providers || []
+  const wechat = providers.find((p) => p.provider === 'wechat')
+  return !!wechat && wechat.scenes?.miniapp !== true
+})
+
+// 文案随短信开通情况分叉：短信可用时不叫用户「去微信里打开」（多一步且易失败），
+// 直接告知已帮他切到可用出口；短信未开通时才只剩「换微信打开」一条路。
+const wechatBlockedHintText = computed(() => {
+  return smsEnabled.value
+    ? '当前浏览器无法使用微信登录，已为你切到短信验证码登录'
+    : '当前浏览器无法使用微信登录，请在微信中打开本页面'
+})
+
+// 手机非微信浏览器默认落在短信 tab：微信入口此时不可用，短信是唯一「一键可达」的出口，
+// 默认选中比让用户自己切 tab 少一步。仅在租户开通短信且非 MFA 流程时切，仍受
+// login_methods 配置约束。必须置于 smsEnabled 声明之后（immediate 会立即求值）。
+watch(
+  () => tenantState.ready,
+  (ready) => {
+    if (ready && isMobileNonWechat.value && smsEnabled.value && !mfaRequired.value) {
+      activeTab.value = 'sms'
+    }
+  },
+  { immediate: true },
+)
 
 async function handleSendCode() {
   if (smsCountdown.value > 0 || !/^1[3-9]\d{9}$/.test(phone.value)) return
@@ -490,6 +586,11 @@ async function handleOAuth(item: OAuthItem) {
   // #endif
 
   // #ifdef H5
+  // 手机非微信浏览器：走小程序 URL Link 导流，不是 OAuth 重定向
+  if (item.kind === 'miniapp-link') {
+    await handleMiniappLink()
+    return
+  }
   try {
     const res = await fetch(item.url, { headers: { Accept: 'application/json' } })
     const json = await res.json()
@@ -527,6 +628,28 @@ async function handleMpWeixinLogin() {
     errorMsg.value = e.message || '微信登录失败'
   } finally {
     mpWeixinLoading.value = false
+  }
+}
+
+// ---- 手机非微信浏览器：小程序 URL Link 导流 ----
+// 微信在外部浏览器只给了「拉起小程序」这一条路（URL Scheme / URL Link），没有
+// 「拉起微信 App 并完成网页授权」的能力；开放标签 wx-open-launch-weapp 又只在微信内
+// 生效。故这里跳的是小程序，不是 OAuth 回调 —— 登录态留在小程序内、不会回传本浏览器
+// 会话，入口文案已如实写「微信小程序」而非「微信登录」。
+const miniappLinkLoading = ref(false)
+async function handleMiniappLink() {
+  if (miniappLinkLoading.value) return
+  miniappLinkLoading.value = true
+  errorMsg.value = ''
+  try {
+    const res = await getMiniappUrlLink()
+    // #ifdef H5
+    window.location.href = res.url_link
+    // #endif
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '小程序入口暂不可用，请改用短信登录', icon: 'none' })
+  } finally {
+    miniappLinkLoading.value = false
   }
 }
 
@@ -805,6 +928,17 @@ function goRegister() {
 .delegated-hint-text {
   font-size: 28rpx;
   color: #666;
+}
+/* 环境受限解释条：字号比 delegated-hint 小一级、颜色更淡，不抢表单视觉重心 */
+.env-hint {
+  text-align: center;
+  margin: 24rpx 0 8rpx;
+  padding: 0 24rpx;
+}
+.env-hint-text {
+  font-size: 26rpx;
+  color: #888;
+  line-height: 1.6;
 }
 .oauth-buttons--primary {
   padding: 20rpx 0;
