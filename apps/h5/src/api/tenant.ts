@@ -25,6 +25,14 @@ export interface OAuthProvider {
   provider: string
   name: string
   icon: string
+  /**
+   * 微信三载体登录场景可用性（仅 provider=wechat 时返回）
+   *
+   * 公众号网页授权只能在微信客户端内使用、网站应用扫码只能在 PC 浏览器使用，
+   * 二者不可互相兜底，故登录页按运行环境只渲染可用入口。
+   * 缺省（老后端未升级）视为全部可用，保持既有行为。
+   */
+  scenes?: { h5?: boolean; pc?: boolean; miniapp?: boolean }
 }
 
 export interface SsoProvider {

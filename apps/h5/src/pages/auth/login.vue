@@ -221,8 +221,10 @@
 import { ref, computed } from 'vue'
 import { emailLogin, mfaVerify, mpWeixinLogin, sendSmsCode, smsLogin } from '../../api/auth'
 import type { LoginResult } from '../../api/auth'
+import type { OAuthProvider } from '../../api/tenant'
 import { bindAttribution } from '../../api/distribution'
 import { getStoredRef, clearReferral } from '../../utils/referral'
+import { isWechatBrowser } from '../../utils/platform'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -293,6 +295,35 @@ const PROVIDER_LABELS: Record<string, { name: string; short: string }> = {
   alipay: { name: '支付宝', short: '支' },
 }
 
+// 微信登录场景：'' = 非微信 provider（不区分场景）
+type WechatScene = '' | 'h5' | 'pc' | 'miniapp'
+
+// 微信登录场景分发：返回当前运行环境应使用的场景，null 表示该环境不可用（隐藏入口）
+//
+// 三载体互不可替代：公众号 snsapi_userinfo 只在微信内可用、网站应用 snsapi_login
+// 只在 PC 浏览器可用，用错载体微信直接报 40029 或 PC 被 UA 拦截且不报错。
+// 后端 redirect 端点也会按 UA 判定，但前端显式带 scene 可避免 UA 与实际载体
+// 不一致时静默走错分支；小程序端不走 OAuth 重定向（wx.login → jscode2session）。
+function wechatSceneOf(p: OAuthProvider): WechatScene | null {
+  if (p.provider !== 'wechat') return ''
+
+  let target: WechatScene = 'h5'
+
+  // #ifdef MP-WEIXIN
+  target = 'miniapp'
+  // #endif
+
+  // #ifndef MP-WEIXIN
+  target = isWechatBrowser() ? 'h5' : 'pc'
+  // #endif
+
+  const scenes = p.scenes
+  // 老后端不返回 scenes：保持既有 UA 判定，不隐藏任何入口
+  if (!scenes) return target
+
+  return scenes[target] === false ? null : target
+}
+
 // 聚合 OAuth + SSO 为统一第三方登录列表
 const oauthList = computed<OAuthItem[]>(() => {
   const list: OAuthItem[] = []
@@ -300,12 +331,20 @@ const oauthList = computed<OAuthItem[]>(() => {
   if (!cfg) return list
 
   for (const p of cfg.oauth_providers || []) {
+    const scene = wechatSceneOf(p)
+    // 当前环境无可用微信载体（如微信内打开但只配了网站应用）→ 不渲染入口，
+    // 避免点击后才拿 422
+    if (scene === null) continue
+
     const label = PROVIDER_LABELS[p.provider] || { name: p.name, short: p.name.slice(0, 1) }
     list.push({
       key: p.provider,
       name: label.name,
       short: label.short,
-      url: `/api/v1/auth/${p.provider}/redirect`,
+      url:
+        scene === ''
+          ? `/api/v1/auth/${p.provider}/redirect`
+          : `/api/v1/auth/${p.provider}/redirect?scene=${scene}`,
     })
   }
   for (const p of cfg.sso_providers || []) {
