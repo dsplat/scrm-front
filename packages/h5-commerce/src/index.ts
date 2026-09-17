@@ -25,7 +25,7 @@ export * from './api/course'
 export * from './api/exchange'
 
 // 工具
-export { invokePayment, pollUntil } from './utils/payment'
+export { invokePayment, pollUntil, currentPayChannel } from './utils/payment'
 
 // 组件
 export { default as CommerceNavBar } from './components/NavBar.vue'

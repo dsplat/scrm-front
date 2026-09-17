@@ -3,6 +3,7 @@
  * （Product + Order 框架模块 C 端端点）
  */
 import { request } from '../request'
+import { currentPayChannel } from '../utils/payment'
 
 export interface ShopProduct {
   product_id: number
@@ -91,10 +92,13 @@ export async function createOrder(payload: CreateOrderPayload): Promise<OrderVO>
 
 /** 发起支付（积分支付即时完成；现金返回网关参数） */
 export async function payOrder(orderNo: string, openid?: string): Promise<Record<string, unknown>> {
+  // 小程序端显式上报 wechat_miniapp 通道（后端据此按小程序 appid/openid 下单）；
+  // H5 留空交由后端自动判定（租户 JSAPI 开关 + 微信 UA）
+  const channel = currentPayChannel()
   return request({
     url: `orders/${orderNo}/pay`,
     method: 'POST',
-    data: openid ? { openid } : {},
+    data: { ...(openid ? { openid } : {}), ...(channel ? { channel } : {}) },
   })
 }
 

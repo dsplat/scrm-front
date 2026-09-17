@@ -1,3 +1,4 @@
+import { currentPayChannel } from '@scrm/h5-commerce'
 import { request } from '../utils/request'
 
 // C4：H5 活动链路已全量迁移至统一 Activity 模块（旧 /scrm/events/* 与
@@ -28,10 +29,13 @@ export function registerEvent(
 
 // 发起支付（活动报名订单走 Activity 模块支付入口，含订单归属校验）
 export function payOrder(orderNo: string, openid?: string) {
+  // 小程序端显式上报 wechat_miniapp 通道（后端据此按小程序 appid/openid 下单）；
+  // H5 留空交由后端自动判定（租户 JSAPI 开关 + 微信 UA）
+  const channel = currentPayChannel()
   return request({
     url: `/scrm/activities/orders/${orderNo}/pay`,
     method: 'POST',
-    data: { openid },
+    data: { ...(openid ? { openid } : {}), ...(channel ? { channel } : {}) },
   })
 }
 
