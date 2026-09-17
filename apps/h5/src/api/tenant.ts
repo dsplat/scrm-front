@@ -31,8 +31,13 @@ export interface OAuthProvider {
    * 公众号网页授权只能在微信客户端内使用、网站应用扫码只能在 PC 浏览器使用，
    * 二者不可互相兜底，故登录页按运行环境只渲染可用入口。
    * 缺省（老后端未升级）视为全部可用，保持既有行为。
+   *
+   * miniapp 与 miniapp_link 必须分开判：前者只表示凭证有效（够小程序内 wx.login
+   * 用），后者还要求导流落地页已随小程序发布（后端探活 URL Link 得出）。
+   * H5 的「在小程序中继续」入口只看 miniapp_link，否则小程序未发布时用户点了
+   * 只会拿到 invalid weapp pagepath 这类技术报错。
    */
-  scenes?: { h5?: boolean; pc?: boolean; miniapp?: boolean }
+  scenes?: { h5?: boolean; pc?: boolean; miniapp?: boolean; miniapp_link?: boolean }
 }
 
 export interface SsoProvider {

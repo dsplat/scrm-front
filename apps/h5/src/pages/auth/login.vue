@@ -343,8 +343,9 @@ function wechatSceneOf(p: OAuthProvider): WechatScene | null {
   if (isWechatBrowser()) {
     target = 'h5'
   } else if (isMobileBrowser()) {
-    // scenes.miniapp 已含后端凭证探活（占位假 appid 会降级为 false）
-    target = p.scenes?.miniapp === true ? 'miniapp-link' : 'blocked'
+    // 判 miniapp_link 而非 miniapp：后者只保证凭证有效（够小程序内 wx.login），
+    // 导流还要求落地页已随小程序发布，否则微信回 40165、用户只看到技术报错。
+    target = p.scenes?.miniapp_link === true ? 'miniapp-link' : 'blocked'
   } else {
     target = 'pc'
   }
@@ -440,14 +441,14 @@ const isMobileNonWechat = computed(() => {
  * 是否需要解释「微信登录去哪了」
  *
  * 租户配了微信、但当前环境既不能网页授权（非微信 UA）、也不能扫码（手机只有一块屏），
- * 且小程序探活不可用时，微信入口会整体消失。静默消失会让用户以为系统坏了，
- * 故补一行说明，并把默认 tab 切到短信（见下方 watch）。
+ * 且小程序导流入口也不可用（未配小程序或小程序尚未发布）时，微信入口会整体消失。
+ * 静默消失会让用户以为系统坏了，故补一行说明，并把默认 tab 切到短信（见下方 watch）。
  */
 const wechatBlockedHint = computed(() => {
   if (!isMobileNonWechat.value) return false
   const providers = tenantState.loginConfig?.oauth_providers || []
   const wechat = providers.find((p) => p.provider === 'wechat')
-  return !!wechat && wechat.scenes?.miniapp !== true
+  return !!wechat && wechat.scenes?.miniapp_link !== true
 })
 
 // 文案随短信开通情况分叉：短信可用时不叫用户「去微信里打开」（多一步且易失败），
@@ -647,7 +648,11 @@ async function handleMiniappLink() {
     window.location.href = res.url_link
     // #endif
   } catch (e: any) {
-    uni.showToast({ title: e.message || '小程序入口暂不可用，请改用短信登录', icon: 'none' })
+    // 不透传 e.message：后端把微信 errcode 原文（如 invalid weapp pagepath rid: xxx）
+    // 放在 message 里，直接 toast 等于把技术细节甩给用户。入口可见性已由
+    // scenes.miniapp_link 探活把关，走到这里多为额度/网络异常，统一给可操作的兜底文案。
+    console.error('[miniapp-link] 获取 URL Link 失败', e)
+    uni.showToast({ title: '小程序入口暂不可用，请改用其他登录方式', icon: 'none' })
   } finally {
     miniappLinkLoading.value = false
   }
