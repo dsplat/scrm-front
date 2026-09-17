@@ -10,7 +10,7 @@ import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'
 
-// 薄壳页面：onShow 递增 refreshTick 驱动包内视图加载/刷新
+// 薄壳页面：onShow 递增 refreshTick 驱动刷新（首载由包内视图 immediate 完成）
 useTenantTitle()
 
 // 页面级 SEO：课程列表为薄壳页，实体数据在包内视图，页面层只按租户名出标题/描述/自指 canonical

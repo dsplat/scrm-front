@@ -146,10 +146,12 @@ async function load() {
   }
 }
 
-// 初始进入 + 宿主页面 onShow 刷新
+// 初始进入即加载（immediate 在 setup 时同步触发；首次 onShow 早于子组件挂载、tick 递增会丢失，不能只依赖它）
+// 宿主页面 onShow 递增 refreshTick 时刷新（购买/学习返回后）
 watch(
   () => props.refreshTick,
   () => load(),
+  { immediate: true },
 )
 </script>
 

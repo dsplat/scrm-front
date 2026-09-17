@@ -200,7 +200,13 @@ async function handlePurchase() {
   }
 }
 
-// 由宿主页面 onShow 递增 refreshTick 驱动加载（onLoad 先于 onShow，届时 courseId 已就绪）
+// 初始进入即加载：courseId 已就绪时 immediate 直接拉取，onLoad 晚于挂载时由 courseId 变化兜底
+watch(
+  () => props.courseId,
+  () => load(),
+  { immediate: true },
+)
+// 宿主页面 onShow 递增 refreshTick 驱动刷新（支付返回后）；首次 onShow 早于子组件挂载，tick 递增会丢失
 watch(
   () => props.refreshTick,
   () => load(),
