@@ -7,6 +7,7 @@
 import { reactive, readonly } from 'vue'
 import { resolveTenant, getLoginConfig } from '../api/tenant'
 import type { TenantInfo, LoginConfig } from '../api/tenant'
+import { darken, hexToRgba } from '../utils/color'
 import { getCurrentDomain } from '../utils/platform'
 
 const CACHE_KEY = 'scrm_tenant_bootstrap'
@@ -56,23 +57,8 @@ function writeCache(payload: CachePayload): void {
   }
 }
 
-/** hex 转 rgba（软色背景用） */
-function hexToRgba(hex: string, alpha: number): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
-  if (!m) return `rgba(7,193,96,${alpha})`
-  const n = parseInt(m[1], 16)
-  return `rgba(${(n >> 16) & 0xff},${(n >> 8) & 0xff},${n & 0xff},${alpha})`
-}
-
-/** 颜色加深（按 10% 混入黑色），用于渐变第二色 */
-function darken(hex: string, ratio = 0.1): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
-  if (!m) return hex
-  const n = parseInt(m[1], 16)
-  const f = (v: number) => Math.round((v / 255) * (1 - ratio) * 255)
-  const [r, g, b] = [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff]
-  return `#${[f(r), f(g), f(b)].map((v) => v.toString(16).padStart(2, '0')).join('')}`
-}
+// 主题色派生（hexToRgba/darken）已抽到 utils/color.ts，与小程序构建期注入共用
+// 同一实现，杜绝双端各写一套算法导致的色差。此处直接复用。
 
 /** 应用品牌配置：主题色 CSS 变量 + 文档标题 */
 function applyBranding(tenant: TenantInfo): void {
