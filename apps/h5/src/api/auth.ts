@@ -233,12 +233,19 @@ export function redirectToWechatAuth(appId: string, redirectUri: string): void {
  *
  * ⚠️ 导流非打通：跳过去后登录态留在小程序，不会回传浏览器 H5 会话
  * （跨 app 无回传通道），调用方文案需如实说明「将在微信小程序中继续」。
+ *
+ * path 必须显式指定：小程序首页 onMounted 仅在 isLoggedIn() 时拉数据（匿名展示
+ * 空态），不触发 401 也就不会自动跳登录页。本入口出现在 H5 登录页，用户点了就是
+ * 要登录，落空态首页等于把最后一步丢给用户自己找。
+ *
+ * 微信要求 path 不带前导斜杠（与 uni 路由 '/pages/...' 写法相反，勿「顺手统一」）。
  */
 export async function getMiniappUrlLink(): Promise<{ url_link: string }> {
   return request({
     url: '/auth/wechat/miniapp/url-link',
     method: 'GET',
     needAuth: false,
+    data: { path: 'pages/auth/login' },
   })
 }
 
