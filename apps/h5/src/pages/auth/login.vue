@@ -45,6 +45,26 @@
 
         <!-- ===== direct 模式：email/SMS + OAuth ===== -->
         <template v-else>
+          <!-- #ifdef MP-WEIXIN -->
+          <!-- 小程序端：微信一键登录为主入口（uni.login → jscode2session 登录桥）；
+               企微/钉钉等 provider 无小程序实现，oauth 区整体不渲染（见 oauthList），
+               邮箱/短信降级为分隔线下的次级方式 -->
+          <view v-if="mpWeixinAvailable" class="mp-weixin-entry">
+            <button
+              class="btn-primary btn-wechat"
+              hover-class="btn-primary--hover"
+              :disabled="mpWeixinLoading"
+              @tap="handleMpWeixinLogin"
+            >
+              {{ mpWeixinLoading ? '登录中...' : '微信一键登录' }}
+            </button>
+            <view v-if="(emailEnabled || smsEnabled) && !mfaRequired" class="divider">
+              <view class="divider-line" />
+              <text class="divider-text"> 或使用账号登录 </text>
+              <view class="divider-line" />
+            </view>
+          </view>
+          <!-- #endif -->
           <!-- 登录方式 Tab（email + sms 双开时显示） -->
           <view v-if="emailEnabled && smsEnabled && !mfaRequired" class="login-tabs">
             <view
@@ -219,6 +239,13 @@
             <text class="link" @tap="goRegister"> 没有账号？立即注册 </text>
           </view>
         </template>
+
+        <!-- 未登录也可浏览：登录页是 reLaunch 的终点（401 拦截与「我的」页跳入均清栈），
+             小程序端又无原生返回（全局 custom 导航栏 + 本页不渲染 NavBar），
+             无显式出口即成页面孤岛，故两种登录模式都提供回首页路径 -->
+        <view class="skip-zone">
+          <text class="link link--muted" @tap="goHome"> 暂不登录，先逛逛 </text>
+        </view>
       </template>
     </view>
   </view>
@@ -362,11 +389,29 @@ function wechatSceneOf(p: OAuthProvider): WechatScene | null {
   return scenes[target] === false ? null : target
 }
 
+// 小程序端微信主入口可用性：wechat provider 已配且小程序载体未被 scenes 关闭。
+// H5 构建下条件编译剔除为恒 false，主按钮不渲染、微信仍在 oauth 区按原逻辑呈现
+const mpWeixinAvailable = computed(() => {
+  // #ifndef MP-WEIXIN
+  return false
+  // #endif
+  // #ifdef MP-WEIXIN
+  const p = (tenantState.loginConfig?.oauth_providers || []).find((x) => x.provider === 'wechat')
+  return !!p && wechatSceneOf(p) === 'miniapp'
+  // #endif
+})
+
 // 聚合 OAuth + SSO 为统一第三方登录列表
 const oauthList = computed<OAuthItem[]>(() => {
   const list: OAuthItem[] = []
   const cfg = tenantState.loginConfig
   if (!cfg) return list
+
+  // #ifdef MP-WEIXIN
+  // 小程序端：微信已提升为顶部主按钮（mpWeixinAvailable），oauth 区不重复渲染；
+  // 企微/钉钉等 provider 无小程序实现，渲染出来点击只弹「暂不支持」，直接过滤
+  return list
+  // #endif
 
   for (const p of cfg.oauth_providers || []) {
     const scene = wechatSceneOf(p)
@@ -677,6 +722,11 @@ async function handleIdpLogin() {
 
 function goRegister() {
   uni.navigateTo({ url: '/pages/auth/register' })
+}
+
+// 孤岛出口：回首页 tab（switchTab 清掉登录页栈，未登录态首页可正常浏览）
+function goHome() {
+  uni.switchTab({ url: '/pages/index/index' })
 }
 </script>
 
@@ -999,6 +1049,14 @@ function goRegister() {
   color: #999;
 }
 
+/* ---- 小程序微信主入口 ---- */
+.mp-weixin-entry {
+  margin-bottom: 8rpx;
+}
+.btn-wechat {
+  margin-top: 0;
+}
+
 /* ---- 注册入口 ---- */
 .auth-footer {
   text-align: center;
@@ -1007,5 +1065,13 @@ function goRegister() {
 .link {
   color: #576b95;
   font-size: 28rpx;
+}
+/* 孤岛出口：比注册链接更弱一级，不抢登录主行动点 */
+.skip-zone {
+  text-align: center;
+  margin-top: 32rpx;
+}
+.link--muted {
+  color: #999;
 }
 </style>

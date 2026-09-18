@@ -155,6 +155,11 @@
         <text class="hint-text"> 该联系方式已绑定其他账号时，需确认后合并，不会自动覆盖 </text>
       </view>
     </view>
+
+    <!-- 孤岛出口：全局自定义导航无返回键，放弃本次 pending 登录以游客身份回首页 -->
+    <view class="skip-zone">
+      <text class="link link--muted" @tap="handleSkip"> 暂不绑定，先逛逛 </text>
+    </view>
   </view>
 </template>
 
@@ -320,6 +325,12 @@ async function handleSubmit() {
 function cancelConfirm() {
   summary.value = null
   errorMsg.value = ''
+}
+
+/** 跳过绑定：清 pending 态以游客身份回首页（放弃本次 OAuth 登录，与登录页出口同款） */
+function handleSkip() {
+  uni.removeStorageSync('pending_token')
+  uni.switchTab({ url: '/pages/index/index' })
 }
 </script>
 
@@ -531,5 +542,17 @@ function cancelConfirm() {
 .confirm-actions .btn-primary {
   flex: 2;
   margin: 0;
+}
+.link {
+  color: #576b95;
+  font-size: 28rpx;
+}
+/* 孤岛出口：比绑定主行动点更弱一级，不抢确认绑定 */
+.skip-zone {
+  text-align: center;
+  margin-top: 32rpx;
+}
+.link--muted {
+  color: #999;
 }
 </style>
