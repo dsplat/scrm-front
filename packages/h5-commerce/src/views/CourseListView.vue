@@ -20,6 +20,8 @@
       <view v-if="loading" class="loading-tip">
         <text>加载中...</text>
       </view>
+      <!-- 失败与真空态区分：加载失败给重试/返回出口，不误显"暂无课程" -->
+      <ErrorState v-else-if="loadError" message="课程加载失败，请稍后重试" @retry="load" />
       <view v-else-if="courses.length === 0" class="empty-tip">
         <text>暂无已发布课程</text>
       </view>
@@ -58,9 +60,15 @@
 
     <!-- 我的课程 -->
     <template v-else>
-      <view v-if="loading" class="loading-tip">
+      <!-- 未登录：页面内登录引导（我的课程为登录态数据，不自动跳转） -->
+      <view v-if="!loggedIn" class="login-prompt">
+        <text class="login-tip-text"> 登录后查看我的课程 </text>
+        <button class="go-login-btn" @tap="goLogin">去登录</button>
+      </view>
+      <view v-else-if="loading" class="loading-tip">
         <text>加载中...</text>
       </view>
+      <ErrorState v-else-if="loadError" message="课程加载失败，请稍后重试" @retry="load" />
       <view v-else-if="myCourses.length === 0" class="empty-tip">
         <text>还没有购买过课程</text>
       </view>
@@ -96,10 +104,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { getPublishedCourses, getMyCourses, type CourseVO, type MyCourseItem } from '../api/course'
-import { navCourseDetail, navCourseLearn } from '../config'
+import { navCourseDetail, navCourseLearn, getCommerceConfig } from '../config'
 import NavBar from '../components/NavBar.vue'
+import ErrorState from '../components/ErrorState.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -120,8 +129,17 @@ const tabs = [
 
 const activeTab = ref('plaza')
 const loading = ref(false)
+const loadError = ref(false)
 const courses = ref<CourseVO[]>([])
 const myCourses = ref<MyCourseItem[]>([])
+
+/** 是否已登录（包内自持判断：读配置的 tokenKey） */
+const loggedIn = computed(() => !!uni.getStorageSync(getCommerceConfig().tokenKey))
+
+function goLogin() {
+  const loginPage = getCommerceConfig().loginPage
+  uni.navigateTo({ url: loginPage, fail: () => uni.reLaunch({ url: loginPage }) })
+}
 
 function switchTab(value: string) {
   activeTab.value = value
@@ -130,17 +148,21 @@ function switchTab(value: string) {
 
 async function load() {
   loading.value = true
+  loadError.value = false
   try {
     if (activeTab.value === 'plaza') {
       const res = await getPublishedCourses()
       courses.value = res.data || []
     } else {
+      // 我的课程为登录态数据（required）：游客不发请求，展示登录引导，避免 401 强跳
+      if (!loggedIn.value) return
       const res = await getMyCourses()
       myCourses.value = Array.isArray(res) ? res : []
     }
   } catch {
     courses.value = []
     myCourses.value = []
+    loadError.value = true
   } finally {
     loading.value = false
   }
@@ -265,5 +287,28 @@ watch(
   margin-top: 12rpx;
   font-size: 24rpx;
   color: #888;
+}
+.login-prompt {
+  margin: 24rpx;
+  padding: 80rpx 36rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.login-tip-text {
+  font-size: 28rpx;
+  color: #999;
+}
+.go-login-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: var(--scrm-primary, #07c160);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
 }
 </style>

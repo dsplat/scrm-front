@@ -4,6 +4,8 @@
     <text class="callback-text">
       {{ msg }}
     </text>
+    <!-- 错误时提供显式出口：避免 2 秒自动跳转期间无可操作按钮 -->
+    <button v-if="showRetry" class="btn-relogin" @tap="goLogin">重新登录</button>
   </view>
 </template>
 
@@ -15,6 +17,11 @@ import { useUserStore } from '../../store/user'
 
 const { setUser } = useUserStore()
 const msg = ref('正在登录...')
+const showRetry = ref(false)
+
+function goLogin() {
+  uni.reLaunch({ url: '/pages/auth/login' })
+}
 
 onMounted(async () => {
   // #ifdef H5
@@ -25,6 +32,7 @@ onMounted(async () => {
 
   if (error) {
     msg.value = error
+    showRetry.value = true
     setTimeout(() => uni.reLaunch({ url: '/pages/auth/login' }), 2000)
     return
   }
@@ -38,6 +46,7 @@ onMounted(async () => {
 
   if (!token) {
     msg.value = '登录参数缺失'
+    showRetry.value = true
     setTimeout(() => uni.reLaunch({ url: '/pages/auth/login' }), 2000)
     return
   }
@@ -51,6 +60,7 @@ onMounted(async () => {
     uni.switchTab({ url: '/pages/index/index' })
   } catch (e) {
     msg.value = '登录失败，请重试'
+    showRetry.value = true
     setTimeout(() => uni.reLaunch({ url: '/pages/auth/login' }), 2000)
   }
   // #endif
@@ -83,5 +93,15 @@ onMounted(async () => {
 .callback-text {
   font-size: 28rpx;
   color: #666;
+}
+.btn-relogin {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  margin-top: 32rpx;
+  background: var(--scrm-primary, #07c160);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
 }
 </style>

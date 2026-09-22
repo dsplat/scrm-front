@@ -1,99 +1,106 @@
 <template>
   <view class="event-detail">
     <NavBar title="活动详情" />
-    <!-- 封面 -->
-    <image v-if="event.cover_url" class="cover" :src="event.cover_url" mode="widthFix" />
-    <!-- 基本信息 -->
-    <view class="info-section">
-      <text class="title">
-        {{ event.name }}
-      </text>
-      <view class="meta">
-        <view class="meta-item">
-          <text class="label"> 时间 </text>
-          <text class="value">
-            {{ formatDate(event.starts_at) }}
+    <ErrorState v-if="loadError" message="活动加载失败，请稍后重试" @retry="loadDetail" />
+    <template v-else>
+      <!-- 封面 -->
+      <image v-if="event.cover_url" class="cover" :src="event.cover_url" mode="widthFix" />
+      <!-- 基本信息 -->
+      <view class="info-section">
+        <text class="title">
+          {{ event.name }}
+        </text>
+        <view class="meta">
+          <view class="meta-item">
+            <text class="label"> 时间 </text>
+            <text class="value">
+              {{ formatDate(event.starts_at) }}
+            </text>
+          </view>
+          <view v-if="event.venue_name" class="meta-item">
+            <text class="label"> 地点 </text>
+            <text class="value"> {{ event.venue_name }} {{ event.city }} </text>
+          </view>
+          <view class="meta-item">
+            <text class="label"> 名额 </text>
+            <text class="value">
+              {{ event.current_participants }}/{{ event.max_participants || '不限' }}
+            </text>
+          </view>
+        </view>
+      </view>
+      <!-- 票种 -->
+      <view class="ticket-section">
+        <text class="section-title"> 选择票种 </text>
+        <view
+          v-for="ticket in ticketTypes"
+          :key="ticket.ticket_type_id"
+          class="ticket-card"
+          :class="{
+            selected: selectedTicket === ticket.ticket_type_id,
+            disabled: ticket.status !== 'active',
+          }"
+          @tap="selectTicket(ticket)"
+        >
+          <view class="ticket-info">
+            <text class="ticket-name">
+              {{ ticket.name }}
+            </text>
+            <text class="ticket-includes">
+              {{ (ticket.includes || []).join(' / ') }}
+            </text>
+          </view>
+          <view class="ticket-price">
+            <text class="price"> ¥{{ ticket.price }} </text>
+            <text class="remaining"> 余{{ ticket.remaining }} </text>
+          </view>
+        </view>
+      </view>
+      <!-- 活动详情 -->
+      <view v-if="event.description" class="desc-section">
+        <text class="section-title"> 活动详情 </text>
+        <rich-text :nodes="event.description" />
+      </view>
+      <!-- 议程 -->
+      <view v-if="event.agenda && event.agenda.length" class="agenda-section">
+        <text class="section-title"> 活动议程 </text>
+        <view v-for="(item, idx) in event.agenda" :key="idx" class="agenda-item">
+          <text class="agenda-time">
+            {{ item.time }}
           </text>
-        </view>
-        <view v-if="event.venue_name" class="meta-item">
-          <text class="label"> 地点 </text>
-          <text class="value"> {{ event.venue_name }} {{ event.city }} </text>
-        </view>
-        <view class="meta-item">
-          <text class="label"> 名额 </text>
-          <text class="value">
-            {{ event.current_participants }}/{{ event.max_participants || '不限' }}
+          <text class="agenda-title">
+            {{ item.title }}
+          </text>
+          <text v-if="item.speaker" class="agenda-speaker">
+            {{ item.speaker }}
           </text>
         </view>
       </view>
-    </view>
-    <!-- 票种 -->
-    <view class="ticket-section">
-      <text class="section-title"> 选择票种 </text>
-      <view
-        v-for="ticket in ticketTypes"
-        :key="ticket.ticket_type_id"
-        class="ticket-card"
-        :class="{
-          selected: selectedTicket === ticket.ticket_type_id,
-          disabled: ticket.status !== 'active',
-        }"
-        @tap="selectTicket(ticket)"
-      >
-        <view class="ticket-info">
-          <text class="ticket-name">
-            {{ ticket.name }}
-          </text>
-          <text class="ticket-includes">
-            {{ (ticket.includes || []).join(' / ') }}
-          </text>
-        </view>
-        <view class="ticket-price">
-          <text class="price"> ¥{{ ticket.price }} </text>
-          <text class="remaining"> 余{{ ticket.remaining }} </text>
-        </view>
+      <!-- 底部报名栏 -->
+      <view class="bottom-bar">
+        <button class="share-btn" @tap="goPoster">分享海报</button>
+        <button class="register-btn" :disabled="!canRegister" @tap="goRegister">
+          {{ canRegister ? '立即报名' : '报名未开放' }}
+        </button>
       </view>
-    </view>
-    <!-- 活动详情 -->
-    <view v-if="event.description" class="desc-section">
-      <text class="section-title"> 活动详情 </text>
-      <rich-text :nodes="event.description" />
-    </view>
-    <!-- 议程 -->
-    <view v-if="event.agenda && event.agenda.length" class="agenda-section">
-      <text class="section-title"> 活动议程 </text>
-      <view v-for="(item, idx) in event.agenda" :key="idx" class="agenda-item">
-        <text class="agenda-time">
-          {{ item.time }}
-        </text>
-        <text class="agenda-title">
-          {{ item.title }}
-        </text>
-        <text v-if="item.speaker" class="agenda-speaker">
-          {{ item.speaker }}
-        </text>
-      </view>
-    </view>
-    <!-- 底部报名栏 -->
-    <view class="bottom-bar">
-      <button class="share-btn" @tap="goPoster">分享海报</button>
-      <button class="register-btn" :disabled="!canRegister" @tap="goRegister">
-        {{ canRegister ? '立即报名' : '报名未开放' }}
-      </button>
-    </view>
+    </template>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { getEventDetail, getEventTicketTypes } from '../../api/event'
+import { ensureLogin } from '../../utils/auth-guard'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
 
 const event = ref<any>({})
 const ticketTypes = ref<any[]>([])
 const selectedTicket = ref<number | null>(null)
 const eventId = ref('')
+// 加载失败给 ErrorState（重试/返回出口），避免白屏孤儿页
+const loadError = ref(false)
 
 // 页面级 SEO：活动实体拉取后自动更新标题/描述（去 HTML 取前 80 字），canonical 带 eventId 自指
 useSeoMeta(() => ({
@@ -126,11 +133,13 @@ function selectTicket(ticket: any) {
   selectedTicket.value = ticket.ticket_type_id
 }
 
-function goRegister() {
+async function goRegister() {
   if (!selectedTicket.value) {
     uni.showToast({ title: '请先选择票种', icon: 'none' })
     return
   }
+  // 报名为登录态操作：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('报名需登录后进行'))) return
   uni.navigateTo({
     url: `/pages/event/register?eventId=${event.value.activity_id}&ticketTypeId=${selectedTicket.value}`,
   })
@@ -149,15 +158,26 @@ onMounted(async () => {
   const eid = page.$page?.options?.eventId || page.options?.eventId
   if (!eid) return
   eventId.value = String(eid)
-
-  const [eventRes, ticketRes] = await Promise.all([getEventDetail(eid), getEventTicketTypes(eid)])
-  // request 封装已解包 body.data：eventRes 即活动对象，ticketRes 即票种数组
-  event.value = (eventRes as any) || {}
-  ticketTypes.value = ((ticketRes as any) || []).map((t: any) => ({
-    ...t,
-    remaining: t.capacity > 0 ? t.capacity - t.sold_count : '不限',
-  }))
+  await loadDetail()
 })
+
+async function loadDetail() {
+  loadError.value = false
+  try {
+    const [eventRes, ticketRes] = await Promise.all([
+      getEventDetail(eventId.value),
+      getEventTicketTypes(eventId.value),
+    ])
+    // request 封装已解包 body.data：eventRes 即活动对象，ticketRes 即票种数组
+    event.value = (eventRes as any) || {}
+    ticketTypes.value = ((ticketRes as any) || []).map((t: any) => ({
+      ...t,
+      remaining: t.capacity > 0 ? t.capacity - t.sold_count : '不限',
+    }))
+  } catch {
+    loadError.value = true
+  }
+}
 </script>
 
 <style scoped>

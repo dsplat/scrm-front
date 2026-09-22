@@ -2,7 +2,8 @@
   <view class="watch-page">
     <NavBar :title="room?.title || '直播'" />
 
-    <view v-if="loading" class="loading-tip">
+    <ErrorState v-if="loadError" message="进入观看失败，请重试或返回" @retry="loadWatch" />
+    <view v-else-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
 
@@ -42,11 +43,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { ensureLogin } from '../../utils/auth-guard'
 import { watchLiveRoom, reportLiveView, type LiveWatchResult } from '../../api/live'
 
 const room = ref<LiveWatchResult | null>(null)
 const loading = ref(true)
+// 加载失败给 ErrorState（重试/返回出口），避免黑屏孤儿页
+const loadError = ref(false)
 const watchSeconds = ref(0)
+let roomId = ''
 let heartbeat: ReturnType<typeof setInterval> | null = null
 let pendingSeconds = 0
 
@@ -101,26 +107,34 @@ async function stopHeartbeat(roomId: string) {
 onMounted(async () => {
   const pages = getCurrentPages()
   const current: any = pages[pages.length - 1]
-  const roomId = current?.options?.room_id ?? current?.$page?.options?.room_id ?? ''
+  roomId = String(current?.options?.room_id ?? current?.$page?.options?.room_id ?? '')
+  await loadWatch()
+})
 
+async function loadWatch() {
+  loading.value = true
+  loadError.value = false
+  // 观看为登录态操作（权益校验、观看统计均以用户身份为键）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('观看直播需登录后进行'))) {
+    loading.value = false
+    loadError.value = true
+    return
+  }
   try {
     room.value = await watchLiveRoom(roomId)
-    startHeartbeat(String(roomId))
+    startHeartbeat(roomId)
     // #ifdef H5
-    uni.setNavigationBarTitle({ title: room.value.title || '直播' })
+    uni.setNavigationBarTitle({ title: room.value?.title || '直播' })
     // #endif
-  } catch (e: any) {
-    uni.showToast({ title: e.message || '进入观看失败', icon: 'none' })
+  } catch {
+    loadError.value = true
   } finally {
     loading.value = false
   }
-})
+}
 
 onUnmounted(() => {
-  const pages = getCurrentPages()
-  const current: any = pages[pages.length - 1]
-  const roomId = current?.options?.room_id ?? current?.$page?.options?.room_id ?? ''
-  if (roomId) stopHeartbeat(String(roomId))
+  if (roomId) stopHeartbeat(roomId)
 })
 </script>
 

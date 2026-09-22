@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getFAQs, submitFeedback, startAgentConversation } from '../../api/scrm'
+import { ensureLogin } from '../../utils/auth-guard'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
 
@@ -82,6 +83,8 @@ function toggleFaq(id: number) {
 }
 
 async function contactAgent() {
+  // AI 客服会话以登录身份创建：未登录先引导（FAQ/反馈均匿名可用）
+  if (!(await ensureLogin('联系客服需登录后进行'))) return
   try {
     // @ts-ignore - uni is provided by uni-app runtime
     uni.showLoading({ title: '连接客服中...' })

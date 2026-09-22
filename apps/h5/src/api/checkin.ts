@@ -31,20 +31,22 @@ export interface CheckInLeaderboardItem {
   max_streak: number
 }
 
-// 获取进行中的打卡活动列表
+// 获取进行中的打卡活动列表（游客可浏览）
 export function getCheckInActivities(params?: { status?: string; per_page?: number }) {
   return request<{ data: CheckInActivity[]; total: number }>({
     url: '/scrm/check-in-activities',
     method: 'GET',
     data: params,
+    auth: 'optional',
   })
 }
 
-// 获取打卡活动详情
+// 获取打卡活动详情（游客可浏览）
 export function getCheckInActivity(activityId: string | number) {
   return request<CheckInActivity>({
     url: `/scrm/check-in-activities/${activityId}`,
     method: 'GET',
+    auth: 'optional',
   })
 }
 
@@ -81,11 +83,12 @@ export function getCheckInRecords(
   })
 }
 
-// 获取打卡排行榜
+// 获取打卡排行榜（游客可浏览）
 export function getCheckInLeaderboard(activityId: string | number) {
   return request<CheckInLeaderboardItem[]>({
     url: `/scrm/check-in-activities/${activityId}/leaderboard`,
     method: 'GET',
+    auth: 'optional',
   })
 }
 

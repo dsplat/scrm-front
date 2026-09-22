@@ -131,24 +131,24 @@ useSeoMeta(() => ({
 const homeTitle = computed(() => tenantState.tenant?.name || '首页')
 
 onMounted(async () => {
-  // 已登录则拉取用户信息 + 推荐活动（活动列表接口需登录，匿名时展示空态）
+  // 已登录则拉取用户信息；推荐活动接口为 optional 认证，未登录也正常展示
   if (isLoggedIn()) {
     await fetchUser()
-    try {
-      const res: any = await getActivityList({ per_page: 3 })
-      campaigns.value = (res?.list || [])
-        .filter((a: any) => !['draft', 'planning', 'cancelled'].includes(a.status))
-        .slice(0, 3)
-        .map((a: any) => ({
-          id: a.activity_id,
-          name: a.name,
-          description: String(a.description || '')
-            .replace(/<[^>]+>/g, '')
-            .slice(0, 40),
-        }))
-    } catch {
-      campaigns.value = []
-    }
+  }
+  try {
+    const res: any = await getActivityList({ per_page: 3 })
+    campaigns.value = (res?.list || [])
+      .filter((a: any) => !['draft', 'planning', 'cancelled'].includes(a.status))
+      .slice(0, 3)
+      .map((a: any) => ({
+        id: a.activity_id,
+        name: a.name,
+        description: String(a.description || '')
+          .replace(/<[^>]+>/g, '')
+          .slice(0, 40),
+      }))
+  } catch {
+    campaigns.value = []
   }
 })
 

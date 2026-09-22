@@ -65,19 +65,21 @@ export interface OrderVO {
   items?: any[]
 }
 
-/** 商城商品列表（仅上架） */
+/** 商城商品列表（仅上架；游客可浏览） */
 export async function getShopProducts(): Promise<{ data: ShopProduct[]; total: number }> {
   return request({
     url: 'shop/products',
     method: 'GET',
+    auth: 'optional',
   })
 }
 
-/** 商城商品详情（含 SKU） */
+/** 商城商品详情（含 SKU；游客可浏览） */
 export async function getShopProductDetail(id: number): Promise<ShopDetailResult> {
   return request({
     url: `shop/products/${id}`,
     method: 'GET',
+    auth: 'optional',
   })
 }
 

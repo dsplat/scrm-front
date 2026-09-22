@@ -2,7 +2,8 @@
   <view class="activity-page">
     <NavBar title="活动中心" :show-back="false" />
     <!-- 活动列表（统一 Activity 模块，type 区分营销/线下/混合/课程/训练营） -->
-    <view v-if="activities.length > 0" class="activity-list">
+    <ErrorState v-if="loadError" message="活动加载失败，请稍后重试" @retry="loadActivities" />
+    <view v-else-if="activities.length > 0" class="activity-list">
       <view
         v-for="item in activities"
         :key="item.activity_id"
@@ -45,6 +46,7 @@ import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
 
 interface ActivityItem {
   activity_id: string
@@ -58,6 +60,8 @@ interface ActivityItem {
 
 const activities = ref<ActivityItem[]>([])
 const loading = ref(true)
+// 加载失败与空数据区分展示：失败给 ErrorState（重试/返回出口），避免被误认为“暂无活动”
+const loadError = ref(false)
 
 // 微信原生栏标题统一为租户名
 useTenantTitle()
@@ -84,15 +88,17 @@ onShow(() => {
 
 async function loadActivities() {
   loading.value = true
+  loadError.value = false
   try {
     const res: any = await getActivityList({ per_page: 50 })
-    // C 端不展示草稿/策划中/已取消的活动
+    // C 端不展示草稿/策划中/已取消的活动（服务端已过滤，此处兼容旧数据）
     const list: ActivityItem[] = (res?.list || []).filter(
       (a: ActivityItem) => !['draft', 'planning', 'cancelled'].includes(a.status),
     )
     activities.value = list
   } catch {
     activities.value = []
+    loadError.value = true
   } finally {
     loading.value = false
   }

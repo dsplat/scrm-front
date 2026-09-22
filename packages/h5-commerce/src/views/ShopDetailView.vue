@@ -4,6 +4,8 @@
     <view v-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
+    <!-- 加载失败给重试/返回出口，避免失败后白屏孤儿页 -->
+    <ErrorState v-else-if="loadError" message="商品加载失败，请稍后重试" @retry="load" />
     <template v-else-if="product">
       <image v-if="cover" class="cover" :src="cover" mode="aspectFill" />
       <view class="info-card">
@@ -93,6 +95,7 @@ import {
 import { invokePayment, pollUntil } from '../utils/payment'
 import NavBar from '../components/NavBar.vue'
 import SkuSelector from '../components/SkuSelector.vue'
+import ErrorState from '../components/ErrorState.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -112,6 +115,7 @@ const selectedSku = ref<ShopSku | null>(null)
 const quantity = ref(1)
 const loading = ref(false)
 const submitting = ref(false)
+const loadError = ref(false)
 const payMethod = ref<'cash' | 'points' | 'mixed'>('cash')
 
 const cover = computed(() => product.value?.media_assets?.[0]?.url ?? '')
@@ -170,6 +174,7 @@ function changeQty(delta: number) {
 async function load() {
   if (!props.productId) return
   loading.value = true
+  loadError.value = false
   try {
     const res = await getShopProductDetail(props.productId)
     product.value = res.product
@@ -177,7 +182,8 @@ async function load() {
     selectedSku.value = skus.value.find((s) => s.stock > 0) ?? null
     payMethod.value = payMethods.value[0].value
   } catch (e: any) {
-    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+    // 失败转 ErrorState（重试/返回出口），替代 toast 一闪后白屏
+    loadError.value = true
   } finally {
     loading.value = false
   }

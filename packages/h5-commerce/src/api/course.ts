@@ -40,19 +40,21 @@ export interface MyCourseItem {
   completed_at?: string | null
 }
 
-/** 已发布课程列表 */
+/** 已发布课程列表（游客可浏览） */
 export async function getPublishedCourses(): Promise<{ data: CourseVO[]; total: number }> {
   return request({
     url: 'courses/published',
     method: 'GET',
+    auth: 'optional',
   })
 }
 
-/** 课程详情（未购买隐藏章节内容） */
+/** 课程详情（未购买隐藏章节内容；游客可浏览） */
 export async function getCourseDetail(id: number): Promise<CourseDetailResult> {
   return request({
     url: `courses/${id}/detail`,
     method: 'GET',
+    auth: 'optional',
   })
 }
 

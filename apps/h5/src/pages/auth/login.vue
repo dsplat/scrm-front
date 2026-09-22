@@ -240,9 +240,9 @@
           </view>
         </template>
 
-        <!-- 未登录也可浏览：登录页是 reLaunch 的终点（401 拦截与「我的」页跳入均清栈），
-             小程序端又无原生返回（全局 custom 导航栏 + 本页不渲染 NavBar），
-             无显式出口即成页面孤岛，故两种登录模式都提供回首页路径 -->
+        <!-- 未登录也可浏览：401/ensureLogin 跳入保留页面栈并携带 redirect（登录后回原页），
+             但 reLaunch/直接进入时无上级页可退，小程序端又无原生返回（全局 custom 导航栏 +
+             本页不渲染 NavBar），无显式出口即成页面孤岛，故两种登录模式都提供「先逛逛」出口 -->
         <view class="skip-zone">
           <text class="link link--muted" @tap="goHome"> 暂不登录，先逛逛 </text>
         </view>
@@ -253,6 +253,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import {
   emailLogin,
   getMiniappUrlLink,
@@ -605,7 +606,7 @@ function onLoginSuccess(result: LoginResult) {
   setUser(result.user, result.tenant_id)
   // 登录成功后静默绑定分销归因（扫码海报进入的 ref），不阻断跳转
   bindReferralSilently()
-  uni.switchTab({ url: '/pages/index/index' })
+  goAfterLogin()
 }
 
 async function bindReferralSilently() {
@@ -720,12 +721,60 @@ async function handleIdpLogin() {
   }
 }
 
+// ---- 登录回跳（redirect）----
+// 401 拦截 / ensureLogin 跳入时携带当前页 route+query，登录成功后回原页
+const redirectUrl = ref('')
+
+// tabBar 页不支持 redirectTo 且不接 query，须 switchTab（与 pages.json tabBar.list 对齐）
+const TAB_BAR_PAGES = [
+  '/pages/index/index',
+  '/pages/campaign/index',
+  '/pages/self-service/index',
+  '/pages/profile/index',
+]
+
+onLoad((options) => {
+  // 只接受应用内页面路径，防开放重定向；跨端 options 可能已解码，兜底 try/catch
+  let raw = String(options?.redirect || '')
+  try {
+    raw = decodeURIComponent(raw)
+  } catch {
+    // 含非法转义（已解码过）：按原值处理
+  }
+  redirectUrl.value = raw.startsWith('/pages/') && !raw.startsWith('//') ? raw : ''
+})
+
 function goRegister() {
   uni.navigateTo({ url: '/pages/auth/register' })
 }
 
-// 孤岛出口：回首页 tab（switchTab 清掉登录页栈，未登录态首页可正常浏览）
+// 登录成功去向：有 redirect 回原页（tabBar 页走 switchTab），无则回首页
+function goAfterLogin() {
+  const redirect = redirectUrl.value
+  if (!redirect) {
+    uni.switchTab({ url: '/pages/index/index' })
+    return
+  }
+  const path = redirect.split('?')[0]
+  if (TAB_BAR_PAGES.includes(path)) {
+    uni.switchTab({ url: path })
+    return
+  }
+  uni.redirectTo({
+    url: redirect,
+    // redirect 目标已失效（改版/被删）时兜底回首页，保证不落孤儿页
+    fail: () => uni.switchTab({ url: '/pages/index/index' }),
+  })
+}
+
+// 未登录出口（"暂不登录，先逛逛"）：有 redirect 且有上级页 → 返回原页继续浏览；否则回首页 tab
 function goHome() {
+  // @ts-ignore - getCurrentPages is provided by uni-app runtime
+  const pages = getCurrentPages()
+  if (redirectUrl.value && pages.length > 1) {
+    uni.navigateBack()
+    return
+  }
   uni.switchTab({ url: '/pages/index/index' })
 }
 </script>

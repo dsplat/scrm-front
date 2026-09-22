@@ -30,10 +30,12 @@ export interface LiveWatchResult {
 
 // ========== 直播 ==========
 
+// 直播间列表（游客可浏览）；watch/view 保持登录（权益校验、观看统计以 user_id 为键）
 export function getLiveRooms(status?: string) {
   return request<LiveRoomSummary[]>({
     url: '/scrm/student/live-rooms',
     data: status ? { status } : undefined,
+    auth: 'optional',
   })
 }
 

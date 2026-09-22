@@ -2,8 +2,14 @@
   <view class="poster-page">
     <NavBar title="活动海报" />
 
+    <!-- 未登录：页面内登录引导（海报含用户分销参数，需登录生成；不自动跳转） -->
+    <view v-if="!loggedIn" class="login-prompt">
+      <text class="login-tip-text"> 登录后生成专属海报 </text>
+      <button class="go-login-btn" @tap="goLogin">去登录</button>
+    </view>
+
     <!-- 加载中 -->
-    <view v-if="loading" class="loading">
+    <view v-else-if="loading" class="loading">
       <view class="spinner" />
       <text class="loading-text"> 海报生成中… </text>
     </view>
@@ -34,13 +40,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { renderEventPoster } from '../../api/event'
+import { isLoggedIn } from '../../api/auth'
+import { redirectToLogin } from '../../utils/request'
 import NavBar from '../../components/NavBar.vue'
 
 const loading = ref(true)
 const posterUrl = ref('')
+const loggedIn = computed(() => isLoggedIn())
 let eventId = ''
+
+function goLogin() {
+  redirectToLogin()
+}
 
 /** 将后端返回的相对路径补全为绝对 URL（H5 展示/预览需要） */
 function toAbsoluteUrl(url: string): string {
@@ -75,6 +88,11 @@ function preview() {
 }
 
 onMounted(() => {
+  // 海报为登录态功能（归因参数从登录态解析）：游客只展示登录引导，避免 401 强跳
+  if (!isLoggedIn()) {
+    loading.value = false
+    return
+  }
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
   eventId = page.$page?.options?.eventId || page.options?.eventId || ''
@@ -158,6 +176,26 @@ onMounted(() => {
   margin-bottom: 32rpx;
 }
 .btn-retry {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: var(--scrm-primary, #07c160);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+.login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 200rpx 32rpx;
+  gap: 32rpx;
+}
+.login-tip-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 28rpx;
+}
+.go-login-btn {
   width: 320rpx;
   height: 80rpx;
   line-height: 80rpx;

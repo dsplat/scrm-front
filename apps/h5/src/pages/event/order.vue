@@ -53,6 +53,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { invokePayment } from '@scrm/h5-commerce'
 import { getOrderDetail, payOrder, getEventDetail, getEventTicketTypes } from '../../api/event'
+import { ensureLogin } from '../../utils/auth-guard'
 import NavBar from '../../components/NavBar.vue'
 
 const order = ref<any>({})
@@ -129,7 +130,9 @@ async function loadOrder() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 订单为登录态数据（支付/评价均以用户身份进行）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('查看订单需登录后进行'))) return
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
   orderNo = page.$page?.options?.orderNo || page.options?.orderNo || ''

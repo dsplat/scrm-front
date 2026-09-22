@@ -61,7 +61,7 @@ export async function resolveTenant(): Promise<TenantInfo> {
   return request({
     url: '/tenant/resolve',
     method: 'GET',
-    needAuth: false,
+    auth: 'none',
   })
 }
 
@@ -70,6 +70,6 @@ export async function getLoginConfig(): Promise<LoginConfig> {
   return request({
     url: '/tenant/login-config',
     method: 'GET',
-    needAuth: false,
+    auth: 'none',
   })
 }

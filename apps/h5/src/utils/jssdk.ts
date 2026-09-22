@@ -183,7 +183,7 @@ export async function setupJsSdk(options: JsSdkOptions): Promise<void> {
         url: '/wechat/jssdk/config',
         method: 'GET',
         // 公开端点：分享等能力在登录前就要用，不能带 token（带了反而在 token 过期时 401）
-        needAuth: false,
+        auth: 'none',
         data: { url },
       })
     } catch (e) {

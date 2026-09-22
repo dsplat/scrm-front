@@ -17,6 +17,7 @@
     <view v-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
+    <ErrorState v-else-if="loadError" message="直播列表加载失败，请稍后重试" @retry="load" />
     <view v-else-if="rooms.length === 0" class="empty-tip">
       <text>暂无直播</text>
     </view>
@@ -46,6 +47,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { ensureLogin } from '../../utils/auth-guard'
 import { getLiveRooms, type LiveRoomSummary } from '../../api/live'
 
 const filters = [
@@ -58,6 +61,8 @@ const filters = [
 const status = ref('')
 const rooms = ref<LiveRoomSummary[]>([])
 const loading = ref(true)
+// 加载失败与空数据区分展示：失败给 ErrorState（重试/返回出口），避免被误认为"暂无直播"
+const loadError = ref(false)
 
 function statusLabel(s: string) {
   return (
@@ -67,10 +72,12 @@ function statusLabel(s: string) {
 
 async function load() {
   loading.value = true
+  loadError.value = false
   try {
     rooms.value = (await getLiveRooms(status.value || undefined)) ?? []
-  } catch (e: any) {
-    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+  } catch {
+    rooms.value = []
+    loadError.value = true
   } finally {
     loading.value = false
   }
@@ -81,7 +88,9 @@ function switchStatus(value: string) {
   load()
 }
 
-function goWatch(room: LiveRoomSummary) {
+async function goWatch(room: LiveRoomSummary) {
+  // 观看为登录态操作（权益校验依赖用户身份）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('观看直播需登录后进行'))) return
   uni.navigateTo({ url: `/pages/live/watch?room_id=${room.room_id}` })
 }
 

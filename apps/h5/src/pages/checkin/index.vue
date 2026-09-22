@@ -4,6 +4,7 @@
     <view v-if="loading" class="loading">
       <text>加载中...</text>
     </view>
+    <ErrorState v-else-if="loadError" message="打卡活动加载失败，请稍后重试" @retry="load" />
     <view v-else-if="activities.length === 0" class="empty">
       <text>暂无进行中的打卡活动</text>
     </view>
@@ -37,22 +38,30 @@ import { ref, onMounted } from 'vue'
 import { getCheckInActivities, type CheckInActivity } from '../../api/checkin'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
 
 const activities = ref<CheckInActivity[]>([])
 const loading = ref(true)
+// 加载失败与空数据区分展示：失败给 ErrorState（重试/返回出口），避免被误认为"暂无打卡活动"
+const loadError = ref(false)
 
 useTenantTitle()
 
-onMounted(async () => {
+onMounted(load)
+
+async function load() {
+  loading.value = true
+  loadError.value = false
   try {
     const res: any = await getCheckInActivities({ status: 'active', per_page: 50 })
     activities.value = res?.data ?? []
   } catch {
-    uni.showToast({ title: '加载失败，请稍后再试', icon: 'none' })
+    activities.value = []
+    loadError.value = true
   } finally {
     loading.value = false
   }
-})
+}
 
 function goDetail(id: number) {
   uni.navigateTo({ url: `/pages/checkin/detail?id=${id}` })

@@ -44,8 +44,9 @@ export interface ExamRecordSummary {
 
 // ========== 考试 ==========
 
+// 考试列表（游客可浏览）；start/submit/practice 保持登录
 export function getExams() {
-  return request<ExamSummary[]>({ url: '/scrm/student/exams' })
+  return request<ExamSummary[]>({ url: '/scrm/student/exams', auth: 'optional' })
 }
 
 export function startExam(examId: string | number) {

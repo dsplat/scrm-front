@@ -11,7 +11,7 @@ export async function recordLiveCodeScan(liveCodeId: string) {
   return request({
     url: `/scrm/live-codes/${liveCodeId}/scan`,
     method: 'POST',
-    needAuth: false,
+    auth: 'none',
   })
 }
 
@@ -19,7 +19,7 @@ export async function recordLiveCodeScan(liveCodeId: string) {
 export async function getLiveCodeInfo(liveCodeId: string) {
   return request({
     url: `/scrm/live-codes/${liveCodeId}`,
-    needAuth: false,
+    auth: 'none',
   })
 }
 
@@ -32,21 +32,23 @@ export async function startAgentConversation(agentId: number, message: string) {
   })
 }
 
-/** 获取活动列表（统一 Activity 模块，需登录；列表页默认只展示可参与状态） */
+/** 获取活动列表（统一 Activity 模块；游客可浏览公开状态，登录后可见个性化） */
 export async function getActivityList(params: Record<string, unknown> = {}) {
   return request({
     url: '/scrm/activities',
     method: 'GET',
     data: params,
+    auth: 'optional',
   })
 }
 
-/** 提交意见反馈 */
+/** 提交意见反馈（匿名可提） */
 export async function submitFeedback(content: string, contact?: string) {
   return request({
     url: '/scrm/feedback',
     method: 'POST',
     data: { content, contact },
+    auth: 'optional',
   })
 }
 
@@ -54,6 +56,6 @@ export async function submitFeedback(content: string, contact?: string) {
 export async function getFAQs() {
   return request({
     url: '/scrm/faqs',
-    needAuth: false,
+    auth: 'none',
   })
 }

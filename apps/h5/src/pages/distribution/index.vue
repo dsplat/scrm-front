@@ -2,8 +2,17 @@
   <view class="dist-page">
     <NavBar title="分销中心" />
 
+    <!-- 未登录：页面内登录引导（佣金/提现为个人数据，不自动跳转） -->
+    <view v-if="!loggedIn" class="login-prompt">
+      <text class="login-tip-text"> 登录后查看我的分销数据 </text>
+      <button class="go-login-btn" @tap="goLogin">去登录</button>
+    </view>
+
+    <!-- 加载失败：错误态出口（重试/返回），与"暂无数据"区分 -->
+    <ErrorState v-else-if="loadError" message="分销中心加载失败，请稍后重试" @retry="reload" />
+
     <!-- 未开启分销 -->
-    <view v-if="loaded && !profile.enabled" class="empty-state">
+    <view v-else-if="loaded && !profile.enabled" class="empty-state">
       <text class="empty-title"> 暂未开启分销 </text>
       <text class="empty-desc"> 商家尚未开启分销功能，敬请期待 </text>
     </view>
@@ -186,10 +195,16 @@ import {
 import type { DistributionCenterProfile, TeamMember, CommissionItem } from '../../api/distribution'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { redirectToLogin } from '../../utils/request'
+import { isLoggedIn } from '../../api/auth'
 
 useTenantTitle()
 
 const loaded = ref(false)
+// 加载失败给 ErrorState（重试/返回出口），避免静默失败后空白页
+const loadError = ref(false)
+const loggedIn = computed(() => isLoggedIn())
 const profile = ref<DistributionCenterProfile>({
   enabled: false,
   isDistributor: false,
@@ -267,7 +282,8 @@ async function loadProfile() {
   try {
     profile.value = await getDistributionProfile()
   } catch {
-    // 静默失败
+    // 加载失败给错误态出口（重试/返回）
+    loadError.value = true
   } finally {
     loaded.value = true
   }
@@ -284,7 +300,8 @@ async function loadTab() {
       withdrawals.value = await getMyWithdrawals()
     }
   } catch {
-    // 静默失败
+    // 加载失败给错误态出口（重试/返回）
+    loadError.value = true
   }
 }
 
@@ -350,9 +367,20 @@ async function submitWithdraw() {
   }
 }
 
-onMounted(async () => {
+function goLogin() {
+  redirectToLogin()
+}
+
+async function reload() {
+  loadError.value = false
   await loadProfile()
   loadTab()
+}
+
+onMounted(async () => {
+  // 分销佣金/提现为登录态数据（required 接口）：游客只展示登录引导，避免 401 强跳
+  if (!isLoggedIn()) return
+  await reload()
 })
 </script>
 
@@ -648,5 +676,28 @@ onMounted(async () => {
 .modal-btn.confirm {
   background: var(--scrm-primary);
   color: #fff;
+}
+.login-prompt {
+  margin: 24rpx;
+  padding: 80rpx 36rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.login-tip-text {
+  font-size: 28rpx;
+  color: #999;
+}
+.go-login-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: var(--scrm-primary);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
 }
 </style>

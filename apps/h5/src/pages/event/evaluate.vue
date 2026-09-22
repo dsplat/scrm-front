@@ -89,8 +89,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { submitEvaluation } from '../../api/event'
+import { ensureLogin } from '../../utils/auth-guard'
 import NavBar from '../../components/NavBar.vue'
 
 const presetTags = [
@@ -126,6 +127,8 @@ function toggleTag(tag: string) {
 }
 
 async function handleSubmit() {
+  // 提交为登录态操作（评价以用户身份落库）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('评价需登录后进行'))) return
   submitting.value = true
   try {
     await submitEvaluation(eventId, { ...form })
@@ -141,6 +144,11 @@ async function handleSubmit() {
 const pages = getCurrentPages()
 const page = pages[pages.length - 1] as any
 eventId = page?.$page?.options?.eventId || page?.options?.eventId || ''
+
+onMounted(async () => {
+  // 评价为登录态功能（关联订单与用户）：进入时未登录引导（登录后回跳本页）
+  await ensureLogin('评价需登录后进行')
+})
 </script>
 
 <style scoped>

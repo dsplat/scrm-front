@@ -1,7 +1,12 @@
 <template>
   <view class="edit-page">
     <NavBar title="编辑资料" />
-    <view class="page-body">
+    <!-- 未登录：页面内登录引导（不自动跳转，保留返回出口） -->
+    <view v-if="!loggedIn" class="login-prompt">
+      <text class="login-tip-text"> 登录后编辑个人资料 </text>
+      <button class="go-login-btn" @tap="goLogin">去登录</button>
+    </view>
+    <view v-else class="page-body">
       <view class="form-section">
         <view class="form-item">
           <text class="label"> 昵称 </text>
@@ -34,10 +39,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { updateProfile } from '../../api/auth'
+import { ref, computed, onMounted } from 'vue'
+import { updateProfile, isLoggedIn } from '../../api/auth'
 import { useUserStore } from '../../store/user'
 import { useTenantTitle } from '../../composables/useTenantTitle'
+import { redirectToLogin } from '../../utils/request'
 import NavBar from '../../components/NavBar.vue'
 
 const name = ref('')
@@ -47,10 +53,17 @@ useTenantTitle()
 const email = ref('')
 const saving = ref(false)
 const errorMsg = ref('')
+const loggedIn = computed(() => isLoggedIn())
 
 const { state, fetchUser, setUser } = useUserStore()
 
+function goLogin() {
+  redirectToLogin()
+}
+
 onMounted(async () => {
+  // 资料编辑为登录态功能：游客只展示登录引导，避免 401 强跳
+  if (!isLoggedIn()) return
   // 确保有用户数据
   if (!state.user) {
     await fetchUser()
@@ -147,5 +160,28 @@ async function handleSave() {
 }
 .btn-save[disabled] {
   background: #a0d8b8;
+}
+.login-prompt {
+  margin: 24rpx;
+  padding: 80rpx 36rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.login-tip-text {
+  font-size: 28rpx;
+  color: #999;
+}
+.go-login-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: var(--scrm-primary);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
 }
 </style>

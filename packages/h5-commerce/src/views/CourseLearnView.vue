@@ -4,6 +4,8 @@
     <view v-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
+    <!-- 加载失败给重试/返回出口，避免失败后白屏孤儿页 -->
+    <ErrorState v-else-if="loadError" message="课程加载失败，请稍后重试" @retry="load" />
     <template v-else-if="course">
       <view v-if="!hasAccess" class="no-access">
         <text>尚未开通该课程</text>
@@ -69,6 +71,7 @@ import {
 } from '../api/course'
 import { courseDetailUrl } from '../config'
 import NavBar from '../components/NavBar.vue'
+import ErrorState from '../components/ErrorState.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -88,6 +91,7 @@ const hasAccess = ref(false)
 const current = ref<ChapterVO | null>(null)
 const loading = ref(false)
 const reporting = ref(false)
+const loadError = ref(false)
 const rewardTip = ref('')
 
 watch(
@@ -108,6 +112,7 @@ function goDetail() {
 async function load() {
   if (!props.courseId) return
   loading.value = true
+  loadError.value = false
   try {
     const res = await getCourseDetail(props.courseId)
     course.value = res.course
@@ -115,7 +120,8 @@ async function load() {
     hasAccess.value = !!res.has_access
     current.value = chapters.value[0] ?? null
   } catch (e: any) {
-    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+    // 失败转 ErrorState（重试/返回出口），替代 toast 一闪后白屏
+    loadError.value = true
   } finally {
     loading.value = false
   }

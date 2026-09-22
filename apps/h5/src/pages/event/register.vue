@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { registerEvent, getEventTicketTypes } from '../../api/event'
+import { ensureLogin } from '../../utils/auth-guard'
 import NavBar from '../../components/NavBar.vue'
 
 const attendees = ref([{ name: '', phone: '', age: '', relation: '' }])
@@ -76,6 +77,8 @@ async function handleSubmit() {
 }
 
 onMounted(async () => {
+  // 报名为登录态操作（订单以用户身份创建）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('报名需登录后进行'))) return
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
   eventId = page.$page?.options?.eventId || page.options?.eventId || ''

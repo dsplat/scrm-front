@@ -4,6 +4,8 @@
     <view v-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
+    <!-- 失败与真空态区分：加载失败给重试/返回出口，不误显"暂无商品" -->
+    <ErrorState v-else-if="loadError" message="商品加载失败，请稍后重试" @retry="load" />
     <view v-else-if="products.length === 0" class="empty-tip">
       <text>暂无上架商品</text>
     </view>
@@ -24,6 +26,7 @@ import { getShopProducts, type ShopProduct } from '../api/shop'
 import { navShopDetail } from '../config'
 import NavBar from '../components/NavBar.vue'
 import ProductCard from '../components/ProductCard.vue'
+import ErrorState from '../components/ErrorState.vue'
 
 withDefaults(
   defineProps<{
@@ -40,6 +43,7 @@ withDefaults(
 
 const products = ref<ShopProduct[]>([])
 const loading = ref(false)
+const loadError = ref(false)
 
 function goDetail(item: ShopProduct) {
   navShopDetail(item.product_id)
@@ -47,11 +51,13 @@ function goDetail(item: ShopProduct) {
 
 async function load() {
   loading.value = true
+  loadError.value = false
   try {
     const res = await getShopProducts()
     products.value = res.data || []
   } catch {
     products.value = []
+    loadError.value = true
   } finally {
     loading.value = false
   }

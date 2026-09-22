@@ -2,112 +2,118 @@
   <view class="checkin-detail-page">
     <NavBar title="打卡" />
 
-    <!-- 活动信息 -->
-    <view v-if="activity" class="activity-card">
-      <text class="activity-title">
-        {{ activity.title }}
-      </text>
-      <text v-if="activity.description" class="activity-desc">
-        {{ activity.description }}
-      </text>
-      <view class="activity-meta">
-        <text>{{ activity.start_date }} ~ {{ activity.end_date || '长期' }}</text>
-        <text>{{ activity.total_participants }} 人参与</text>
-      </view>
-    </view>
-
-    <!-- 打卡状态卡片 -->
-    <view class="status-card">
-      <view class="streak-info">
-        <text class="streak-num">
-          {{ streakCount }}
+    <ErrorState v-if="loadError" message="打卡活动加载失败，请稍后重试" @retry="loadAll" />
+    <template v-else>
+      <!-- 活动信息 -->
+      <view v-if="activity" class="activity-card">
+        <text class="activity-title">
+          {{ activity.title }}
         </text>
-        <text class="streak-label"> 连续打卡（天） </text>
-      </view>
-      <view v-if="checkedToday" class="checked-badge">
-        <text>今日已打卡 ✓</text>
-      </view>
-      <view v-else class="checkin-form">
-        <textarea
-          v-model="note"
-          class="note-input"
-          placeholder="记录一下今天的打卡心得（选填）"
-          maxlength="500"
-        />
-        <button class="checkin-btn" :disabled="submitting" @tap="handleCheckIn">
-          {{ submitting ? '打卡中...' : '立即打卡' }}
-        </button>
-        <view v-if="backfillWindowDays > 0" class="backfill-row">
-          <picker
-            mode="date"
-            :value="backfillDate"
-            :start="backfillStart"
-            :end="backfillEnd"
-            @change="onBackfillDateChange"
-          >
-            <text class="backfill-link"> 漏打卡了？补卡 </text>
-          </picker>
+        <text v-if="activity.description" class="activity-desc">
+          {{ activity.description }}
+        </text>
+        <view class="activity-meta">
+          <text>{{ activity.start_date }} ~ {{ activity.end_date || '长期' }}</text>
+          <text>{{ activity.total_participants }} 人参与</text>
         </view>
       </view>
-    </view>
 
-    <!-- 标签页 -->
-    <view class="tabs">
-      <view
-        class="tab-item"
-        :class="{ active: activeTab === 'records' }"
-        @tap="activeTab = 'records'"
-      >
-        <text>我的记录</text>
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: activeTab === 'leaderboard' }"
-        @tap="switchToLeaderboard"
-      >
-        <text>排行榜</text>
-      </view>
-    </view>
-
-    <!-- 我的记录 -->
-    <view v-if="activeTab === 'records'" class="records-section">
-      <view v-if="records.length === 0" class="empty">
-        <text>还没有打卡记录，快去打卡吧</text>
-      </view>
-      <view v-for="item in records" :key="item.check_in_record_id" class="record-item">
-        <view class="record-date">
-          <text class="date">
-            {{ item.check_in_date }}
+      <!-- 打卡状态卡片 -->
+      <view class="status-card">
+        <view class="streak-info">
+          <text class="streak-num">
+            {{ streakCount }}
           </text>
-          <text class="streak"> 连续 {{ item.streak_count }} 天 </text>
+          <text class="streak-label"> 连续打卡（天） </text>
         </view>
-        <text v-if="item.metadata?.note" class="record-note">
-          {{ item.metadata.note }}
-        </text>
+        <view v-if="checkedToday" class="checked-badge">
+          <text>今日已打卡 ✓</text>
+        </view>
+        <view v-else class="checkin-form">
+          <textarea
+            v-model="note"
+            class="note-input"
+            placeholder="记录一下今天的打卡心得（选填）"
+            maxlength="500"
+          />
+          <button class="checkin-btn" :disabled="submitting" @tap="handleCheckIn">
+            {{ submitting ? '打卡中...' : '立即打卡' }}
+          </button>
+          <view v-if="backfillWindowDays > 0" class="backfill-row">
+            <picker
+              mode="date"
+              :value="backfillDate"
+              :start="backfillStart"
+              :end="backfillEnd"
+              @change="onBackfillDateChange"
+            >
+              <text class="backfill-link"> 漏打卡了？补卡 </text>
+            </picker>
+          </view>
+        </view>
       </view>
-    </view>
 
-    <!-- 排行榜 -->
-    <view v-if="activeTab === 'leaderboard'" class="leaderboard-section">
-      <view v-if="leaderboard.length === 0" class="empty">
-        <text>暂无排行数据</text>
+      <!-- 标签页 -->
+      <view class="tabs">
+        <view
+          class="tab-item"
+          :class="{ active: activeTab === 'records' }"
+          @tap="activeTab = 'records'"
+        >
+          <text>我的记录</text>
+        </view>
+        <view
+          class="tab-item"
+          :class="{ active: activeTab === 'leaderboard' }"
+          @tap="switchToLeaderboard"
+        >
+          <text>排行榜</text>
+        </view>
       </view>
-      <view v-for="(item, idx) in leaderboard" :key="item.user_id" class="rank-item">
-        <text class="rank-no">
-          {{ idx + 1 }}
-        </text>
-        <text class="rank-user">
-          {{ maskUserId(item.user_id) }}
-        </text>
-        <text class="rank-count"> 打卡 {{ item.total_check_ins }} 天 </text>
-        <text class="rank-streak"> 最长连续 {{ item.max_streak }} 天 </text>
+
+      <!-- 我的记录 -->
+      <view v-if="activeTab === 'records'" class="records-section">
+        <view v-if="!loggedIn" class="empty">
+          <text>登录后查看我的打卡记录</text>
+        </view>
+        <view v-else-if="records.length === 0" class="empty">
+          <text>还没有打卡记录，快去打卡吧</text>
+        </view>
+        <view v-for="item in records" :key="item.check_in_record_id" class="record-item">
+          <view class="record-date">
+            <text class="date">
+              {{ item.check_in_date }}
+            </text>
+            <text class="streak"> 连续 {{ item.streak_count }} 天 </text>
+          </view>
+          <text v-if="item.metadata?.note" class="record-note">
+            {{ item.metadata.note }}
+          </text>
+        </view>
       </view>
-    </view>
+
+      <!-- 排行榜 -->
+      <view v-if="activeTab === 'leaderboard'" class="leaderboard-section">
+        <view v-if="leaderboard.length === 0" class="empty">
+          <text>暂无排行数据</text>
+        </view>
+        <view v-for="(item, idx) in leaderboard" :key="item.user_id" class="rank-item">
+          <text class="rank-no">
+            {{ idx + 1 }}
+          </text>
+          <text class="rank-user">
+            {{ maskUserId(item.user_id) }}
+          </text>
+          <text class="rank-count"> 打卡 {{ item.total_check_ins }} 天 </text>
+          <text class="rank-streak"> 最长连续 {{ item.max_streak }} 天 </text>
+        </view>
+      </view>
+    </template>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   getCheckInActivity,
   checkIn,
@@ -120,6 +126,9 @@ import {
 } from '../../api/checkin'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { ensureLogin } from '../../utils/auth-guard'
+import { isLoggedIn } from '../../api/auth'
 
 const activity = ref<CheckInActivity | null>(null)
 const checkedToday = ref(false)
@@ -130,6 +139,9 @@ const activeTab = ref<'records' | 'leaderboard'>('records')
 const records = ref<CheckInRecord[]>([])
 const leaderboard = ref<CheckInLeaderboardItem[]>([])
 const leaderboardLoaded = ref(false)
+// 活动加载失败给 ErrorState（重试/返回出口），避免白屏孤儿页
+const loadError = ref(false)
+const loggedIn = computed(() => isLoggedIn())
 
 let activityId = ''
 
@@ -157,8 +169,13 @@ onMounted(async () => {
     uni.showToast({ title: '参数错误', icon: 'none' })
     return
   }
-  await Promise.all([loadActivity(), loadMyStatus(), loadRecords()])
+  await loadAll()
 })
+
+async function loadAll() {
+  loadError.value = false
+  await Promise.all([loadActivity(), loadMyStatus(), loadRecords()])
+}
 
 async function loadActivity() {
   try {
@@ -166,11 +183,14 @@ async function loadActivity() {
     backfillWindowDays.value = Number(activity.value?.reward_config?.backfill_days ?? 7)
     backfillStart.value = getBackfillStart()
   } catch {
-    // 活动不存在时提示并保持空态
+    // 活动加载失败给错误态出口（重试/返回）
+    loadError.value = true
   }
 }
 
 async function loadMyStatus() {
+  // 打卡状态为登录态数据（required 接口）：游客跳过，避免 401 强跳登录
+  if (!isLoggedIn()) return
   try {
     const today = todayString()
     const res: any = await getCheckInRecords(activityId, {
@@ -203,6 +223,8 @@ function todayStringOf(d: Date): string {
 }
 
 async function loadRecords() {
+  // 打卡记录为登录态数据（required 接口）：游客跳过，避免 401 强跳登录
+  if (!isLoggedIn()) return
   try {
     const res: any = await getCheckInRecords(activityId, { per_page: 50 })
     records.value = res?.data ?? []
@@ -225,6 +247,8 @@ async function switchToLeaderboard() {
 
 async function handleCheckIn() {
   if (submitting.value) return
+  // 打卡为登录态操作（记录以用户身份落库）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('打卡需登录后进行'))) return
   submitting.value = true
   try {
     const res: any = await checkIn(activityId, note.value ? { note: note.value } : undefined)
@@ -277,6 +301,8 @@ const backfillStart = ref(backfillEnd)
 async function onBackfillDateChange(e: any) {
   const date = e?.detail?.value
   if (!date || submittingBackfill.value) return
+  // 补卡为登录态操作：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('补卡需登录后进行'))) return
   submittingBackfill.value = true
   try {
     const res: any = await backfillCheckIn(activityId, { date })

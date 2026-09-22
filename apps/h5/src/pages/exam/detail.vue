@@ -6,7 +6,8 @@
       <text>剩余 {{ countdownText }}</text>
     </view>
 
-    <view v-if="loading" class="loading-tip">
+    <ErrorState v-if="loadError" message="开考失败，请重试或返回" @retry="start" />
+    <view v-else-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
 
@@ -64,7 +65,7 @@
       </view>
     </view>
 
-    <view v-if="!loading" class="submit-bar">
+    <view v-if="!loading && !loadError" class="submit-bar">
       <button class="submit-btn" :disabled="submitting" @tap="handleSubmit">
         {{ submitting ? '提交中...' : '交卷' }}
       </button>
@@ -75,6 +76,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { ensureLogin } from '../../utils/auth-guard'
 import { startExam, submitExam, type ExamQuestion } from '../../api/exam'
 
 const examId = ref('')
@@ -82,6 +85,8 @@ const recordId = ref('')
 const questions = ref<ExamQuestion[]>([])
 const answers = reactive<Record<string, unknown>>({})
 const loading = ref(true)
+// 加载失败给 ErrorState（重试/返回出口），避免无题白屏
+const loadError = ref(false)
 const submitting = ref(false)
 
 const timeLimitMinutes = ref(0)
@@ -171,20 +176,32 @@ onMounted(async () => {
   const pages = getCurrentPages()
   const current: any = pages[pages.length - 1]
   examId.value = current?.options?.exam_id ?? current?.$page?.options?.exam_id ?? ''
+  timeLimitMinutes.value = Number(current?.options?.time_limit ?? 0)
+  await start()
+})
+
+async function start() {
+  loading.value = true
+  loadError.value = false
+  // 考试为登录态操作（答题记录以用户身份落库）：未登录先引导（登录后回跳本页）
+  if (!(await ensureLogin('参加考试需登录后进行'))) {
+    loading.value = false
+    loadError.value = true
+    return
+  }
   try {
     // 断线重进：start 幂等复用 in_progress 答卷
     const result = await startExam(examId.value)
     recordId.value = String(result.record_id)
     questions.value = result.questions ?? []
-    timeLimitMinutes.value = Number(current?.options?.time_limit ?? 0)
     startedAt.value = Date.now()
     startCountdown()
-  } catch (e: any) {
-    uni.showToast({ title: e.message || '开考失败', icon: 'none' })
+  } catch {
+    loadError.value = true
   } finally {
     loading.value = false
   }
-})
+}
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)

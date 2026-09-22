@@ -2,8 +2,17 @@
   <view class="posters-page">
     <NavBar title="我的推广海报" />
 
+    <!-- 未登录：页面内登录引导（海报带用户分销参数，不自动跳转） -->
+    <view v-if="!loggedIn" class="login-prompt">
+      <text class="login-tip-text"> 登录后查看我的推广海报 </text>
+      <button class="go-login-btn" @tap="goLogin">去登录</button>
+    </view>
+
+    <!-- 加载失败：错误态出口（重试/返回），与"暂无海报"空态区分 -->
+    <ErrorState v-else-if="loadError" message="海报列表加载失败，请稍后重试" @retry="load" />
+
     <!-- 加载中 -->
-    <view v-if="loading" class="empty-tip">
+    <view v-else-if="loading" class="empty-tip">
       <text>加载中...</text>
     </view>
 
@@ -67,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   getMyPosters,
   renderMyPoster,
@@ -76,22 +85,45 @@ import {
 } from '../../api/poster'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { redirectToLogin } from '../../utils/request'
+import { isLoggedIn } from '../../api/auth'
 
 const loading = ref(true)
+// 加载失败给 ErrorState（重试/返回出口），与"暂无海报"空态区分
+const loadError = ref(false)
+const loggedIn = computed(() => isLoggedIn())
 const posters = ref<MyPoster[]>([])
 const renderingId = ref<number | null>(null)
 const result = ref<MyPosterRenderResult | null>(null)
 
 useTenantTitle()
 
-onMounted(async () => {
+function goLogin() {
+  redirectToLogin()
+}
+
+async function load() {
+  loading.value = true
+  loadError.value = false
   try {
     posters.value = await getMyPosters()
-  } catch (e: any) {
-    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+  } catch {
+    posters.value = []
+    // 加载失败给错误态出口（重试/返回），不再只 toast 一闪
+    loadError.value = true
   } finally {
     loading.value = false
   }
+}
+
+onMounted(async () => {
+  // 海报列表为登录态数据（含用户分销归因）：游客只展示登录引导，避免 401 强跳
+  if (!isLoggedIn()) {
+    loading.value = false
+    return
+  }
+  await load()
 })
 
 async function handleRender(poster: MyPoster) {
@@ -269,6 +301,29 @@ function saveToAlbum() {
   border-radius: 40rpx;
   padding: 18rpx 0;
   text-align: center;
+  font-size: 28rpx;
+}
+.login-prompt {
+  margin: 24rpx;
+  padding: 80rpx 36rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.login-tip-text {
+  font-size: 28rpx;
+  color: #999;
+}
+.go-login-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: #ff6b6b;
+  color: #fff;
+  border-radius: 40rpx;
   font-size: 28rpx;
 }
 </style>

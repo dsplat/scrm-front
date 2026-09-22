@@ -4,6 +4,8 @@
     <view v-if="loading" class="loading-tip">
       <text>加载中...</text>
     </view>
+    <!-- 加载失败给重试/返回出口，避免失败后白屏孤儿页 -->
+    <ErrorState v-else-if="loadError" message="课程加载失败，请稍后重试" @retry="load" />
     <template v-else-if="course">
       <image v-if="course.cover" class="cover" :src="course.cover" mode="aspectFill" />
       <view class="info-card">
@@ -89,6 +91,7 @@ import { payOrder, getMyOrders } from '../api/shop'
 import { invokePayment, pollUntil } from '../utils/payment'
 import { navCourseLearn } from '../config'
 import NavBar from '../components/NavBar.vue'
+import ErrorState from '../components/ErrorState.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -110,6 +113,7 @@ const chapters = ref<ChapterVO[]>([])
 const hasAccess = ref(false)
 const loading = ref(false)
 const submitting = ref(false)
+const loadError = ref(false)
 const payMethod = ref<'cash' | 'points' | 'mixed'>('cash')
 
 const isFree = computed(
@@ -150,6 +154,7 @@ function goLearn() {
 async function load() {
   if (!props.courseId) return
   loading.value = true
+  loadError.value = false
   try {
     const res = await getCourseDetail(props.courseId)
     course.value = res.course
@@ -159,7 +164,8 @@ async function load() {
       payMethod.value = payMethods.value[0].value
     }
   } catch (e: any) {
-    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+    // 失败转 ErrorState（重试/返回出口），替代 toast 一闪后白屏
+    loadError.value = true
   } finally {
     loading.value = false
   }

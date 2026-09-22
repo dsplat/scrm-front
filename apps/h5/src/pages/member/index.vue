@@ -1,73 +1,84 @@
 <template>
   <view class="member-page">
     <NavBar title="我的积分" />
-    <!-- 积分卡片 -->
-    <view class="points-card">
-      <view class="points-header">
-        <text class="points-label"> 我的积分 </text>
-        <text v-if="balanceData.linked" class="points-name">
-          {{ balanceData.customer_name }}
-        </text>
-      </view>
-      <view class="points-value">
-        <text class="points-num">
-          {{ balanceData.balance }}
-        </text>
-        <text class="points-unit"> 分 </text>
-      </view>
-      <view v-if="!balanceData.linked" class="points-unlinked">
-        <text>尚未关联会员档案，到店消费后自动关联</text>
-      </view>
+    <!-- 未登录：页面内登录引导（不自动跳转，保留返回出口） -->
+    <view v-if="!loggedIn" class="login-prompt">
+      <text class="login-tip-text"> 登录后查看我的积分与流水 </text>
+      <button class="go-login-btn" @tap="goLogin">去登录</button>
     </view>
-
-    <!-- 积分商城（@scrm/h5-commerce 区块组件） -->
-    <PointsExchangeBlock @exchanged="onExchanged" />
-
-    <!-- 筛选 Tab -->
-    <view class="filter-tabs">
-      <view
-        v-for="tab in tabs"
-        :key="tab.value"
-        class="tab-item"
-        :class="{ active: activeTab === tab.value }"
-        @tap="switchTab(tab.value)"
-      >
-        <text>{{ tab.label }}</text>
-      </view>
-    </view>
-
-    <!-- 流水列表 -->
-    <view class="flow-list">
-      <view v-if="loading" class="loading-tip">
-        <text>加载中...</text>
-      </view>
-      <view v-else-if="flowItems.length === 0" class="empty-tip">
-        <text>暂无积分记录</text>
-      </view>
-      <view v-for="item in flowItems" :key="item.id" class="flow-item">
-        <view class="flow-left">
-          <text class="flow-desc">
-            {{ item.description || typeLabel(item.type) }}
-          </text>
-          <text class="flow-time">
-            {{ formatTime(item.created_at) }}
+    <ErrorState v-else-if="loadError" message="积分信息加载失败，请稍后重试" @retry="loadAll" />
+    <template v-else>
+      <!-- 积分卡片 -->
+      <view class="points-card">
+        <view class="points-header">
+          <text class="points-label"> 我的积分 </text>
+          <text v-if="balanceData.linked" class="points-name">
+            {{ balanceData.customer_name }}
           </text>
         </view>
-        <text class="flow-points" :class="item.points > 0 ? 'earn' : 'spend'">
-          {{ item.points > 0 ? '+' : '' }}{{ item.points }}
-        </text>
+        <view class="points-value">
+          <text class="points-num">
+            {{ balanceData.balance }}
+          </text>
+          <text class="points-unit"> 分 </text>
+        </view>
+        <view v-if="!balanceData.linked" class="points-unlinked">
+          <text>尚未关联会员档案，到店消费后自动关联</text>
+        </view>
       </view>
-    </view>
+
+      <!-- 积分商城（@scrm/h5-commerce 区块组件） -->
+      <PointsExchangeBlock @exchanged="onExchanged" />
+
+      <!-- 筛选 Tab -->
+      <view class="filter-tabs">
+        <view
+          v-for="tab in tabs"
+          :key="tab.value"
+          class="tab-item"
+          :class="{ active: activeTab === tab.value }"
+          @tap="switchTab(tab.value)"
+        >
+          <text>{{ tab.label }}</text>
+        </view>
+      </view>
+
+      <!-- 流水列表 -->
+      <view class="flow-list">
+        <view v-if="loading" class="loading-tip">
+          <text>加载中...</text>
+        </view>
+        <view v-else-if="flowItems.length === 0" class="empty-tip">
+          <text>暂无积分记录</text>
+        </view>
+        <view v-for="item in flowItems" :key="item.id" class="flow-item">
+          <view class="flow-left">
+            <text class="flow-desc">
+              {{ item.description || typeLabel(item.type) }}
+            </text>
+            <text class="flow-time">
+              {{ formatTime(item.created_at) }}
+            </text>
+          </view>
+          <text class="flow-points" :class="item.points > 0 ? 'earn' : 'spend'">
+            {{ item.points > 0 ? '+' : '' }}{{ item.points }}
+          </text>
+        </view>
+      </view>
+    </template>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { PointsExchangeBlock } from '@scrm/h5-commerce'
 import { getMyPointsBalance, getMyPointsFlow } from '../../api/member'
 import type { PointsBalance, PointsFlowItem } from '../../api/member'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
+import { redirectToLogin } from '../../utils/request'
+import { isLoggedIn } from '../../api/auth'
 
 const balanceData = ref<PointsBalance>({ balance: 0, linked: false })
 
@@ -76,6 +87,9 @@ useTenantTitle()
 const flowItems = ref<PointsFlowItem[]>([])
 const loading = ref(false)
 const activeTab = ref('')
+// 加载失败给 ErrorState（重试/返回出口），避免静默失败后白屏孤儿页
+const loadError = ref(false)
+const loggedIn = computed(() => isLoggedIn())
 
 // 积分兑换成功后刷新余额与流水
 async function onExchanged() {
@@ -111,7 +125,8 @@ async function loadBalance() {
   try {
     balanceData.value = await getMyPointsBalance()
   } catch {
-    // 静默失败
+    // 余额加载失败给错误态出口（重试/返回）
+    loadError.value = true
   }
 }
 
@@ -122,6 +137,8 @@ async function loadFlow() {
     flowItems.value = res.items || []
   } catch {
     flowItems.value = []
+    // 流水加载失败与空数据区分：失败给错误态出口
+    loadError.value = true
   } finally {
     loading.value = false
   }
@@ -132,9 +149,20 @@ function switchTab(value: string) {
   loadFlow()
 }
 
-onMounted(() => {
+function loadAll() {
+  loadError.value = false
   loadBalance()
   loadFlow()
+}
+
+function goLogin() {
+  redirectToLogin()
+}
+
+onMounted(() => {
+  // 积分/流水为登录态数据（required 接口）：游客只展示登录引导，避免 401 强跳
+  if (!isLoggedIn()) return
+  loadAll()
 })
 </script>
 
@@ -245,5 +273,28 @@ onMounted(() => {
 }
 .flow-points.spend {
   color: #e64340;
+}
+.login-prompt {
+  margin: 24rpx;
+  padding: 80rpx 36rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.login-tip-text {
+  font-size: 28rpx;
+  color: #999;
+}
+.go-login-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: var(--scrm-primary);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
 }
 </style>

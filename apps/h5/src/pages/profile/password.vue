@@ -1,7 +1,12 @@
 <template>
   <view class="pwd-page">
     <NavBar title="修改密码" />
-    <view class="page-body">
+    <!-- 未登录：页面内登录引导（不自动跳转，保留返回出口） -->
+    <view v-if="!loggedIn" class="login-prompt">
+      <text class="login-tip-text"> 登录后修改密码 </text>
+      <button class="go-login-btn" @tap="goLogin">去登录</button>
+    </view>
+    <view v-else class="page-body">
       <view class="form-section">
         <view class="form-item">
           <text class="label"> 当前密码 </text>
@@ -57,8 +62,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { changePassword } from '../../api/auth'
+import { changePassword, isLoggedIn } from '../../api/auth'
 import { useTenantTitle } from '../../composables/useTenantTitle'
+import { redirectToLogin } from '../../utils/request'
 import NavBar from '../../components/NavBar.vue'
 
 const currentPassword = ref('')
@@ -69,6 +75,11 @@ useTenantTitle()
 const confirmPassword = ref('')
 const saving = ref(false)
 const errorMsg = ref('')
+const loggedIn = computed(() => isLoggedIn())
+
+function goLogin() {
+  redirectToLogin()
+}
 
 const canSubmit = computed(() => {
   return (
@@ -179,5 +190,28 @@ async function handleSubmit() {
   font-size: 24rpx;
   color: #bbb;
   line-height: 1.8;
+}
+.login-prompt {
+  margin: 24rpx;
+  padding: 80rpx 36rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.login-tip-text {
+  font-size: 28rpx;
+  color: #999;
+}
+.go-login-btn {
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: var(--scrm-primary);
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
 }
 </style>

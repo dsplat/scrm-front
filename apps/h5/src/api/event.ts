@@ -4,14 +4,18 @@ import { request } from '../utils/request'
 // C4：H5 活动链路已全量迁移至统一 Activity 模块（旧 /scrm/events/* 与
 // /scrm/registration-orders/* 已软下线返回 410）。
 
-// 获取活动详情
+// 获取活动详情（游客可看，登录后个性化）
 export function getEventDetail(eventId: string | number) {
-  return request({ url: `/scrm/activities/${eventId}`, method: 'GET' })
+  return request({ url: `/scrm/activities/${eventId}`, method: 'GET', auth: 'optional' })
 }
 
-// 获取活动票种
+// 获取活动票种（游客可看）
 export function getEventTicketTypes(eventId: string | number) {
-  return request({ url: `/scrm/activities/${eventId}/ticket-types`, method: 'GET' })
+  return request({
+    url: `/scrm/activities/${eventId}/ticket-types`,
+    method: 'GET',
+    auth: 'optional',
+  })
 }
 
 // 报名（创建订单）：报名人由后端从登录态取，不传 user_id；
@@ -59,9 +63,14 @@ export function submitEvaluation(
   return request({ url: `/scrm/activities/${eventId}/evaluations`, method: 'POST', data })
 }
 
-// 获取评价列表
+// 获取评价列表（游客可看，服务端已裁剪隐私字段）
 export function getEvaluations(eventId: string | number, params?: { per_page?: number }) {
-  return request({ url: `/scrm/activities/${eventId}/evaluations`, method: 'GET', data: params })
+  return request({
+    url: `/scrm/activities/${eventId}/evaluations`,
+    method: 'GET',
+    data: params,
+    auth: 'optional',
+  })
 }
 
 // 渲染活动推广海报（新体系：取该活动绑定的分销海报 → 以登录身份渲染专属海报）

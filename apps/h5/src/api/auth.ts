@@ -67,7 +67,7 @@ export async function emailLogin(email: string, password: string): Promise<Login
     url: '/auth/login',
     method: 'POST',
     data: { email, password },
-    needAuth: false,
+    auth: 'none',
   })
 
   // 非 MFA 情况，直接存 token
@@ -91,7 +91,7 @@ export async function emailRegister(data: {
     url: '/auth/register',
     method: 'POST',
     data,
-    needAuth: false,
+    auth: 'none',
   })
 
   if (result.auth_token) {
@@ -156,7 +156,7 @@ export async function mfaVerify(userId: number, type: string, code: string): Pro
     url: '/auth/mfa/verify',
     method: 'POST',
     data: { user_id: userId, type, code },
-    needAuth: false,
+    auth: 'none',
   })
 
   if (result.auth_token) {
@@ -174,7 +174,7 @@ export async function sendSmsCode(phone: string): Promise<{ expires_in: number }
     url: '/auth/sms/send-code',
     method: 'POST',
     data: { phone },
-    needAuth: false,
+    auth: 'none',
   })
 }
 
@@ -186,7 +186,7 @@ export async function smsLogin(phone: string, code: string): Promise<LoginResult
     url: '/auth/sms/login',
     method: 'POST',
     data: { phone, code },
-    needAuth: false,
+    auth: 'none',
   })
 
   if (result.auth_token) {
@@ -204,7 +204,7 @@ export async function wechatLogin(code: string): Promise<LoginResult> {
     url: '/auth/wechat/callback',
     method: 'POST',
     data: { code },
-    needAuth: false,
+    auth: 'none',
   })
 
   if (result.auth_token) {
@@ -244,7 +244,7 @@ export async function getMiniappUrlLink(): Promise<{ url_link: string }> {
   return request({
     url: '/auth/wechat/miniapp/url-link',
     method: 'GET',
-    needAuth: false,
+    auth: 'none',
     data: { path: 'pages/auth/login' },
   })
 }
@@ -274,7 +274,7 @@ export async function mpWeixinLogin(): Promise<MpWeixinLoginResponse> {
     url: '/auth/mp-weixin/login',
     method: 'POST',
     data: { code },
-    needAuth: false,
+    auth: 'none',
   })
 
   // 正式登录态才落 user_token（pending token 不覆盖正式态，由登录页单独编排）
