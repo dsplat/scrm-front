@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { CourseListView } from '@scrm/h5-commerce'
+import CourseListView from '@scrm/h5-commerce/src/views/CourseListView.vue'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'

@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { PointsExchangeBlock } from '@scrm/h5-commerce'
+import PointsExchangeBlock from '@scrm/h5-commerce/src/views/PointsExchangeBlock.vue'
 import { getMyPointsBalance, getMyPointsFlow } from '../../api/member'
 import type { PointsBalance, PointsFlowItem } from '../../api/member'
 import { useTenantTitle } from '../../composables/useTenantTitle'

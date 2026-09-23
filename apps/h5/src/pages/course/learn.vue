@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { CourseLearnView } from '@scrm/h5-commerce'
+import CourseLearnView from '@scrm/h5-commerce/src/views/CourseLearnView.vue'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 
 // 薄壳页面：页面生命周期解析参数，整页视图来自 @scrm/h5-commerce
