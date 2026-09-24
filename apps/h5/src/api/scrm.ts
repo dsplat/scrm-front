@@ -59,3 +59,15 @@ export async function getFAQs() {
     auth: 'none',
   })
 }
+
+/**
+ * 我的证书记录（结课/打卡达标/手动颁发）
+ *
+ * user_id 由后端从登录态解析（C 端只能查自己），前端不传，杜绝越权。
+ */
+export async function getMyCertificates() {
+  return request({
+    url: '/scrm/certificates/records',
+    method: 'GET',
+  })
+}

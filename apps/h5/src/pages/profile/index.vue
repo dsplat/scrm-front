@@ -28,22 +28,62 @@
         </view>
       </view>
 
-      <!-- 功能菜单 -->
+      <!-- 我的资产 -->
+      <view class="asset-bar">
+        <view class="asset-item" @tap="goMember">
+          <text class="asset-value">
+            {{ pointsText }}
+          </text>
+          <text class="asset-label"> 积分 </text>
+        </view>
+        <view class="asset-item" @tap="goOrders">
+          <text class="asset-value icon"> 📋 </text>
+          <text class="asset-label"> 订单 </text>
+        </view>
+        <view class="asset-item" @tap="goCourses">
+          <text class="asset-value icon"> 🎓 </text>
+          <text class="asset-label"> 课程 </text>
+        </view>
+        <view class="asset-item" @tap="goCertificates">
+          <text class="asset-value icon"> 🏅 </text>
+          <text class="asset-label"> 证书 </text>
+        </view>
+      </view>
+
+      <!-- 我的服务 -->
       <view class="menu-section">
-        <view class="menu-item" @tap="goEdit">
-          <text class="menu-label"> 编辑资料 </text>
+        <view class="section-title">
+          <text>我的服务</text>
+        </view>
+        <view class="menu-item" @tap="goOrders">
+          <text class="menu-label"> 我的订单 </text>
           <text class="menu-arrow"> › </text>
         </view>
-        <view class="menu-item" @tap="goChangePassword">
-          <text class="menu-label"> 修改密码 </text>
+        <view class="menu-item" @tap="goMyActivities">
+          <text class="menu-label"> 我的活动 </text>
           <text class="menu-arrow"> › </text>
+        </view>
+        <view class="menu-item" @tap="goCourses">
+          <text class="menu-label"> 我的课程 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
+        <view class="menu-item" @tap="goCertificates">
+          <text class="menu-label"> 我的证书 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
+      </view>
+
+      <!-- 会员权益 -->
+      <view class="menu-section">
+        <view class="section-title">
+          <text>会员权益</text>
         </view>
         <view class="menu-item" @tap="goMember">
           <text class="menu-label"> 我的积分 </text>
           <text class="menu-arrow"> › </text>
         </view>
-        <view class="menu-item" @tap="goMyActivities">
-          <text class="menu-label"> 我的活动 </text>
+        <view class="menu-item" @tap="goCoupons">
+          <text class="menu-label"> 我的优惠券 </text>
           <text class="menu-arrow"> › </text>
         </view>
         <view class="menu-item" @tap="goCheckIn">
@@ -52,6 +92,36 @@
         </view>
         <view class="menu-item" @tap="goDistribution">
           <text class="menu-label"> 分销中心 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
+      </view>
+
+      <!-- 互动活动 -->
+      <view class="menu-section">
+        <view class="section-title">
+          <text>互动活动</text>
+        </view>
+        <view class="menu-item" @tap="goLottery">
+          <text class="menu-label"> 幸运抽奖 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
+        <view class="menu-item" @tap="goVoting">
+          <text class="menu-label"> 投票活动 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
+      </view>
+
+      <!-- 账号设置 -->
+      <view class="menu-section">
+        <view class="section-title">
+          <text>账号设置</text>
+        </view>
+        <view class="menu-item" @tap="goEdit">
+          <text class="menu-label"> 编辑资料 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
+        <view class="menu-item" @tap="goChangePassword">
+          <text class="menu-label"> 修改密码 </text>
           <text class="menu-arrow"> › </text>
         </view>
       </view>
@@ -68,24 +138,42 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { isLoggedIn } from '../../api/auth'
+import { getMyPointsBalance } from '../../api/member'
 import { useUserStore } from '../../store/user'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
 
 const { state, fetchUser, logout } = useUserStore()
 const loggingOut = ref(false)
+const points = ref<number | null>(null)
 
 // 微信原生栏标题统一为租户名
 useTenantTitle()
 
 const loggedIn = computed(() => isLoggedIn())
 const user = computed(() => state.user)
+const pointsText = computed(() => (points.value === null ? '--' : String(points.value)))
+
+async function loadPoints() {
+  if (!isLoggedIn()) return
+  try {
+    const res = await getMyPointsBalance()
+    points.value = Number(res?.balance || 0)
+  } catch {
+    points.value = null
+  }
+}
 
 onMounted(async () => {
   if (loggedIn.value && !state.user) {
     await fetchUser()
   }
+})
+
+onShow(() => {
+  if (loggedIn.value) loadPoints()
 })
 
 function goLogin() {
@@ -104,8 +192,32 @@ function goMember() {
   uni.navigateTo({ url: '/pages/member/index' })
 }
 
+function goOrders() {
+  uni.navigateTo({ url: '/pages/my/orders' })
+}
+
 function goMyActivities() {
-  uni.showToast({ title: '功能开发中', icon: 'none' })
+  uni.navigateTo({ url: '/pages/my/activities' })
+}
+
+function goCourses() {
+  uni.navigateTo({ url: '/pages/my/courses' })
+}
+
+function goCertificates() {
+  uni.navigateTo({ url: '/pages/my/certificates' })
+}
+
+function goCoupons() {
+  uni.navigateTo({ url: '/pages/my/coupons' })
+}
+
+function goLottery() {
+  uni.navigateTo({ url: '/pages/lottery/index' })
+}
+
+function goVoting() {
+  uni.navigateTo({ url: '/pages/voting/index' })
 }
 
 function goCheckIn() {
@@ -200,15 +312,50 @@ async function handleLogout() {
   font-size: 26rpx;
   color: var(--scrm-primary);
 }
+.asset-bar {
+  display: flex;
+  background: #fff;
+  margin: 0 24rpx 20rpx;
+  border-radius: 16rpx;
+  padding: 32rpx 0;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+.asset-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.asset-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--scrm-primary);
+}
+.asset-value.icon {
+  font-size: 40rpx;
+  font-weight: normal;
+}
+.asset-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
 .menu-section {
   background: #fff;
   margin-bottom: 20rpx;
+}
+.section-title {
+  padding: 24rpx 32rpx 8rpx;
+}
+.section-title text {
+  font-size: 24rpx;
+  color: #bbb;
 }
 .menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx;
+  padding: 30rpx 32rpx;
   border-bottom: 1px solid #f5f5f5;
 }
 .menu-item:last-child {

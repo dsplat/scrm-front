@@ -4,8 +4,10 @@
     <!-- Banner -->
     <view class="banner">
       <view class="banner-content">
-        <text class="banner-title"> 欢迎使用 社群 会员服务 </text>
-        <text class="banner-desc"> 社群营销 · 智能客服 · 专属活动 </text>
+        <text class="banner-title">
+          {{ bannerTitle }}
+        </text>
+        <text class="banner-desc"> 课程 · 商城 · 活动 · 智能客服 一站式服务 </text>
       </view>
     </view>
 
@@ -49,10 +51,61 @@
       </view>
     </view>
 
-    <!-- 推荐活动 -->
+    <!-- 系统公告（真实数据：broadcast_events 的 system_announcement；无公告时整段隐藏，不展示假内容） -->
+    <view v-if="announcements.length > 0" class="notice-bar">
+      <text class="notice-icon"> 🔊 </text>
+      <swiper
+        v-if="announcements.length > 1"
+        class="notice-swiper"
+        vertical
+        :autoplay="true"
+        :interval="4000"
+        :duration="500"
+        circular
+      >
+        <swiper-item v-for="n in announcements" :key="n.id" class="notice-item">
+          <text class="notice-text">
+            {{ noticeText(n) }}
+          </text>
+        </swiper-item>
+      </swiper>
+      <text v-else class="notice-text">
+        {{ noticeText(announcements[0]) }}
+      </text>
+    </view>
+
+    <!-- 推荐课程（真实数据：Course 框架模块 published 列表；无课程时整段隐藏，不展示占位假内容） -->
+    <view v-if="courses.length > 0" class="section">
+      <view class="section-header">
+        <text class="section-title"> 推荐课程 </text>
+        <text class="section-more" @tap="goCourse"> 全部 › </text>
+      </view>
+      <scroll-view class="course-scroll" scroll-x :show-scrollbar="false">
+        <view
+          v-for="c in courses"
+          :key="c.course_id"
+          class="course-card"
+          @tap="navCourseDetail(c.course_id)"
+        >
+          <image v-if="c.cover" class="course-cover" :src="c.cover" mode="aspectFill" />
+          <view v-else class="course-cover course-cover-ph">
+            <text class="course-ph-text"> 课程 </text>
+          </view>
+          <text class="course-title">
+            {{ c.title }}
+          </text>
+          <text class="course-price">
+            {{ coursePrice(c) }}
+          </text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 热门活动（统一 Activity 模块，卡片富化：封面 + 类型/状态标签 + 时间 + 价格） -->
     <view class="section">
       <view class="section-header">
         <text class="section-title"> 热门活动 </text>
+        <text class="section-more" @tap="goCampaign"> 全部 › </text>
       </view>
       <view v-if="campaigns.length > 0" class="campaign-list">
         <view
@@ -61,16 +114,30 @@
           class="campaign-card"
           @tap="goCampaignDetail(item.id)"
         >
+          <image v-if="item.cover" class="campaign-cover" :src="item.cover" mode="aspectFill" />
+          <view v-else class="campaign-cover campaign-cover-ph">
+            <text class="cover-ph-text"> 活动 </text>
+          </view>
           <view class="campaign-info">
             <text class="campaign-name">
               {{ item.name }}
             </text>
-            <text class="campaign-desc">
-              {{ item.description }}
-            </text>
-          </view>
-          <view class="campaign-arrow">
-            <text>›</text>
+            <view class="campaign-tags">
+              <text class="campaign-type">
+                {{ typeText(item.type) }}
+              </text>
+              <text class="campaign-status" :class="`st-${item.status}`">
+                {{ statusText(item.status) }}
+              </text>
+            </view>
+            <view class="campaign-meta">
+              <text v-if="item.starts_at" class="campaign-time">
+                {{ formatTime(item.starts_at) }}
+              </text>
+              <text v-if="priceText(item)" class="campaign-price">
+                {{ priceText(item) }}
+              </text>
+            </view>
           </view>
         </view>
       </view>
@@ -78,26 +145,16 @@
         <text>暂无活动，敬请期待</text>
       </view>
     </view>
-
-    <!-- 公告 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title"> 公告通知 </text>
-      </view>
-      <view class="notice-list">
-        <view class="notice-item">
-          <text class="notice-dot"> ● </text>
-          <text class="notice-text"> 欢迎加入社群会员体系，享受专属权益 </text>
-        </view>
-      </view>
-    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { isLoggedIn } from '../../api/auth'
 import { getActivityList } from '../../api/scrm'
+import { getAnnouncements, type AnnouncementVO } from '../../api/marketing'
+import { getPublishedCourses, navCourseDetail, type CourseVO } from '@scrm/h5-commerce'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -107,10 +164,17 @@ import NavBar from '../../components/NavBar.vue'
 interface CampaignItem {
   id: string
   name: string
-  description: string
+  cover?: string
+  type: string
+  status: string
+  starts_at?: string
+  min_price?: number | null
+  is_free?: boolean
 }
 
 const campaigns = ref<CampaignItem[]>([])
+const courses = ref<CourseVO[]>([])
+const announcements = ref<AnnouncementVO[]>([])
 const { fetchUser } = useUserStore()
 const { state: tenantState } = useTenantStore()
 
@@ -129,28 +193,64 @@ useSeoMeta(() => ({
 }))
 
 const homeTitle = computed(() => tenantState.tenant?.name || '首页')
+const bannerTitle = computed(() =>
+  tenantState.tenant?.name ? `欢迎来到 ${tenantState.tenant.name}` : '欢迎使用社群会员服务',
+)
 
-onMounted(async () => {
-  // 已登录则拉取用户信息；推荐活动接口为 optional 认证，未登录也正常展示
+onShow(() => {
+  load()
+})
+
+onPullDownRefresh(async () => {
+  await load()
+  uni.stopPullDownRefresh()
+})
+
+async function load() {
+  // 已登录则拉取用户信息；活动/课程接口均为 optional 认证，未登录也正常展示
   if (isLoggedIn()) {
     await fetchUser()
   }
-  try {
-    const res: any = await getActivityList({ per_page: 3 })
+  // 活动 + 课程 + 公告并行拉取，任一失败不影响其余
+  const [actRes, courseRes, noticeRes] = await Promise.allSettled([
+    getActivityList({ per_page: 6 }),
+    getPublishedCourses(),
+    getAnnouncements(5),
+  ])
+
+  if (actRes.status === 'fulfilled') {
+    const res: any = actRes.value
+    // C 端不展示草稿/策划中/已取消的活动（服务端已过滤，此处兼容旧数据）
     campaigns.value = (res?.list || [])
       .filter((a: any) => !['draft', 'planning', 'cancelled'].includes(a.status))
-      .slice(0, 3)
+      .slice(0, 6)
       .map((a: any) => ({
         id: a.activity_id,
         name: a.name,
-        description: String(a.description || '')
-          .replace(/<[^>]+>/g, '')
-          .slice(0, 40),
+        cover: a.cover_url || '',
+        type: a.type,
+        status: a.status,
+        starts_at: a.starts_at,
+        min_price: a.min_price,
+        is_free: a.is_free,
       }))
-  } catch {
+  } else {
     campaigns.value = []
   }
-})
+
+  if (courseRes.status === 'fulfilled') {
+    courses.value = ((courseRes.value as any)?.data || []).slice(0, 8)
+  } else {
+    courses.value = []
+  }
+
+  if (noticeRes.status === 'fulfilled') {
+    const n: any = noticeRes.value
+    announcements.value = (Array.isArray(n) ? n : n?.data || []).slice(0, 5)
+  } else {
+    announcements.value = []
+  }
+}
 
 function goScan() {
   // #ifdef H5
@@ -194,6 +294,63 @@ function goProfile() {
 function goCampaignDetail(id: string) {
   // 活动域已统一：详情页为 event 目录（API 已迁 Activity 模块）
   uni.navigateTo({ url: `/pages/event/detail?eventId=${id}` })
+}
+
+const TYPE_TEXT: Record<string, string> = {
+  marketing: '营销活动',
+  offline_event: '线下活动',
+  hybrid: '混合活动',
+  course: '课程',
+  training_camp: '训练营',
+}
+
+const STATUS_TEXT: Record<string, string> = {
+  scheduled: '即将开始',
+  running: '进行中',
+  completed: '已结束',
+}
+
+function typeText(type: string) {
+  return TYPE_TEXT[type] || '活动'
+}
+
+function statusText(status: string) {
+  return STATUS_TEXT[status] || status
+}
+
+/** 活动价格文案：免费/￥金额起（后端 list 返回 min_price/is_free） */
+function priceText(item: CampaignItem) {
+  if (item.is_free) return '免费'
+  const raw = item.min_price
+  if (raw === null || raw === undefined) return ''
+  const num = Number(raw)
+  if (isNaN(num) || num <= 0) return '免费'
+  return `￥${num} 起`
+}
+
+/** 课程价格文案：现金/积分/混合（sale_mode 驱动） */
+function coursePrice(c: CourseVO) {
+  if (c.sale_mode === 'points') return `${c.points_price || 0} 积分`
+  const num = Number(c.price)
+  if (c.sale_mode === 'mixed') return `￥${num || 0} + 积分`
+  if (!num || num <= 0) return '免费'
+  return `￥${num}`
+}
+
+function formatTime(dateStr: string) {
+  if (!dateStr) return ''
+  return new Date(dateStr.replace(' ', 'T')).toLocaleString('zh-CN', {
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+/** 公告文案：有标题则「标题：正文」，否则直接正文 */
+function noticeText(n: AnnouncementVO) {
+  const msg = n.message || ''
+  return n.title ? `${n.title}：${msg}` : msg
 }
 </script>
 
@@ -278,12 +435,60 @@ function goCampaignDetail(id: string) {
   padding: 28rpx;
 }
 .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20rpx;
 }
 .section-title {
   font-size: 30rpx;
   font-weight: bold;
   color: #333;
+}
+.section-more {
+  font-size: 24rpx;
+  color: #999;
+}
+.course-scroll {
+  white-space: nowrap;
+}
+.course-card {
+  display: inline-block;
+  width: 240rpx;
+  margin-right: 20rpx;
+  vertical-align: top;
+}
+.course-cover {
+  width: 240rpx;
+  height: 150rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+}
+.course-cover-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0e7ff, #eef2fb);
+}
+.course-ph-text {
+  font-size: 26rpx;
+  color: #6366f1;
+}
+.course-title {
+  display: block;
+  font-size: 26rpx;
+  color: #333;
+  margin-top: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.course-price {
+  display: block;
+  font-size: 26rpx;
+  color: #fa5151;
+  font-weight: 600;
+  margin-top: 8rpx;
 }
 .campaign-list {
   display: flex;
@@ -292,30 +497,85 @@ function goCampaignDetail(id: string) {
 .campaign-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 24rpx 0;
   border-bottom: 1px solid #f5f5f5;
 }
 .campaign-card:last-child {
   border-bottom: none;
 }
+.campaign-cover {
+  width: 160rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+.campaign-cover-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffe0e0, #fff0f0);
+}
+.cover-ph-text {
+  font-size: 24rpx;
+  color: #ff6b6b;
+}
 .campaign-info {
   flex: 1;
+  margin-left: 20rpx;
+  overflow: hidden;
 }
 .campaign-name {
   font-size: 28rpx;
   color: #333;
+  font-weight: 500;
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.campaign-desc {
-  font-size: 24rpx;
+.campaign-tags {
+  display: flex;
+  align-items: center;
+  margin-top: 10rpx;
+}
+.campaign-type {
+  font-size: 20rpx;
+  color: #576b95;
+  background: #eef2fb;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+}
+.campaign-status {
+  font-size: 20rpx;
   color: #999;
-  margin-top: 8rpx;
-  display: block;
+  background: #f0f0f0;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  margin-left: 12rpx;
 }
-.campaign-arrow {
-  font-size: 36rpx;
-  color: #ccc;
+.st-running {
+  color: var(--scrm-primary);
+  background: #e6f7ee;
+}
+.st-scheduled {
+  color: #e6a23c;
+  background: #fff7e6;
+}
+.campaign-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+.campaign-time {
+  font-size: 22rpx;
+  color: #999;
+}
+.campaign-price {
+  font-size: 26rpx;
+  color: #fa5151;
+  font-weight: 600;
+  margin-left: auto;
 }
 .empty-state {
   text-align: center;
@@ -323,22 +583,33 @@ function goCampaignDetail(id: string) {
   color: #999;
   font-size: 26rpx;
 }
-.notice-list {
+.notice-bar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  margin: 0 24rpx 24rpx;
+  background: #fff8e6;
+  border-radius: 12rpx;
+  padding: 18rpx 24rpx;
+}
+.notice-icon {
+  font-size: 28rpx;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+}
+.notice-swiper {
+  flex: 1;
+  height: 40rpx;
 }
 .notice-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
-}
-.notice-dot {
-  color: var(--scrm-primary);
-  font-size: 16rpx;
-  margin-right: 16rpx;
 }
 .notice-text {
+  flex: 1;
   font-size: 26rpx;
-  color: #666;
+  color: #a06a00;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

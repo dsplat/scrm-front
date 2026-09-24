@@ -109,11 +109,13 @@ export async function getMyOrders(params?: {
   order_type?: string
   status?: string
   per_page?: number
-}): Promise<{ data: OrderVO[]; total: number }> {
+  page?: number
+}): Promise<{ data: OrderVO[]; total: number; page?: number; last_page?: number }> {
   const query: string[] = []
   if (params?.order_type) query.push(`order_type=${params.order_type}`)
   if (params?.status) query.push(`status=${params.status}`)
   if (params?.per_page) query.push(`per_page=${params.per_page}`)
+  if (params?.page) query.push(`page=${params.page}`)
   return request({
     url: `my/orders${query.length ? `?${query.join('&')}` : ''}`,
     method: 'GET',

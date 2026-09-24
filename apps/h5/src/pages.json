@@ -2,11 +2,11 @@
   "pages": [
     {
       "path": "pages/index/index",
-      "style": { "navigationBarTitleText": "首页" }
+      "style": { "navigationBarTitleText": "首页", "enablePullDownRefresh": true }
     },
     {
       "path": "pages/campaign/index",
-      "style": { "navigationBarTitleText": "活动中心" }
+      "style": { "navigationBarTitleText": "活动中心", "enablePullDownRefresh": true }
     },
     {
       "path": "pages/self-service/index",
@@ -47,6 +47,42 @@
     {
       "path": "pages/member/index",
       "style": { "navigationBarTitleText": "我的积分" }
+    },
+    {
+      "path": "pages/my/orders",
+      "style": { "navigationBarTitleText": "我的订单", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/my/activities",
+      "style": { "navigationBarTitleText": "我的活动", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/my/courses",
+      "style": { "navigationBarTitleText": "我的课程", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/my/certificates",
+      "style": { "navigationBarTitleText": "我的证书", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/my/coupons",
+      "style": { "navigationBarTitleText": "我的优惠券", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/lottery/index",
+      "style": { "navigationBarTitleText": "幸运抽奖", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/lottery/draw",
+      "style": { "navigationBarTitleText": "抽奖", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/voting/index",
+      "style": { "navigationBarTitleText": "投票活动", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/voting/detail",
+      "style": { "navigationBarTitleText": "投票详情", "enablePullDownRefresh": true }
     },
     {
       "path": "pages/event/detail",
