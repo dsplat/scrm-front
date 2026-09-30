@@ -46,11 +46,15 @@ export interface SsoProvider {
   type: string
 }
 
+export type RegistrationMode = 'open' | 'closed' | 'invite_only'
+
 export interface LoginConfig {
   login_methods: string[]
   oauth_providers: OAuthProvider[]
   sso_providers: SsoProvider[]
   allow_register: boolean
+  /** 注册三态模式：open 开放 / closed 关闭 / invite_only 邀请制（须携带有效邀请码） */
+  registration_mode?: RegistrationMode
   email_domain_restriction: string | null
   /** delegated 模式：公司认证中心接管，email/SMS 互斥关闭 */
   delegated: boolean

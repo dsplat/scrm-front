@@ -34,6 +34,18 @@
             @confirm="handleRegister"
           />
         </view>
+        <view v-if="isInviteOnly" class="form-item">
+          <input
+            v-model="inviteCode"
+            type="text"
+            placeholder="邀请码（必填）"
+            class="input"
+            :disabled="loading"
+          />
+          <text v-if="inviteHint" class="invite-hint">
+            {{ inviteHint }}
+          </text>
+        </view>
 
         <view v-if="errorMsg" class="error-msg">
           <text>{{ errorMsg }}</text>
@@ -59,8 +71,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { emailRegister } from '../../api/auth'
+import { verifyInviteCode } from '../../api/invite'
 import { bindAttribution } from '../../api/distribution'
 import { getStoredRef, clearReferral } from '../../utils/referral'
+import { getStoredInviteCode, clearInviteCode } from '../../utils/inviteCode'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -70,6 +84,8 @@ const name = ref('')
 const email = ref('')
 const password = ref('')
 const passwordConfirmation = ref('')
+const inviteCode = ref('')
+const inviteHint = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 
@@ -79,18 +95,22 @@ const { state: tenantState, waitReady } = useTenantStore()
 // 微信原生栏标题统一为租户名
 useTenantTitle()
 
+// 邀请制模式：registration_mode === 'invite_only' 时邀请码必填（服务端最终校验）
+const isInviteOnly = computed(() => tenantState.loginConfig?.registration_mode === 'invite_only')
+
 const canSubmit = computed(() => {
-  return (
+  const base =
     name.value.trim() !== '' &&
     email.value.trim() !== '' &&
     password.value.length >= 8 &&
     password.value === passwordConfirmation.value
-  )
+  return base && (!isInviteOnly.value || inviteCode.value.trim() !== '')
 })
 
-// allow_register 守卫：租户未开放注册时拦截直链进入
+// allow_register 守卫：租户未开放注册时拦截直链进入；邀请制自动回填 URL 捕获的码
 onMounted(async () => {
   await waitReady()
+  inviteCode.value = getStoredInviteCode()
   // bootstrap 失败（loaded=false）时不拦截，后端仍有最终校验
   if (tenantState.loaded && tenantState.loginConfig && !tenantState.loginConfig.allow_register) {
     uni.showToast({ title: '该租户未开放注册', icon: 'none' })
@@ -112,14 +132,27 @@ async function handleRegister() {
   errorMsg.value = ''
 
   try {
+    // 邀请制：注册前先做一次实时校验，给出即时反馈（服务端仍会最终校验）
+    if (isInviteOnly.value) {
+      const check = await verifyInviteCode(inviteCode.value.trim())
+      if (!check.valid) {
+        inviteHint.value = check.message || '邀请码无效'
+        loading.value = false
+        return
+      }
+      inviteHint.value = ''
+    }
+
     const result = await emailRegister({
       name: name.value.trim(),
       email: email.value.trim(),
       password: password.value,
       password_confirmation: passwordConfirmation.value,
+      ...(isInviteOnly.value ? { invite_code: inviteCode.value.trim() } : {}),
     })
 
     setUser(result.user, result.tenant_id)
+    clearInviteCode()
     // 注册成功后静默绑定分销归因（扫码海报进入的 ref）
     bindReferralSilently()
     uni.showToast({ title: '注册成功', icon: 'success' })
@@ -202,6 +235,13 @@ function goLogin() {
   color: #e64340;
   font-size: 26rpx;
   margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+.invite-hint {
+  display: block;
+  color: #e64340;
+  font-size: 24rpx;
+  margin-top: 10rpx;
   padding: 0 8rpx;
 }
 .btn-primary {

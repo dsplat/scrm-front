@@ -80,12 +80,15 @@ export async function emailLogin(email: string, password: string): Promise<Login
 
 /**
  * 邮箱注册
+ *
+ * invite_code 仅在租户注册模式为 invite_only 时必填（服务端强制校验）。
  */
 export async function emailRegister(data: {
   name: string
   email: string
   password: string
   password_confirmation: string
+  invite_code?: string
 }): Promise<LoginResult> {
   const result = await request<LoginResult>({
     url: '/auth/register',
