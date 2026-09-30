@@ -154,7 +154,7 @@ import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { isLoggedIn } from '../../api/auth'
 import { getActivityList } from '../../api/scrm'
 import { getAnnouncements, type AnnouncementVO } from '../../api/marketing'
-import { getPublishedCourses, navCourseDetail, type CourseVO } from '@scrm/h5-commerce'
+import { getPublishedCourses, navCourseDetail, fenToYuan, type CourseVO } from '@scrm/h5-commerce'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -325,16 +325,16 @@ function priceText(item: CampaignItem) {
   if (raw === null || raw === undefined) return ''
   const num = Number(raw)
   if (isNaN(num) || num <= 0) return '免费'
-  return `￥${num} 起`
+  return `￥${fenToYuan(num)} 起`
 }
 
 /** 课程价格文案：现金/积分/混合（sale_mode 驱动） */
 function coursePrice(c: CourseVO) {
   if (c.sale_mode === 'points') return `${c.points_price || 0} 积分`
   const num = Number(c.price)
-  if (c.sale_mode === 'mixed') return `￥${num || 0} + 积分`
+  if (c.sale_mode === 'mixed') return `￥${fenToYuan(num || 0)} + 积分`
   if (!num || num <= 0) return '免费'
-  return `￥${num}`
+  return `￥${fenToYuan(num)}`
 }
 
 function formatTime(dateStr: string) {

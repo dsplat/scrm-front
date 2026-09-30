@@ -14,7 +14,7 @@
         </text>
         <view class="price-row">
           <text v-if="Number(currentPrice) > 0" class="price">
-            ¥{{ Number(currentPrice).toFixed(2) }}
+            {{ formatFen(currentPrice) }}
           </text>
           <text v-else class="price free"> 免费 </text>
           <text v-if="Number(currentPointsPrice) > 0" class="points-price">
@@ -71,7 +71,9 @@
       <view class="bottom-bar">
         <view class="total">
           <text class="total-label"> 合计： </text>
-          <text class="total-amount"> ¥{{ totalAmount }} </text>
+          <text class="total-amount">
+            {{ formatFen(totalAmount) }}
+          </text>
           <text v-if="totalPoints > 0" class="total-points"> +{{ totalPoints }}积分 </text>
         </view>
         <button class="buy-btn" :disabled="submitting" @tap="handleBuy">
@@ -93,6 +95,7 @@ import {
   type ShopSku,
 } from '../api/shop'
 import { invokePayment, pollUntil } from '../utils/payment'
+import { formatFen } from '../utils/money'
 import NavBar from '../components/NavBar.vue'
 import SkuSelector from '../components/SkuSelector.vue'
 import ErrorState from '../components/ErrorState.vue'
@@ -130,8 +133,8 @@ const currentPointsPrice = computed(() => {
 })
 
 const totalAmount = computed(() => {
-  if (payMethod.value === 'points') return '0.00'
-  return (Number(currentPrice.value) * quantity.value).toFixed(2)
+  if (payMethod.value === 'points') return 0
+  return Number(currentPrice.value) * quantity.value
 })
 
 const totalPoints = computed(() => {

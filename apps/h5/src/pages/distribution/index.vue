@@ -198,6 +198,7 @@ import NavBar from '../../components/NavBar.vue'
 import ErrorState from '../../components/ErrorState.vue'
 import { redirectToLogin } from '../../utils/request'
 import { isLoggedIn } from '../../api/auth'
+import { fenToYuan, yuanToFen } from '@scrm/h5-commerce'
 
 useTenantTitle()
 
@@ -248,7 +249,7 @@ const withdrawVisible = ref(false)
 const withdrawForm = ref({ amount: '', accountName: '', bankAccount: '' })
 
 function fmt(n: number | string): string {
-  return Number(n || 0).toFixed(2)
+  return fenToYuan(n)
 }
 
 function formatTime(dateStr: string): string {
@@ -341,19 +342,19 @@ function openWithdraw() {
 }
 
 async function submitWithdraw() {
-  const amount = parseFloat(withdrawForm.value.amount)
-  if (!amount || amount <= 0) {
+  const amountFen = yuanToFen(withdrawForm.value.amount)
+  if (!amountFen || amountFen <= 0) {
     uni.showToast({ title: '请输入正确金额', icon: 'none' })
     return
   }
   const min = profile.value.config.withdrawMinAmount
-  if (min > 0 && amount < min) {
-    uni.showToast({ title: `最低提现 ${min} 元`, icon: 'none' })
+  if (min > 0 && amountFen < min) {
+    uni.showToast({ title: `最低提现 ${fenToYuan(min)} 元`, icon: 'none' })
     return
   }
   try {
     await requestWithdrawal({
-      amount,
+      amount: amountFen,
       accountName: withdrawForm.value.accountName || undefined,
       bankAccount: withdrawForm.value.bankAccount || undefined,
     })

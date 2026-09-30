@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onShow, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app'
-import { getMyOrders, payOrder, invokePayment, type OrderVO } from '@scrm/h5-commerce'
+import { getMyOrders, payOrder, invokePayment, fenToYuan, type OrderVO } from '@scrm/h5-commerce'
 import { isLoggedIn } from '../../api/auth'
 import { redirectToLogin } from '../../utils/request'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -152,8 +152,8 @@ function amountText(order: OrderRow) {
   const cash = Number(order.total_amount || 0)
   const points = Number(order.points_amount || 0)
   if (order.pay_method === 'points') return `${points} 积分`
-  if (order.pay_method === 'mixed') return `¥${cash} + ${points}积分`
-  return `¥${cash}`
+  if (order.pay_method === 'mixed') return `¥${fenToYuan(cash)} + ${points}积分`
+  return `¥${fenToYuan(cash)}`
 }
 
 function formatTime(dateStr: string) {

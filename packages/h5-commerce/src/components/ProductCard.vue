@@ -10,7 +10,7 @@
       </text>
       <view class="h5c-product-price-row">
         <text v-if="Number(product.price) > 0" class="h5c-price">
-          ¥{{ Number(product.price).toFixed(2) }}
+          {{ formatFen(product.price) }}
         </text>
         <text v-else class="h5c-price free"> 免费 </text>
         <text v-if="product.sale_mode !== 'cash'" class="h5c-sale-mode">
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ShopProduct } from '../api/shop'
+import { formatFen } from '../utils/money'
 
 const props = defineProps<{
   product: ShopProduct

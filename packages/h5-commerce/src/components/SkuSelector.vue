@@ -11,8 +11,8 @@
         {{ sku.name }}
       </text>
       <text class="h5c-sku-meta">
-        ¥{{ Number(sku.price).toFixed(2) }}
-        <template v-if="Number(sku.points_price) > 0"> / {{ sku.points_price }}积分 </template>
+        {{ formatFen(sku.price) }}
+        <template v-if="Number(sku.points_price) > 0"> / {{ sku.points_price }} 积分 </template>
       </text>
       <text v-if="sku.stock <= 0" class="h5c-sku-soldout"> 已售罄 </text>
     </view>
@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import type { ShopSku } from '../api/shop'
+import { formatFen } from '../utils/money'
 
 defineProps<{
   skus: ShopSku[]

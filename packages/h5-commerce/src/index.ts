@@ -26,6 +26,16 @@ export * from './api/exchange'
 
 // 工具
 export { invokePayment, pollUntil, currentPayChannel } from './utils/payment'
+export {
+  formatFen,
+  fenToYuan,
+  fenToYuanNumber,
+  yuanToFen,
+  microToYuanNumber,
+  yuanToMicro,
+  formatMicro,
+  type MoneyInput,
+} from './utils/money'
 
 // 组件
 export { default as CommerceNavBar } from './components/NavBar.vue'

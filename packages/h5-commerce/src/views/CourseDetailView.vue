@@ -14,7 +14,7 @@
         </text>
         <view class="price-row">
           <text v-if="Number(course.price) > 0" class="price">
-            ¥{{ Number(course.price).toFixed(2) }}
+            {{ formatFen(course.price) }}
           </text>
           <text v-else class="price free"> 免费 </text>
           <text v-if="Number(course.points_price) > 0" class="points-price">
@@ -57,7 +57,9 @@
       <view v-if="!hasAccess" class="bottom-bar">
         <view class="total">
           <text class="total-label"> 合计： </text>
-          <text class="total-amount"> ¥{{ Number(course.price).toFixed(2) }} </text>
+          <text class="total-amount">
+            {{ formatFen(course.price) }}
+          </text>
           <text v-if="Number(course.points_price) > 0 && payMethod !== 'cash'" class="total-points">
             {{ course.points_price }}积分
           </text>
@@ -89,6 +91,7 @@ import { ref, computed, watch } from 'vue'
 import { getCourseDetail, purchaseCourse, type CourseVO, type ChapterVO } from '../api/course'
 import { payOrder, getMyOrders } from '../api/shop'
 import { invokePayment, pollUntil } from '../utils/payment'
+import { formatFen } from '../utils/money'
 import { navCourseLearn } from '../config'
 import NavBar from '../components/NavBar.vue'
 import ErrorState from '../components/ErrorState.vue'

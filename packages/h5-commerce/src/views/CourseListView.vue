@@ -44,7 +44,7 @@
           </text>
           <view class="course-price-row">
             <text v-if="Number(item.price) > 0" class="price">
-              ¥{{ Number(item.price).toFixed(2) }}
+              {{ formatFen(item.price) }}
             </text>
             <text v-else class="price free"> 免费 </text>
             <text v-if="Number(item.points_price) > 0" class="points-price">
@@ -106,6 +106,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { getPublishedCourses, getMyCourses, type CourseVO, type MyCourseItem } from '../api/course'
+import { formatFen } from '../utils/money'
 import { navCourseDetail, navCourseLearn, getCommerceConfig } from '../config'
 import NavBar from '../components/NavBar.vue'
 import ErrorState from '../components/ErrorState.vue'

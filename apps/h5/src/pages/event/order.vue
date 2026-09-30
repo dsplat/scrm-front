@@ -26,7 +26,9 @@
       </view>
       <view class="info-row">
         <text class="label"> 金额 </text>
-        <text class="value price"> ¥{{ order.total_amount }} </text>
+        <text class="value price">
+          {{ formatFen(order.total_amount) }}
+        </text>
       </view>
       <view v-if="order.paid_at" class="info-row">
         <text class="label"> 支付时间 </text>
@@ -51,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { invokePayment } from '@scrm/h5-commerce'
+import { invokePayment, formatFen } from '@scrm/h5-commerce'
 import { getOrderDetail, payOrder, getEventDetail, getEventTicketTypes } from '../../api/event'
 import { ensureLogin } from '../../utils/auth-guard'
 import NavBar from '../../components/NavBar.vue'

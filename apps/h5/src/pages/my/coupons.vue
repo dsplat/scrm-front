@@ -77,6 +77,7 @@
 import { ref, computed } from 'vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { getMyCoupons, type MyCoupon } from '../../api/marketing'
+import { fenToYuan } from '@scrm/h5-commerce'
 import { isLoggedIn } from '../../api/auth'
 import { redirectToLogin } from '../../utils/request'
 import { useTenantTitle } from '../../composables/useTenantTitle'
@@ -114,11 +115,16 @@ function currencySymbol(c: MyCoupon) {
   return c.currency === 'USD' ? '$' : '￥'
 }
 
+/** 折扣率 bp（万分之一）→ 百分数值串（去尾零）：1000 → '10'、999 → '9.99' */
+function bpToPercent(bp: number): string {
+  return String(Number((bp / 100).toFixed(2)))
+}
+
 function valueText(c: MyCoupon) {
   const v = Number(c.value || 0)
-  if (c.type === 'percentage') return String(v)
+  if (c.type === 'percentage') return bpToPercent(v)
   if (c.type === 'exchange') return '兑换'
-  return `${currencySymbol(c)}${v}`
+  return `${currencySymbol(c)}${fenToYuan(v)}`
 }
 
 function unitText(c: MyCoupon) {
@@ -140,9 +146,9 @@ function typeLabel(type: string) {
 function conditionText(c: MyCoupon) {
   const parts: string[] = []
   const min = Number(c.min_amount || 0)
-  if (min > 0) parts.push(`满 ${currencySymbol(c)}${min} 可用`)
+  if (min > 0) parts.push(`满 ${currencySymbol(c)}${fenToYuan(min)} 可用`)
   const max = Number(c.max_discount || 0)
-  if (c.type === 'percentage' && max > 0) parts.push(`最高减 ${currencySymbol(c)}${max}`)
+  if (c.type === 'percentage' && max > 0) parts.push(`最高减 ${currencySymbol(c)}${fenToYuan(max)}`)
   return parts.join(' · ')
 }
 

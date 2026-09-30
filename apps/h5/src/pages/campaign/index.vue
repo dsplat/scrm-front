@@ -84,6 +84,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onShow, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app'
 import { getActivityList } from '../../api/scrm'
+import { fenToYuan } from '@scrm/h5-commerce'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'
@@ -247,7 +248,7 @@ function priceText(item: ActivityItem) {
   if (raw === null || raw === undefined) return ''
   const num = Number(raw)
   if (isNaN(num) || num <= 0) return '免费'
-  return `￥${num} 起`
+  return `￥${fenToYuan(num)} 起`
 }
 
 function formatTime(dateStr: string) {

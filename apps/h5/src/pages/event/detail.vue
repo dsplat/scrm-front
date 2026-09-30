@@ -51,7 +51,9 @@
             </text>
           </view>
           <view class="ticket-price">
-            <text class="price"> ¥{{ ticket.price }} </text>
+            <text class="price">
+              {{ formatFen(ticket.price) }}
+            </text>
             <text class="remaining"> 余{{ ticket.remaining }} </text>
           </view>
         </view>
@@ -89,6 +91,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { formatFen } from '@scrm/h5-commerce'
 import { getEventDetail, getEventTicketTypes } from '../../api/event'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useSeoMeta } from '../../composables/useSeoMeta'

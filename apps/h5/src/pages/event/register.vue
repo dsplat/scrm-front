@@ -18,7 +18,7 @@
     <view class="summary">
       <text>票种：{{ ticketName }}</text>
       <text>数量：{{ attendees.length }} 人</text>
-      <text class="total"> 合计：¥{{ totalAmount }} </text>
+      <text class="total"> 合计：{{ formatFen(totalAmount) }} </text>
     </view>
     <button class="submit-btn" :loading="submitting" @tap="handleSubmit">确认报名</button>
   </view>
@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { formatFen } from '@scrm/h5-commerce'
 import { registerEvent, getEventTicketTypes } from '../../api/event'
 import { ensureLogin } from '../../utils/auth-guard'
 import NavBar from '../../components/NavBar.vue'
@@ -37,7 +38,7 @@ const submitting = ref(false)
 let eventId = ''
 let ticketTypeId = 0
 
-const totalAmount = computed(() => (ticketPrice.value * attendees.value.length).toFixed(2))
+const totalAmount = computed(() => ticketPrice.value * attendees.value.length)
 
 function addAttendee() {
   attendees.value.push({ name: '', phone: '', age: '', relation: '' })
