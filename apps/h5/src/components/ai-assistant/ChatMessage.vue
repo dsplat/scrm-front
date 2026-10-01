@@ -1,40 +1,20 @@
 <template>
   <view :class="['chat-msg', message.role]">
     <view :class="['bubble', { error: message.isError }]">
-      <view v-if="toolHint" class="tool-hint">
-        <text class="tool-hint__dot" />
-        <text>{{ toolHint }}</text>
-      </view>
       <text v-if="message.content" class="msg-text">
         {{ message.content }}
       </text>
       <text v-else-if="message.streaming" class="typing"> 正在思考… </text>
-      <view v-if="message.action && message.action.route" class="msg-action" @tap="onAction">
-        {{ message.action.label }}
-      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { ChatMessage } from '@scrm/h5-ai'
+import type { LocalChatMessage } from '../../api/user-ai'
 
-// 单条对话气泡（BL-030b 简化版）：文本 + 流式占位 + 工具进行中提示 + 错误操作按钮。
-// 表单填充 / 工作流 / 内联确认 / 选项卡片等非文本形态依赖后端 User 工具面（BL-030d），暂不渲染。
-const props = defineProps<{ message: ChatMessage }>()
-
-const toolHint = computed(() => {
-  const calls = props.message.toolCalls
-  if (!calls || calls.length === 0) return ''
-  const running = calls.find((c) => c.status === 'running')
-  return running ? `正在查询：${running.name || running.slug || '工具'}…` : ''
-})
-
-function onAction() {
-  const route = props.message.action?.route
-  if (route) uni.navigateTo({ url: route })
-}
+// 单条对话气泡：文本 + 同步等待占位 + 错误态。User AI 走 /user-ai/ask 同步整包返回，
+// 无流式逐字、无工具进行中提示（工具态属 BL-030e 外部 agentic 后续刀）。
+defineProps<{ message: LocalChatMessage }>()
 </script>
 
 <style scoped>
@@ -75,25 +55,5 @@ function onAction() {
 }
 .typing {
   color: #999;
-}
-.tool-hint {
-  display: flex;
-  align-items: center;
-  font-size: 24rpx;
-  color: #888;
-  margin-bottom: 8rpx;
-}
-.tool-hint__dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #4a90d9;
-  margin-right: 10rpx;
-}
-.msg-action {
-  margin-top: 12rpx;
-  font-size: 26rpx;
-  color: #4a90d9;
-  text-decoration: underline;
 }
 </style>

@@ -28,14 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useAssistantStream, usePageContext, useAvailability, assistantStore } from '@scrm/h5-ai'
-import { ensureLogin } from '../../utils/auth-guard'
+import { ref, computed } from 'vue'
+import { askUserAi, type LocalChatMessage } from '../../api/user-ai'
 import ChatMessage from './ChatMessage.vue'
 
-// 页面级 AI 动作按钮（BL-030c）：封装「登录门禁 → 带页面上下文发起流式对话 → 内联渲染结果」。
-// 固定 intent（错题讲解 / 活动分享文案）点按即发；无 intent 时渲染输入框走自由问询（AI 找单）。
-// 复用全局 assistant 会话：仅渲染本次 tap 之后新增的轮次（slice 起点），不重复历史。
+// 页面级 AI 动作按钮（Fork A）：收敛到框架 UserAi 基座，走 /user-ai/ask 同步问答。
+// 固定 intent（错题讲解 / 活动分享文案）点按即发；无 intent 时渲染输入框走自由问询。
+// 能力面为知识库白名单（anonymous）；真实的「查订单/讲错题/生成分享文案」工具态属 BL-030e 外部 agentic 后续刀。
 const props = withDefaults(
   defineProps<{
     label: string
@@ -56,18 +55,13 @@ const props = withDefaults(
   },
 )
 
-const { send } = useAssistantStream()
-const { pageContext } = usePageContext()
-const { check: checkAvailability } = useAvailability()
-
-const aiAvailable = ref(false)
+const aiAvailable = ref(true)
 const draft = ref('')
 const busy = ref(false)
-const startIdx = ref(0)
+const turns = ref<LocalChatMessage[]>([])
+let seq = 0
 
-const streaming = computed(() => assistantStore.streaming.value)
-const busyState = computed(() => busy.value || streaming.value)
-const turns = computed(() => assistantStore.messages.value.slice(startIdx.value))
+const busyState = computed(() => busy.value)
 
 async function onTap() {
   if (busyState.value) return
@@ -79,20 +73,21 @@ async function onTap() {
 async function run(requestText?: string) {
   const text = (requestText ?? props.intent ?? draft.value).trim()
   if (!text || busyState.value) return
-  // AI 动作以登录身份执行（Bearer user_token）：未登录先引导
-  if (!(await ensureLogin('使用 AI 助手需先登录'))) return
-
+  // 把页面可见数据摘要作为轻量上下文一并上行（知识库仍可能无相关片段，工具态待 BL-030e）
+  const question = props.dataSummary ? `${text}\n（相关：${props.dataSummary}）` : text
   busy.value = true
-  startIdx.value = assistantStore.messages.value.length
+  turns.value.push({ id: ++seq, role: 'user', content: text })
+  turns.value.push({ id: ++seq, role: 'assistant', content: '', streaming: true })
+  const pending = turns.value[turns.value.length - 1]
   try {
-    await send(
-      pageContext({
-        entity_type: props.entityType || null,
-        entity_id: props.entityId != null ? Number(props.entityId) : null,
-        visible_data_summary: props.dataSummary || '',
-      }),
-      text,
-    )
+    const res = await askUserAi(question)
+    pending.streaming = false
+    pending.content = res.answer || (res.allowed ? '' : '抱歉，暂时无法回答这个问题。')
+    pending.isError = !res.allowed && !res.answer
+  } catch {
+    pending.streaming = false
+    pending.isError = true
+    pending.content = '网络异常，请稍后再试'
   } finally {
     busy.value = false
   }
@@ -106,10 +101,6 @@ function copyResult() {
     success: () => uni.showToast({ title: '已复制', icon: 'none' }),
   })
 }
-
-onMounted(async () => {
-  aiAvailable.value = await checkAvailability()
-})
 </script>
 
 <style scoped>

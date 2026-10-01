@@ -7,7 +7,7 @@
         <text v-if="messages.length > 0" class="ai-reset" @tap="startNewChat"> 新对话 </text>
       </view>
       <view v-if="messages.length === 0" class="chat-empty">
-        <text>你好，我可以帮你查订单、找课程、答疑错题、介绍活动…</text>
+        <text>你好，我可以帮你答疑常见问题、介绍课程与活动、解答售后政策…</text>
       </view>
       <ChatMessage v-for="m in messages" :key="m.id" :message="m" />
       <view class="chat-input">
@@ -16,12 +16,12 @@
           class="chat-input__field"
           type="text"
           placeholder="输入你的问题…"
-          :disabled="streaming"
+          :disabled="answering"
           confirm-type="send"
           @confirm="handleSend"
         />
-        <button class="chat-input__btn" :disabled="streaming || !draft.trim()" @tap="handleSend">
-          {{ streaming ? '回答中' : '发送' }}
+        <button class="chat-input__btn" :disabled="answering || !draft.trim()" @tap="handleSend">
+          {{ answering ? '回答中' : '发送' }}
         </button>
       </view>
     </view>
@@ -71,12 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getFAQs, submitFeedback, startAgentConversation, getRecommendations } from '../../api/scrm'
 import type { RecommendationCard } from '../../api/scrm'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useTenantTitle } from '../../composables/useTenantTitle'
-import { useAssistantStream, usePageContext, useAvailability, assistantStore } from '@scrm/h5-ai'
+import { askUserAi, type LocalChatMessage } from '../../api/user-ai'
 import NavBar from '../../components/NavBar.vue'
 import ChatMessage from '../../components/ai-assistant/ChatMessage.vue'
 
@@ -103,26 +103,39 @@ const recTypeLabel: Record<RecommendationCard['type'], string> = {
 // 微信原生栏标题统一为租户名
 useTenantTitle()
 
-// ── AI 助手（BL-030b：复用 @scrm/h5-ai，走 Node /ai-stream/chat，零新建后端） ──
-const { send } = useAssistantStream()
-const { pageContext } = usePageContext()
-const { check: checkAvailability } = useAvailability()
-const aiAvailable = ref(false)
+// ── AI 助手（Fork A：收敛到框架 UserAi 基座，走 /user-ai/ask 同步问答）──
+// anonymous + 知识库白名单，能力锁死、throttle:user-ai 硬限频次；工具态（查订单/错题讲解）属 BL-030e 后续刀。
+const aiAvailable = ref(true)
 const draft = ref('')
-const streaming = computed(() => assistantStore.streaming.value)
-const messages = computed(() => assistantStore.messages.value)
+const answering = ref(false)
+const messages = ref<LocalChatMessage[]>([])
+let msgSeq = 0
 
 async function handleSend() {
   const text = draft.value.trim()
-  if (!text || streaming.value) return
-  // AI 会话以登录身份创建（Bearer user_token）：未登录先引导
-  if (!(await ensureLogin('使用 AI 助手需先登录'))) return
+  if (!text || answering.value) return
   draft.value = ''
-  await send(pageContext(), text)
+  messages.value.push({ id: ++msgSeq, role: 'user', content: text })
+  messages.value.push({ id: ++msgSeq, role: 'assistant', content: '', streaming: true })
+  // 取数组内的响应式代理引用再变更（直接改 push 前的 raw 对象不触发更新）
+  const pending = messages.value[messages.value.length - 1]
+  answering.value = true
+  try {
+    const res = await askUserAi(text)
+    pending.streaming = false
+    pending.content = res.answer || (res.allowed ? '' : '抱歉，暂时无法回答这个问题。')
+    pending.isError = !res.allowed && !res.answer
+  } catch {
+    pending.streaming = false
+    pending.isError = true
+    pending.content = '网络异常，请稍后再试'
+  } finally {
+    answering.value = false
+  }
 }
 
 function startNewChat() {
-  assistantStore.reset()
+  messages.value = []
 }
 
 onMounted(async () => {
@@ -149,9 +162,6 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-  // 平台级秘书开关（fail-open：探测失败仍显示，工具级细节由服务端 audience 过滤兜底）
-  aiAvailable.value = await checkAvailability()
-
   // 智能推荐（optional：登录出个性化券/会话，游客仅公开活动；失败静默不阻塞页面）
   try {
     recommendations.value = await getRecommendations()
