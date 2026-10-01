@@ -22,6 +22,15 @@
         </view>
       </view>
 
+      <!-- AI 找单（BL-030c：search_my_orders，自然语言） -->
+      <view class="ai-find-bar">
+        <AiActionButton
+          label="AI 找单"
+          placeholder="描述要找的订单，如「上个月买的东西」"
+          entity-type="order"
+        />
+      </view>
+
       <ErrorState
         v-if="loadError && orders.length === 0"
         message="订单加载失败，请稍后重试"
@@ -91,6 +100,7 @@ import { isLoggedIn } from '../../api/auth'
 import { redirectToLogin } from '../../utils/request'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import AiActionButton from '../../components/ai-assistant/AiActionButton.vue'
 import ErrorState from '../../components/ErrorState.vue'
 
 type OrderRow = OrderVO & {
@@ -255,6 +265,9 @@ onPullDownRefresh(async () => {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+.ai-find-bar {
+  padding: 20rpx 24rpx 0;
 }
 .tab-item {
   flex: 1;

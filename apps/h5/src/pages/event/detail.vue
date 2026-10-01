@@ -78,6 +78,20 @@
           </text>
         </view>
       </view>
+      <!-- AI 分享文案（BL-030c：generate_share_copy） -->
+      <view v-if="event.activity_id" class="share-ai-section">
+        <text class="section-title"> 分享推广 </text>
+        <view class="share-ai-inner">
+          <AiActionButton
+            label="AI 生成分享文案"
+            intent="帮我生成一条适合发朋友圈分享这个活动的文案"
+            entity-type="activity"
+            :entity-id="event.activity_id"
+            :data-summary="event.name"
+            copyable
+          />
+        </view>
+      </view>
       <!-- 底部报名栏 -->
       <view class="bottom-bar">
         <button class="share-btn" @tap="goPoster">分享海报</button>
@@ -96,6 +110,7 @@ import { getEventDetail, getEventTicketTypes } from '../../api/event'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
+import AiActionButton from '../../components/ai-assistant/AiActionButton.vue'
 import ErrorState from '../../components/ErrorState.vue'
 
 const event = ref<any>({})
@@ -264,6 +279,9 @@ async function loadDetail() {
   color: #999;
   display: block;
   text-align: right;
+}
+.share-ai-inner {
+  padding: 0 32rpx 8rpx;
 }
 .agenda-item {
   display: flex;

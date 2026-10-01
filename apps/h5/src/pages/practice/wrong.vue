@@ -26,6 +26,13 @@
         <view v-if="q.analysis" class="q-analysis">
           <text>解析：{{ q.analysis }}</text>
         </view>
+        <AiActionButton
+          label="AI 讲解"
+          intent="请讲解这道错题，帮我理解正确答案的由来"
+          entity-type="question"
+          :entity-id="q.question_id"
+          :data-summary="q.content"
+        />
       </view>
     </view>
 
@@ -38,6 +45,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import NavBar from '../../components/NavBar.vue'
+import AiActionButton from '../../components/ai-assistant/AiActionButton.vue'
 import { getWrongQuestions, type PracticeQuestion } from '../../api/exam'
 
 const questions = ref<PracticeQuestion[]>([])
