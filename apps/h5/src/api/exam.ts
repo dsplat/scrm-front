@@ -46,16 +46,16 @@ export interface ExamRecordSummary {
 
 // 考试列表（游客可浏览）；start/submit/practice 保持登录
 export function getExams() {
-  return request<ExamSummary[]>({ url: '/scrm/student/exams', auth: 'optional' })
+  return request<ExamSummary[]>({ url: '/biz/student/exams', auth: 'optional' })
 }
 
 export function startExam(examId: string | number) {
-  return request<ExamStartResult>({ url: `/scrm/student/exams/${examId}/start`, method: 'POST' })
+  return request<ExamStartResult>({ url: `/biz/student/exams/${examId}/start`, method: 'POST' })
 }
 
 export function submitExam(recordId: string | number, answers: Record<string, unknown>) {
   return request<ExamSubmitResult>({
-    url: `/scrm/student/exam-records/${recordId}/submit`,
+    url: `/biz/student/exam-records/${recordId}/submit`,
     method: 'POST',
     data: { answers },
   })
@@ -63,7 +63,7 @@ export function submitExam(recordId: string | number, answers: Record<string, un
 
 export function getMyExamRecords() {
   return request<{ taken: number; passed: number; records: ExamRecordSummary[] }>({
-    url: '/scrm/student/exam-records',
+    url: '/biz/student/exam-records',
   })
 }
 
@@ -88,14 +88,14 @@ export interface PracticeGradeResult {
 
 export function getWrongQuestions(limit = 50) {
   return request<PracticeQuestion[]>({
-    url: '/scrm/student/practice/wrong-questions',
+    url: '/biz/student/practice/wrong-questions',
     data: { limit },
   })
 }
 
 export function startPractice(source: 'wrong' | 'bank', refId = 0, count = 10) {
   return request<PracticeQuestion[]>({
-    url: '/scrm/student/practice/start',
+    url: '/biz/student/practice/start',
     method: 'POST',
     data: { source, ref_id: refId, count },
   })
@@ -108,7 +108,7 @@ export function gradePractice(
   answers: Record<string, unknown>,
 ) {
   return request<PracticeGradeResult>({
-    url: '/scrm/student/practice/grade',
+    url: '/biz/student/practice/grade',
     method: 'POST',
     data: { source, ref_id: refId, questions, answers },
   })
@@ -124,6 +124,6 @@ export function getPracticeRecords() {
       created_at: string
     }>
   >({
-    url: '/scrm/student/practice/records',
+    url: '/biz/student/practice/records',
   })
 }

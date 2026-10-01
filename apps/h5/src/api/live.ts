@@ -33,19 +33,19 @@ export interface LiveWatchResult {
 // 直播间列表（游客可浏览）；watch/view 保持登录（权益校验、观看统计以 user_id 为键）
 export function getLiveRooms(status?: string) {
   return request<LiveRoomSummary[]>({
-    url: '/scrm/student/live-rooms',
+    url: '/biz/student/live-rooms',
     data: status ? { status } : undefined,
     auth: 'optional',
   })
 }
 
 export function watchLiveRoom(roomId: string | number) {
-  return request<LiveWatchResult>({ url: `/scrm/student/live-rooms/${roomId}/watch` })
+  return request<LiveWatchResult>({ url: `/biz/student/live-rooms/${roomId}/watch` })
 }
 
 export function reportLiveView(roomId: string | number, durationSeconds: number) {
   return request<unknown>({
-    url: `/scrm/student/live-rooms/${roomId}/view`,
+    url: `/biz/student/live-rooms/${roomId}/view`,
     method: 'POST',
     data: { duration_seconds: durationSeconds },
   })

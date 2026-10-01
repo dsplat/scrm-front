@@ -26,7 +26,7 @@ export interface MyPosterRenderResult {
 /** 可推广海报列表（仅已审核通过） */
 export async function getMyPosters(): Promise<MyPoster[]> {
   return request({
-    url: '/scrm/my/posters',
+    url: '/biz/my/posters',
     method: 'GET',
   })
 }
@@ -34,7 +34,7 @@ export async function getMyPosters(): Promise<MyPoster[]> {
 /** 生成我的专属推广海报（服务端渲染 PNG，二维码归因到我） */
 export async function renderMyPoster(posterId: number): Promise<MyPosterRenderResult> {
   return request({
-    url: `/scrm/my/posters/${posterId}/render`,
+    url: `/biz/my/posters/${posterId}/render`,
     method: 'POST',
   })
 }

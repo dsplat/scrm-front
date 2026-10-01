@@ -52,7 +52,7 @@ export interface CommissionItem {
 /** 分销中心首页（身份 + 概览 + 配置） */
 export async function getDistributionProfile(): Promise<DistributionCenterProfile> {
   return request({
-    url: '/scrm/distribution-center/profile',
+    url: '/biz/distribution-center/profile',
     method: 'GET',
   })
 }
@@ -63,7 +63,7 @@ export async function bindAttribution(
   source = 'poster',
 ): Promise<any> {
   return request({
-    url: '/scrm/distribution-center/bind',
+    url: '/biz/distribution-center/bind',
     method: 'POST',
     data: { distributor_id: Number(distributorId), source },
   })
@@ -76,7 +76,7 @@ export async function applyDistributor(data: {
   parentInviteCode?: string
 }): Promise<DistributorProfile> {
   return request({
-    url: '/scrm/distribution-center/apply',
+    url: '/biz/distribution-center/apply',
     method: 'POST',
     data,
   })
@@ -85,7 +85,7 @@ export async function applyDistributor(data: {
 /** 我的邀请信息 */
 export async function getInviteInfo(): Promise<{ inviteCode: string; inviteUrl: string }> {
   return request({
-    url: '/scrm/distribution-center/invite',
+    url: '/biz/distribution-center/invite',
     method: 'GET',
   })
 }
@@ -97,7 +97,7 @@ export async function getMyTeam(): Promise<{
   subordinateCount: number
 }> {
   return request({
-    url: '/scrm/distribution-center/team',
+    url: '/biz/distribution-center/team',
     method: 'GET',
   })
 }
@@ -106,7 +106,7 @@ export async function getMyTeam(): Promise<{
 export async function getMyCommissions(status?: string): Promise<CommissionItem[]> {
   const query = status ? `?status=${status}&pageSize=100` : '?pageSize=100'
   return request({
-    url: `/scrm/distribution-center/commissions${query}`,
+    url: `/biz/distribution-center/commissions${query}`,
     method: 'GET',
   })
 }
@@ -121,7 +121,7 @@ export async function requestWithdrawal(data: {
   remark?: string
 }): Promise<any> {
   return request({
-    url: '/scrm/distribution-center/withdrawals',
+    url: '/biz/distribution-center/withdrawals',
     method: 'POST',
     data,
   })
@@ -130,7 +130,7 @@ export async function requestWithdrawal(data: {
 /** 我的提现记录 */
 export async function getMyWithdrawals(): Promise<any[]> {
   return request({
-    url: '/scrm/distribution-center/withdrawals?pageSize=100',
+    url: '/biz/distribution-center/withdrawals?pageSize=100',
     method: 'GET',
   })
 }

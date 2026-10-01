@@ -34,7 +34,7 @@ export interface CheckInLeaderboardItem {
 // 获取进行中的打卡活动列表（游客可浏览）
 export function getCheckInActivities(params?: { status?: string; per_page?: number }) {
   return request<{ data: CheckInActivity[]; total: number }>({
-    url: '/scrm/check-in-activities',
+    url: '/biz/check-in-activities',
     method: 'GET',
     data: params,
     auth: 'optional',
@@ -44,7 +44,7 @@ export function getCheckInActivities(params?: { status?: string; per_page?: numb
 // 获取打卡活动详情（游客可浏览）
 export function getCheckInActivity(activityId: string | number) {
   return request<CheckInActivity>({
-    url: `/scrm/check-in-activities/${activityId}`,
+    url: `/biz/check-in-activities/${activityId}`,
     method: 'GET',
     auth: 'optional',
   })
@@ -53,7 +53,7 @@ export function getCheckInActivity(activityId: string | number) {
 // 打卡（user_id 由后端从登录态解析，无需传入）
 export function checkIn(activityId: string | number, data?: { note?: string }) {
   return request<{ record: CheckInRecord; points_awarded: number }>({
-    url: `/scrm/check-in-activities/${activityId}/check-in`,
+    url: `/biz/check-in-activities/${activityId}/check-in`,
     method: 'POST',
     data: data || {},
   })
@@ -65,7 +65,7 @@ export function backfillCheckIn(
   data: { date: string; note?: string },
 ) {
   return request<{ record: CheckInRecord; points_awarded: number }>({
-    url: `/scrm/check-in-activities/${activityId}/backfill`,
+    url: `/biz/check-in-activities/${activityId}/backfill`,
     method: 'POST',
     data,
   })
@@ -77,7 +77,7 @@ export function getCheckInRecords(
   params?: { start_date?: string; end_date?: string; per_page?: number },
 ) {
   return request<{ data: CheckInRecord[]; total: number }>({
-    url: `/scrm/check-in-activities/${activityId}/records`,
+    url: `/biz/check-in-activities/${activityId}/records`,
     method: 'GET',
     data: params,
   })
@@ -86,7 +86,7 @@ export function getCheckInRecords(
 // 获取打卡排行榜（游客可浏览）
 export function getCheckInLeaderboard(activityId: string | number) {
   return request<CheckInLeaderboardItem[]>({
-    url: `/scrm/check-in-activities/${activityId}/leaderboard`,
+    url: `/biz/check-in-activities/${activityId}/leaderboard`,
     method: 'GET',
     auth: 'optional',
   })
@@ -100,7 +100,7 @@ export function getCheckInStats(activityId: string | number) {
     today_check_ins: number
     max_streak: number
   }>({
-    url: `/scrm/check-in-activities/${activityId}/stats`,
+    url: `/biz/check-in-activities/${activityId}/stats`,
     method: 'GET',
   })
 }

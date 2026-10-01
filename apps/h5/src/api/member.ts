@@ -22,7 +22,7 @@ export interface PointsFlowItem {
 /** 我的积分余额 */
 export async function getMyPointsBalance(): Promise<PointsBalance> {
   return request({
-    url: '/scrm/member/points/balance',
+    url: '/biz/member/points/balance',
     method: 'GET',
   })
 }
@@ -32,7 +32,7 @@ export async function getMyPointsFlow(
   type?: string,
 ): Promise<{ items: PointsFlowItem[]; total: number }> {
   return request({
-    url: `/scrm/member/points/flow${type ? `?type=${type}` : ''}`,
+    url: `/biz/member/points/flow${type ? `?type=${type}` : ''}`,
     method: 'GET',
   })
 }
