@@ -52,6 +52,22 @@ export async function submitFeedback(content: string, contact?: string) {
   })
 }
 
+/** 智能推荐卡片（optional：登录带 token 出个性化券/会话，游客只出公开活动） */
+export interface RecommendationCard {
+  type: 'coupon' | 'activity' | 'message'
+  title: string
+  subtitle: string
+  action_url: string
+}
+
+export async function getRecommendations(): Promise<RecommendationCard[]> {
+  const data = await request<RecommendationCard[]>({
+    url: '/scrm/recommendations',
+    auth: 'optional',
+  })
+  return Array.isArray(data) ? data : []
+}
+
 /** 获取常见问题 */
 export async function getFAQs() {
   return request({

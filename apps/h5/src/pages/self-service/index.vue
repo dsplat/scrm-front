@@ -25,6 +25,23 @@
         </button>
       </view>
     </view>
+    <view v-if="recommendations.length > 0" class="section">
+      <text class="section-title"> 为你推荐 </text>
+      <view v-for="(card, i) in recommendations" :key="i" class="rec-card" @tap="openCard(card)">
+        <text class="rec-badge" :class="'rec-badge--' + card.type">
+          {{ recTypeLabel[card.type] }}
+        </text>
+        <view class="rec-body">
+          <text class="rec-title">
+            {{ card.title }}
+          </text>
+          <text v-if="card.subtitle" class="rec-sub">
+            {{ card.subtitle }}
+          </text>
+        </view>
+        <text class="rec-arrow"> › </text>
+      </view>
+    </view>
     <view class="section">
       <text class="section-title"> 常见问题 </text>
       <view v-for="faq in faqs" :key="faq.id" class="faq-item" @tap="toggleFaq(faq.id)">
@@ -55,7 +72,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getFAQs, submitFeedback, startAgentConversation } from '../../api/scrm'
+import { getFAQs, submitFeedback, startAgentConversation, getRecommendations } from '../../api/scrm'
+import type { RecommendationCard } from '../../api/scrm'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useAssistantStream, usePageContext, useAvailability, assistantStore } from '@scrm/h5-ai'
@@ -73,6 +91,14 @@ const feedback = ref('')
 const submitting = ref(false)
 const loading = ref(true)
 const faqs = ref<FAQ[]>([])
+
+// ── 智能推荐卡片（BL-030b b4：后端三源聚合，action_url 为服务端设计时预设） ──
+const recommendations = ref<RecommendationCard[]>([])
+const recTypeLabel: Record<RecommendationCard['type'], string> = {
+  coupon: '券',
+  activity: '活动',
+  message: '消息',
+}
 
 // 微信原生栏标题统一为租户名
 useTenantTitle()
@@ -125,7 +151,21 @@ onMounted(async () => {
   }
   // 平台级秘书开关（fail-open：探测失败仍显示，工具级细节由服务端 audience 过滤兜底）
   aiAvailable.value = await checkAvailability()
+
+  // 智能推荐（optional：登录出个性化券/会话，游客仅公开活动；失败静默不阻塞页面）
+  try {
+    recommendations.value = await getRecommendations()
+  } catch {
+    recommendations.value = []
+  }
 })
+
+function openCard(card: RecommendationCard) {
+  // 跳转目标由服务端 action_url 预设；message 卡指向本页（tabBar），不重复导航
+  if (card.type === 'message') return
+  // @ts-ignore - uni is provided by uni-app runtime
+  uni.navigateTo({ url: card.action_url })
+}
 
 function toggleFaq(id: number) {
   const faq = faqs.value.find((f) => f.id === id)
@@ -251,5 +291,58 @@ button {
   background: #4a90d9;
   color: #fff;
   border-radius: 36rpx;
+}
+.rec-card {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.rec-card:last-child {
+  border-bottom: none;
+}
+.rec-badge {
+  flex-shrink: 0;
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #fff;
+  margin-right: 20rpx;
+}
+.rec-badge--coupon {
+  background: #ff6b6b;
+}
+.rec-badge--activity {
+  background: #4a90d9;
+}
+.rec-badge--message {
+  background: #52c41a;
+}
+.rec-body {
+  flex: 1;
+  min-width: 0;
+}
+.rec-title {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+}
+.rec-sub {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+  margin-top: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec-arrow {
+  flex-shrink: 0;
+  font-size: 40rpx;
+  color: #ccc;
+  margin-left: 12rpx;
 }
 </style>
