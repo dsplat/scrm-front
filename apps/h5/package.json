@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@scrm/h5-commerce": "workspace:*",
+    "@scrm/h5-ai": "workspace:*",
     "@dcloudio/uni-app": "3.0.0-4080420251103001",
     "@dcloudio/uni-app-harmony": "3.0.0-4080420251103001",
     "@dcloudio/uni-app-plus": "3.0.0-4080420251103001",

@@ -82,6 +82,9 @@ importers:
       '@dcloudio/uni-quickapp-webview':
         specifier: 3.0.0-4080420251103001
         version: 3.0.0-4080420251103001(postcss@8.5.16)(rollup@4.62.2)(vue@3.5.39(typescript@4.9.5))
+      '@scrm/h5-ai':
+        specifier: workspace:*
+        version: link:../../packages/h5-ai
       '@scrm/h5-commerce':
         specifier: workspace:*
         version: link:../../packages/h5-commerce
@@ -122,6 +125,16 @@ importers:
       vue-tsc:
         specifier: ^1.0.24
         version: 1.8.27(typescript@4.9.5)
+
+  packages/h5-ai:
+    dependencies:
+      vue:
+        specifier: ^3.4.21
+        version: 3.5.39(typescript@5.5.4)
+    devDependencies:
+      '@dcloudio/types':
+        specifier: ^3.4.8
+        version: 3.4.32
 
   packages/h5-commerce:
     dependencies:
