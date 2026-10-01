@@ -101,6 +101,11 @@ def ssh_target():
     return f"{CFG['SERVER_USER']}@{CFG['SERVER_HOST']}"
 
 
+def ssh_port():
+    """SSH 端口：config.env 的 SERVER_PORT，缺省 22（向后兼容）。"""
+    return str(CFG.get("SERVER_PORT") or "22")
+
+
 def run_local(cmd, check=True, capture=False, cwd=None):
     """本地执行命令（列表参数）。"""
     if VERBOSE:
@@ -124,7 +129,8 @@ def git(*args, check=True):
 def ssh_run(cmd, check=True, capture=True):
     if VERBOSE:
         log(f"$ ssh {ssh_target()} \"{cmd}\"", "CMD")
-    res = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "LogLevel=ERROR",
+    res = subprocess.run(["ssh", "-p", ssh_port(),
+                          "-o", "BatchMode=yes", "-o", "LogLevel=ERROR",
                           ssh_target(), cmd], capture_output=capture, text=True)
     if check and res.returncode != 0:
         err = (res.stderr or "") if capture else ""
@@ -153,7 +159,7 @@ def rsync_dist(app):
     cmd = ["rsync", "-avz", "--delete"]
     if DRY_RUN:
         cmd.append("--dry-run")
-    cmd += ["-e", "ssh -o BatchMode=yes -o LogLevel=ERROR", src, dst]
+    cmd += ["-e", f"ssh -p {ssh_port()} -o BatchMode=yes -o LogLevel=ERROR", src, dst]
     log(f"rsync 产物 {app}: {dist_rel}/ -> {target_rel}/ (--delete)")
     run_local(cmd)
 
