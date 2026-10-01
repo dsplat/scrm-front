@@ -1,6 +1,30 @@
 <template>
   <view class="self-service-page">
     <NavBar title="客服中心" :show-back="false" />
+    <view v-if="aiAvailable" class="section ai-section">
+      <view class="ai-head">
+        <text class="section-title"> AI 助手 </text>
+        <text v-if="messages.length > 0" class="ai-reset" @tap="startNewChat"> 新对话 </text>
+      </view>
+      <view v-if="messages.length === 0" class="chat-empty">
+        <text>你好，我可以帮你查订单、找课程、答疑错题、介绍活动…</text>
+      </view>
+      <ChatMessage v-for="m in messages" :key="m.id" :message="m" />
+      <view class="chat-input">
+        <input
+          v-model="draft"
+          class="chat-input__field"
+          type="text"
+          placeholder="输入你的问题…"
+          :disabled="streaming"
+          confirm-type="send"
+          @confirm="handleSend"
+        />
+        <button class="chat-input__btn" :disabled="streaming || !draft.trim()" @tap="handleSend">
+          {{ streaming ? '回答中' : '发送' }}
+        </button>
+      </view>
+    </view>
     <view class="section">
       <text class="section-title"> 常见问题 </text>
       <view v-for="faq in faqs" :key="faq.id" class="faq-item" @tap="toggleFaq(faq.id)">
@@ -30,11 +54,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getFAQs, submitFeedback, startAgentConversation } from '../../api/scrm'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useTenantTitle } from '../../composables/useTenantTitle'
+import { useAssistantStream, usePageContext, useAvailability, assistantStore } from '@scrm/h5-ai'
 import NavBar from '../../components/NavBar.vue'
+import ChatMessage from '../../components/ai-assistant/ChatMessage.vue'
 
 interface FAQ {
   id: number
@@ -50,6 +76,28 @@ const faqs = ref<FAQ[]>([])
 
 // 微信原生栏标题统一为租户名
 useTenantTitle()
+
+// ── AI 助手（BL-030b：复用 @scrm/h5-ai，走 Node /ai-stream/chat，零新建后端） ──
+const { send } = useAssistantStream()
+const { pageContext } = usePageContext()
+const { check: checkAvailability } = useAvailability()
+const aiAvailable = ref(false)
+const draft = ref('')
+const streaming = computed(() => assistantStore.streaming.value)
+const messages = computed(() => assistantStore.messages.value)
+
+async function handleSend() {
+  const text = draft.value.trim()
+  if (!text || streaming.value) return
+  // AI 会话以登录身份创建（Bearer user_token）：未登录先引导
+  if (!(await ensureLogin('使用 AI 助手需先登录'))) return
+  draft.value = ''
+  await send(pageContext(), text)
+}
+
+function startNewChat() {
+  assistantStore.reset()
+}
 
 onMounted(async () => {
   try {
@@ -75,6 +123,8 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  // 平台级秘书开关（fail-open：探测失败仍显示，工具级细节由服务端 audience 过滤兜底）
+  aiAvailable.value = await checkAvailability()
 })
 
 function toggleFaq(id: number) {
@@ -163,5 +213,43 @@ textarea {
 }
 button {
   margin-top: 16rpx;
+}
+.ai-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-reset {
+  font-size: 24rpx;
+  color: #4a90d9;
+}
+.chat-empty {
+  padding: 24rpx 0;
+  font-size: 26rpx;
+  color: #999;
+}
+.chat-input {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+}
+.chat-input__field {
+  flex: 1;
+  height: 72rpx;
+  border: 1px solid #e0e0e0;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+}
+.chat-input__btn {
+  margin-top: 0;
+  margin-left: 16rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 32rpx;
+  font-size: 28rpx;
+  background: #4a90d9;
+  color: #fff;
+  border-radius: 36rpx;
 }
 </style>
