@@ -76,7 +76,7 @@ import { getFAQs, submitFeedback, startAgentConversation, getRecommendations } f
 import type { RecommendationCard } from '../../api/scrm'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useTenantTitle } from '../../composables/useTenantTitle'
-import { askUserAi, type LocalChatMessage } from '../../api/user-ai'
+import { askUserAi, streamUserAi, type LocalChatMessage } from '../../api/user-ai'
 import NavBar from '../../components/NavBar.vue'
 import ChatMessage from '../../components/ai-assistant/ChatMessage.vue'
 
@@ -103,8 +103,8 @@ const recTypeLabel: Record<RecommendationCard['type'], string> = {
 // 微信原生栏标题统一为租户名
 useTenantTitle()
 
-// ── AI 助手（Fork A：收敛到框架 UserAi 基座，走 /user-ai/ask 同步问答）──
-// anonymous + 知识库白名单，能力锁死、throttle:user-ai 硬限频次；工具态（查订单/错题讲解）属 BL-030e 后续刀。
+// ── AI 助手（Fork A：收敛到框架 UserAi 基座；H5 经 Node SSE 流式 /ai-stream/chat（scope=user），mp 仍同步 /user-ai/ask）──
+// anonymous + 知识库白名单，能力锁死、限流硬控；流式逐字打字机，工具面仍仅 knowledge_search（BL-030e）。
 const aiAvailable = ref(true)
 const draft = ref('')
 const answering = ref(false)
@@ -121,14 +121,29 @@ async function handleSend() {
   const pending = messages.value[messages.value.length - 1]
   answering.value = true
   try {
+    // #ifdef H5
+    // 流式打字机：逐字回调填充 pending.content；多轮历史为 pending 之前的既有消息
+    const history = messages.value.slice(0, messages.value.length - 2)
+    await streamUserAi(
+      text,
+      (chunk) => {
+        pending.content += chunk
+      },
+      { history },
+    )
+    if (!pending.content) pending.content = '抱歉，暂时无法回答这个问题。'
+    // #endif
+    // #ifndef H5
+    // 小程序 uni.request 无法流式，仍走同步整包（本次不动 mp 发布路径）
     const res = await askUserAi(text)
-    pending.streaming = false
     pending.content = res.answer || (res.allowed ? '' : '抱歉，暂时无法回答这个问题。')
     pending.isError = !res.allowed && !res.answer
+    // #endif
+    pending.streaming = false
   } catch {
     pending.streaming = false
     pending.isError = true
-    pending.content = '网络异常，请稍后再试'
+    pending.content = pending.content || '网络异常，请稍后再试'
   } finally {
     answering.value = false
   }
