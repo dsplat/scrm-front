@@ -151,7 +151,14 @@ export function useAssistantStream() {
   function handleStreamLine(line: string, cb: StreamCallbacks): boolean {
     const event = parseDataStreamLine(line)
     if (event.type === 'text') cb.onText(event.value)
+    if (event.type === 'meta' && event.value.conversation_id) {
+      cb.onMeta?.({
+        conversation_id: Number(event.value.conversation_id),
+        agent_id: event.value.agent_id as number | null,
+      })
+    }
     if (event.type === 'tool_call') cb.onToolCall([event.value])
+    if (event.type === 'tool_result') cb.onToolResult?.(event.value.id, event.value.result)
     if (event.type === 'error') cb.onError(event.value)
     if (event.type === 'done') {
       cb.onDone(event.value)

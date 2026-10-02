@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { parseDataStreamLine } from '../src/protocol'
+import { parseDataStreamLine } from '../src/protocol.ts'
 
 assert.deepEqual(parseDataStreamLine('0:"你好"'), { type: 'text', value: '你好' })
 assert.equal(

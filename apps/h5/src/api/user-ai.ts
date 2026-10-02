@@ -32,6 +32,8 @@ export interface LocalChatMessage {
   content: string
   streaming?: boolean
   isError?: boolean
+  toolStatus?: 'running' | 'done' | 'error'
+  toolName?: string
 }
 
 /**
@@ -79,7 +81,7 @@ export interface StreamUserAiOptions {
   /** 中止信号（切换新对话 / 组件卸载时中断流） */
   signal?: AbortSignal
   /** LLM 触发工具调用（knowledge_search 检索中）时的回调，可显示「正在检索…」 */
-  onToolCall?: () => void
+  onToolCall?: (toolName: string) => void
 }
 
 /**
@@ -142,7 +144,8 @@ export async function streamUserAi(
     for (const line of lines) {
       const event = parseDataStreamLine(line)
       if (event.type === 'text') onDelta(event.value)
-      else if (event.type === 'tool_call') opts.onToolCall?.()
+      else if (event.type === 'tool_call')
+        opts.onToolCall?.(event.value.name || event.value.id || '工具')
       else if (event.type === 'error') errMsg = event.value
     }
   }

@@ -3,6 +3,8 @@ import type { ToolCall } from './types'
 export type DataStreamEvent =
   | { type: 'text'; value: string }
   | { type: 'tool_call'; value: ToolCall }
+  | { type: 'meta'; value: Record<string, unknown> }
+  | { type: 'tool_result'; value: { id: string; result: unknown } }
   | { type: 'error'; value: string }
   | { type: 'done'; value: Record<string, unknown> | null }
   | { type: 'ignore' }
@@ -26,6 +28,13 @@ export function parseDataStreamLine(line: string): DataStreamEvent {
           status: 'running',
         },
       }
+    }
+    if (kind === '2' && Array.isArray(value)) {
+      const meta = value.find((item) => item?.type === 'meta')
+      return meta ? { type: 'meta', value: meta } : { type: 'ignore' }
+    }
+    if (kind === 'a' && value?.toolCallId) {
+      return { type: 'tool_result', value: { id: String(value.toolCallId), result: value.result } }
     }
     if (kind === '3')
       return { type: 'error', value: typeof value === 'string' ? value : 'AI 助手遇到错误。' }

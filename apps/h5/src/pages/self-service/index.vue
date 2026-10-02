@@ -129,7 +129,13 @@ async function handleSend() {
       (chunk) => {
         pending.content += chunk
       },
-      { history },
+      {
+        history,
+        onToolCall: (toolName) => {
+          pending.toolStatus = 'running'
+          pending.toolName = toolName
+        },
+      },
     )
     if (!pending.content) pending.content = '抱歉，暂时无法回答这个问题。'
     // #endif
@@ -142,6 +148,7 @@ async function handleSend() {
     pending.streaming = false
   } catch {
     pending.streaming = false
+    pending.toolStatus = 'error'
     pending.isError = true
     pending.content = pending.content || '网络异常，请稍后再试'
   } finally {

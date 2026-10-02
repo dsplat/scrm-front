@@ -5,6 +5,10 @@
         {{ message.content }}
       </text>
       <text v-else-if="message.streaming" class="typing"> 正在思考… </text>
+      <text v-if="message.toolStatus === 'running'" class="tool-status">
+        正在调用 {{ message.toolName || '工具' }}…
+      </text>
+      <text v-else-if="message.toolStatus === 'done'" class="tool-status"> 工具调用完成 </text>
     </view>
   </view>
 </template>
@@ -13,7 +17,7 @@
 import type { LocalChatMessage } from '../../api/user-ai'
 
 // 单条对话气泡：文本 + 同步等待占位 + 错误态。User AI 走 /user-ai/ask 同步整包返回，
-// 无流式逐字、无工具进行中提示（工具态属 BL-030e 外部 agentic 后续刀）。
+// 同步与流式共用本地消息结构；工具调用状态由协议事件驱动。
 defineProps<{ message: LocalChatMessage }>()
 </script>
 
@@ -52,6 +56,11 @@ defineProps<{ message: LocalChatMessage }>()
 }
 .msg-text {
   white-space: pre-wrap;
+}
+.tool-status {
+  display: block;
+  color: #777;
+  font-size: 24rpx;
 }
 .typing {
   color: #999;
