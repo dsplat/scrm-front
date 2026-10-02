@@ -25,3 +25,5 @@ export { streamHeaders, isLoggedIn, requestJSON } from './request'
 export { useAssistantStream } from './composables/useAssistantStream'
 export { usePageContext, type PageContextExtras } from './composables/usePageContext'
 export { useAvailability } from './composables/useAvailability'
+
+export { parseDataStreamLine, type DataStreamEvent } from './protocol'

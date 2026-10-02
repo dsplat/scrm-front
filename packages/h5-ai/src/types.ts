@@ -144,3 +144,14 @@ export interface StreamCallbacks {
   onDone: (metadata?: Record<string, any> | null) => void
   onError: (message: string, action?: { label: string; route: string } | null) => void
 }
+
+/**
+ * 协议约定：同步 UserAi 与流式 user scope 共用 allowed/answer/sources/denied 语义；
+ * 流式只把 answer 拆为 text 事件，工具和错误分别对应 tool_call/error，结束为 done。
+ */
+export interface UserAiContract {
+  allowed: boolean
+  answer: string
+  sources: Array<{ content: string; title?: string }>
+  denied: string | null
+}

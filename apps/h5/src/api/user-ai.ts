@@ -10,6 +10,7 @@
  * 当前 anonymous + RAG-only 链路不触达。
  */
 import { request } from '../utils/request'
+import { parseDataStreamLine } from '@scrm/h5-ai'
 import { useTenantStore } from '../store/tenant'
 
 export interface UserAiSource {
@@ -139,26 +140,10 @@ export async function streamUserAi(
     buffer = lines.pop() ?? ''
 
     for (const line of lines) {
-      const sep = line.indexOf(':')
-      if (sep <= 0) continue
-      const type = line.slice(0, sep)
-      const payload = line.slice(sep + 1)
-
-      if (type === '0') {
-        try {
-          onDelta(JSON.parse(payload) as string)
-        } catch {
-          /* 半包容错：跨帧未完整的 JSON 行跳过 */
-        }
-      } else if (type === '9') {
-        opts.onToolCall?.()
-      } else if (type === '3') {
-        try {
-          errMsg = JSON.parse(payload) as string
-        } catch {
-          errMsg = payload
-        }
-      }
+      const event = parseDataStreamLine(line)
+      if (event.type === 'text') onDelta(event.value)
+      else if (event.type === 'tool_call') opts.onToolCall?.()
+      else if (event.type === 'error') errMsg = event.value
     }
   }
 

@@ -15,7 +15,8 @@ import { postStream, type StreamHandle } from '../sse'
 import { getAIConfig } from '../config'
 import { streamHeaders } from '../request'
 import { assistantStore } from '../store'
-import type { PageContext, StreamCallbacks, ToolCall } from '../types'
+import type { PageContext, StreamCallbacks } from '../types'
+import { parseDataStreamLine } from '../protocol'
 
 /** 流空闲超时（毫秒）：Node 链路有 ping 心跳，120s 为无字节兜底阈值 */
 const STREAM_IDLE_TIMEOUT_MS = 120_000
@@ -148,88 +149,13 @@ export function useAssistantStream() {
 
   /** 解析单行数据帧；返回 true 表示流已结束（d: 帧） */
   function handleStreamLine(line: string, cb: StreamCallbacks): boolean {
-    const sep = line.indexOf(':')
-    if (sep === -1) return false
-    const type = line.slice(0, sep)
-    const payload = line.slice(sep + 1)
-
-    try {
-      switch (type) {
-        case '0': {
-          const text = JSON.parse(payload)
-          if (typeof text === 'string') cb.onText(text)
-          break
-        }
-        case '2': {
-          const items = JSON.parse(payload)
-          if (Array.isArray(items)) {
-            for (const item of items) {
-              if (item?.type === 'meta' && item.conversation_id) {
-                cb.onMeta?.({
-                  conversation_id: Number(item.conversation_id),
-                  agent_id: item.agent_id ?? null,
-                })
-              }
-            }
-          }
-          break
-        }
-        case '9': {
-          const call = JSON.parse(payload)
-          const calls: ToolCall[] = [
-            {
-              id: call.toolCallId,
-              name: call.toolName,
-              arguments: call.args ?? {},
-              status: 'running',
-            },
-          ]
-          cb.onToolCall(calls)
-          break
-        }
-        case 'a': {
-          const parsed = JSON.parse(payload)
-          const result = parsed?.result
-          if (parsed?.toolCallId) cb.onToolResult?.(String(parsed.toolCallId), result)
-          if (result?.action === 'form_fill' && result.fields) {
-            cb.onFormFill?.({
-              fields: result.fields,
-              explanation: result.explanation ?? null,
-              field_notes: result.field_notes ?? null,
-              confidence: result.confidence ?? 0.8,
-            })
-          } else if (result?.action === 'workflow' && result.steps) {
-            cb.onWorkflow?.(result)
-          } else if (result?.action === 'pending_confirmation' && result.token) {
-            cb.onPendingConfirmation?.({
-              token: result.token,
-              args_hash: result.args_hash,
-              expires_in: result.expires_in ?? 300,
-              tool_slug: result.tool_slug,
-              tool_name: result.tool_name ?? result.tool_slug,
-              arguments: result.arguments ?? {},
-              conversation_id: result.conversation_id,
-            })
-          } else if (result?.action === 'user_choice' && Array.isArray(result.options)) {
-            cb.onUserChoice?.({
-              question: String(result.question ?? ''),
-              options: result.options.map((o: any) => String(o)),
-              multiple: !!result.multiple,
-            })
-          }
-          break
-        }
-        case '3': {
-          const msg = JSON.parse(payload)
-          cb.onError(typeof msg === 'string' && msg ? msg : 'AI 助手遇到错误。')
-          break
-        }
-        case 'd':
-          cb.onDone(null)
-          return true
-      }
-    } catch {
-      /* 非法 JSON 行静默跳过，不中断流 */
+    const event = parseDataStreamLine(line)
+    if (event.type === 'text') cb.onText(event.value)
+    if (event.type === 'tool_call') cb.onToolCall([event.value])
+    if (event.type === 'error') cb.onError(event.value)
+    if (event.type === 'done') {
+      cb.onDone(event.value)
+      return true
     }
     return false
   }
