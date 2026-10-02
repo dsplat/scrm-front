@@ -42,6 +42,7 @@ export function useAssistantStream() {
   let handle: StreamHandle | null = null
   let timeoutTimer: ReturnType<typeof setTimeout> | null = null
   let buffer = ''
+  let finished = false
 
   function resetIdleTimer() {
     if (timeoutTimer) clearTimeout(timeoutTimer)
@@ -73,6 +74,7 @@ export function useAssistantStream() {
     assistantStore.pushUser(userIntent)
     assistantStore.beginAssistant()
     buffer = ''
+    finished = false
 
     // 默认回调写 store；overrides 可逐项替换
     const cb: StreamCallbacks = {
@@ -118,6 +120,8 @@ export function useAssistantStream() {
       const wrapped: StreamCallbacks = {
         ...cb,
         onDone: (meta) => {
+          if (finished) return
+          finished = true
           cb.onDone(meta)
           finish()
         },
@@ -141,7 +145,10 @@ export function useAssistantStream() {
             if (line && handleStreamLine(line, wrapped)) return
           }
         },
-        onDone: () => wrapped.onDone(null),
+        onDone: () => {
+          if (buffer.trim()) handleStreamLine(buffer.trim(), wrapped)
+          wrapped.onDone(null)
+        },
         onError: (err) => wrapped.onError(err.message, null),
       })
     })
@@ -159,6 +166,10 @@ export function useAssistantStream() {
     }
     if (event.type === 'tool_call') cb.onToolCall([event.value])
     if (event.type === 'tool_result') cb.onToolResult?.(event.value.id, event.value.result)
+    if (event.type === 'form_fill') cb.onFormFill?.(event.value as any)
+    if (event.type === 'workflow') cb.onWorkflow?.(event.value as any)
+    if (event.type === 'pending_confirmation') cb.onPendingConfirmation?.(event.value as any)
+    if (event.type === 'user_choice') cb.onUserChoice?.(event.value as any)
     if (event.type === 'error') cb.onError(event.value)
     if (event.type === 'done') {
       cb.onDone(event.value)

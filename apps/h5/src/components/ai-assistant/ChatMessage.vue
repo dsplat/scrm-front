@@ -9,6 +9,9 @@
         正在调用 {{ message.toolName || '工具' }}…
       </text>
       <text v-else-if="message.toolStatus === 'done'" class="tool-status"> 工具调用完成 </text>
+      <text v-else-if="message.toolStatus === 'error'" class="tool-status error-text">
+        工具调用失败
+      </text>
     </view>
   </view>
 </template>

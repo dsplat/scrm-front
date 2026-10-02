@@ -5,6 +5,10 @@ export type DataStreamEvent =
   | { type: 'tool_call'; value: ToolCall }
   | { type: 'meta'; value: Record<string, unknown> }
   | { type: 'tool_result'; value: { id: string; result: unknown } }
+  | { type: 'form_fill'; value: Record<string, unknown> }
+  | { type: 'workflow'; value: Record<string, unknown> }
+  | { type: 'pending_confirmation'; value: Record<string, unknown> }
+  | { type: 'user_choice'; value: Record<string, unknown> }
   | { type: 'error'; value: string }
   | { type: 'done'; value: Record<string, unknown> | null }
   | { type: 'ignore' }
@@ -34,7 +38,13 @@ export function parseDataStreamLine(line: string): DataStreamEvent {
       return meta ? { type: 'meta', value: meta } : { type: 'ignore' }
     }
     if (kind === 'a' && value?.toolCallId) {
-      return { type: 'tool_result', value: { id: String(value.toolCallId), result: value.result } }
+      const result = value.result ?? value
+      if (result?.action === 'form_fill') return { type: 'form_fill', value: result }
+      if (result?.action === 'workflow') return { type: 'workflow', value: result }
+      if (result?.action === 'pending_confirmation')
+        return { type: 'pending_confirmation', value: result }
+      if (result?.action === 'user_choice') return { type: 'user_choice', value: result }
+      return { type: 'tool_result', value: { id: String(value.toolCallId), result } }
     }
     if (kind === '3')
       return { type: 'error', value: typeof value === 'string' ? value : 'AI 助手遇到错误。' }

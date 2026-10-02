@@ -110,6 +110,7 @@ const draft = ref('')
 const answering = ref(false)
 const messages = ref<LocalChatMessage[]>([])
 let msgSeq = 0
+let activeController: AbortController | null = null
 
 async function handleSend() {
   const text = draft.value.trim()
@@ -120,6 +121,7 @@ async function handleSend() {
   // 取数组内的响应式代理引用再变更（直接改 push 前的 raw 对象不触发更新）
   const pending = messages.value[messages.value.length - 1]
   answering.value = true
+  activeController = new AbortController()
   try {
     // #ifdef H5
     // 流式打字机：逐字回调填充 pending.content；多轮历史为 pending 之前的既有消息
@@ -138,6 +140,7 @@ async function handleSend() {
       },
     )
     if (!pending.content) pending.content = '抱歉，暂时无法回答这个问题。'
+    if (pending.toolStatus === 'running') pending.toolStatus = 'done'
     // #endif
     // #ifndef H5
     // 小程序 uni.request 无法流式，仍走同步整包（本次不动 mp 发布路径）
@@ -146,17 +149,21 @@ async function handleSend() {
     pending.isError = !res.allowed && !res.answer
     // #endif
     pending.streaming = false
-  } catch {
+  } catch (error: any) {
     pending.streaming = false
     pending.toolStatus = 'error'
     pending.isError = true
-    pending.content = pending.content || '网络异常，请稍后再试'
+    pending.content = pending.content || error?.message || '网络异常，请稍后再试'
   } finally {
+    activeController = null
     answering.value = false
   }
 }
 
 function startNewChat() {
+  activeController?.abort()
+  activeController = null
+  answering.value = false
   messages.value = []
 }
 

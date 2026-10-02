@@ -82,6 +82,7 @@ export interface StreamUserAiOptions {
   signal?: AbortSignal
   /** LLM 触发工具调用（knowledge_search 检索中）时的回调，可显示「正在检索…」 */
   onToolCall?: (toolName: string) => void
+  onToolResult?: (id: string, result: unknown) => void
 }
 
 /**
@@ -148,6 +149,13 @@ export async function streamUserAi(
         opts.onToolCall?.(event.value.name || event.value.id || '工具')
       else if (event.type === 'error') errMsg = event.value
     }
+  }
+
+  if (buffer.trim()) {
+    const event = parseDataStreamLine(buffer.trim())
+    if (event.type === 'text') onDelta(event.value)
+    else if (event.type === 'tool_result') opts.onToolResult?.(event.value.id, event.value.result)
+    else if (event.type === 'error') errMsg = event.value
   }
 
   if (errMsg) throw new Error(errMsg || 'AI 响应出错')
