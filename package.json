@@ -2,8 +2,6 @@
   "name": "scrm-front",
   "private": true,
   "scripts": {
-    "dev:ops": "pnpm --filter ops-console dev",
-    "build:ops": "pnpm --filter ops-console build",
     "dev:h5": "pnpm --filter h5 dev:h5",
     "build:h5": "pnpm --filter h5 build:h5",
     "dev:mp-weixin": "pnpm --filter h5 dev:mp-weixin",
