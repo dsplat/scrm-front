@@ -2,14 +2,14 @@
  * User AI 对外问答（Fork A：H5 C 端 AI 收敛到框架 UserAi 基座）
  *
  * 走 POST /api/v1/user-ai/ask（公开路由）：EnsureExternalActor 按 tenant_slug 解析租户、
- * 租户级 user-ai 模块门控、设 ActorContext（当前 anonymous）；throttle:user-ai 硬限频次；
+ * 租户级 user-ai 模块门控、设 ActorContext（有效 User 与 active 租户成员）；throttle:user-ai 硬限频次；
  * 能力面锁死在 tool_surface 白名单（现仅 knowledge_search → RAG 知识问答）。
  *
  * 说明：本同步版为单轮问答（UserAiController 未透传 history）；页面侧本地保留 messages
  * 仅作展示。个人信息类工具（订单/券/错题讲解）属外部 agentic 工具面（BL-030e 后续刀），
- * 当前 anonymous + RAG-only 链路不触达。
+ * 当前 authenticated + RAG-only 链路不触达。
  */
-import { request } from '../utils/request'
+import { request, type ApiError } from '../utils/request'
 import { parseDataStreamLine, type DataStreamEvent } from '@scrm/h5-ai'
 import { useTenantStore } from '../store/tenant'
 
@@ -65,19 +65,33 @@ export class UserAiStreamError extends Error {
 }
 
 /**
- * 提问一次（匿名可用；同步整包返回，无流式）。
+ * 提问一次（需有效用户及租户成员身份；同步整包返回）。
  *
  * @param question 用户本轮问题
  * @param tenantSlugHint 可选显式 slug；缺省从租户 bootstrap 缓存解析
  */
 export async function askUserAi(question: string, tenantSlugHint?: string): Promise<UserAiAnswer> {
   const slug = tenantSlugHint || useTenantStore().state.tenant?.slug || ''
-  const data = await request<UserAiAnswer>({
-    url: '/user-ai/ask',
-    method: 'POST',
-    auth: 'optional',
-    data: { tenant_slug: slug, question },
-  })
+  let data: UserAiAnswer
+  try {
+    data = await request<UserAiAnswer>({
+      url: '/user-ai/ask',
+      method: 'POST',
+      auth: 'required',
+      data: { tenant_slug: slug, question },
+    })
+  } catch (error) {
+    const apiError = error as ApiError
+    // Only authentication/authorization failures are safe to present directly.
+    // Transport failures and server errors keep the page's network fallback.
+    if (apiError?.statusCode === 401 || apiError?.statusCode === 403) {
+      throw new UserAiStreamError(
+        apiError.message ||
+          (apiError.statusCode === 401 ? '请先登录后使用智能问答' : '无权访问该租户的智能问答服务'),
+      )
+    }
+    throw error
+  }
   return {
     allowed: !!data?.allowed,
     answer: data?.answer ?? '',
@@ -179,7 +193,7 @@ async function streamUserAiH5(
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (tenant?.tenant_id) headers['X-Tenant-ID'] = String(tenant.tenant_id)
-  // 有 user_token 则带（C 端匿名也可用；未来登录态升级不改链路）
+  // 有 user_token 则带（C 端必须携带有效用户 token）
   const token = uni.getStorageSync('user_token')
   if (token) headers.Authorization = `Bearer ${token}`
 
