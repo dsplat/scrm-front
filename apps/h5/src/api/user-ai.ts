@@ -10,7 +10,7 @@
  * 当前 anonymous + RAG-only 链路不触达。
  */
 import { request } from '../utils/request'
-import { parseDataStreamLine } from '@scrm/h5-ai'
+import { parseDataStreamLine, type DataStreamEvent } from '@scrm/h5-ai'
 import { useTenantStore } from '../store/tenant'
 
 export interface UserAiSource {
@@ -83,6 +83,7 @@ export interface StreamUserAiOptions {
   /** LLM 触发工具调用（knowledge_search 检索中）时的回调，可显示「正在检索…」 */
   onToolCall?: (toolName: string) => void
   onToolResult?: (id: string, result: unknown) => void
+  onControl?: (event: DataStreamEvent) => void
 }
 
 /**
@@ -134,29 +135,25 @@ export async function streamUserAi(
   let buffer = ''
   let errMsg = ''
 
+  const dispatch = (line: string) => {
+    const event = parseDataStreamLine(line)
+    if (event.type === 'text') onDelta(event.value)
+    else if (event.type === 'tool_call')
+      opts.onToolCall?.(event.value.name || event.value.id || '工具')
+    else if (event.type === 'tool_result') opts.onToolResult?.(event.value.id, event.value.result)
+    else if (event.type === 'error') errMsg = event.value
+    else if (event.type !== 'ignore') opts.onControl?.(event)
+  }
   for (;;) {
     const { done, value } = await reader.read()
     if (done) break
     buffer += decoder.decode(value, { stream: true })
-
     const lines = buffer.split('\n')
     buffer = lines.pop() ?? ''
-
-    for (const line of lines) {
-      const event = parseDataStreamLine(line)
-      if (event.type === 'text') onDelta(event.value)
-      else if (event.type === 'tool_call')
-        opts.onToolCall?.(event.value.name || event.value.id || '工具')
-      else if (event.type === 'error') errMsg = event.value
-    }
+    for (const line of lines) dispatch(line)
   }
-
-  if (buffer.trim()) {
-    const event = parseDataStreamLine(buffer.trim())
-    if (event.type === 'text') onDelta(event.value)
-    else if (event.type === 'tool_result') opts.onToolResult?.(event.value.id, event.value.result)
-    else if (event.type === 'error') errMsg = event.value
-  }
+  buffer += decoder.decode()
+  if (buffer.trim()) dispatch(buffer.trim())
 
   if (errMsg) throw new Error(errMsg || 'AI 响应出错')
 }
