@@ -76,7 +76,7 @@ import { getFAQs, submitFeedback, startAgentConversation, getRecommendations } f
 import type { RecommendationCard } from '../../api/scrm'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useTenantTitle } from '../../composables/useTenantTitle'
-import { askUserAi, streamUserAi, type LocalChatMessage } from '../../api/user-ai'
+import { streamUserAi, type LocalChatMessage, type LocalToolCallState } from '../../api/user-ai'
 import NavBar from '../../components/NavBar.vue'
 import ChatMessage from '../../components/ai-assistant/ChatMessage.vue'
 
@@ -112,6 +112,42 @@ const messages = ref<LocalChatMessage[]>([])
 let msgSeq = 0
 let activeController: AbortController | null = null
 
+/**
+ * 按 toolCallId 记账单个工具（`max_tool_calls` > 1 时同轮多个，不互相覆盖），
+ * 并刷新 `toolStatus` 聚合投影（供既有单行模板消费；逐工具态见 ChatMessage 的 tools 列表）。
+ */
+function upsertTool(
+  msg: LocalChatMessage,
+  patch: { id: string; name?: string; status: LocalToolCallState['status'] },
+) {
+  const tools = (msg.tools ??= [])
+  const target = tools.find((t) => t.id === patch.id)
+  if (target) {
+    if (patch.name) target.name = patch.name
+    target.status = patch.status
+  } else {
+    tools.push({ id: patch.id, name: patch.name || '工具', status: patch.status })
+  }
+  msg.toolName = tools[tools.length - 1].name
+  syncToolStatus(msg)
+}
+
+/** tools 的聚合投影：任一 running 则 running，否则任一 error 则 error，否则 done */
+function syncToolStatus(msg: LocalChatMessage) {
+  if (!msg.tools?.length) return
+  if (msg.tools.some((t) => t.status === 'running')) msg.toolStatus = 'running'
+  else if (msg.tools.some((t) => t.status === 'error')) msg.toolStatus = 'error'
+  else msg.toolStatus = 'done'
+}
+
+/** 流已终结但工具未收到结果帧（连接被截断等）：按失败收敛，不停在 running */
+function settleRunningTools(msg: LocalChatMessage) {
+  for (const tool of msg.tools ?? []) {
+    if (tool.status === 'running') tool.status = 'error'
+  }
+  syncToolStatus(msg)
+}
+
 async function handleSend() {
   const text = draft.value.trim()
   if (!text || answering.value) return
@@ -124,8 +160,7 @@ async function handleSend() {
   const controller = new AbortController()
   activeController = controller
   try {
-    // #ifdef H5
-    // 流式打字机：逐字回调填充 pending.content；多轮历史为 pending 之前的既有消息
+    // 多轮历史为 pending 之前的既有消息；H5 逐字流式、非 H5 由 api 层内部回退同步整包
     const history = messages.value.slice(0, messages.value.length - 2)
     await streamUserAi(
       text,
@@ -135,32 +170,27 @@ async function handleSend() {
       {
         history,
         signal: controller.signal,
-        onToolResult: (_id, result: unknown) => {
-          pending.toolStatus =
-            result && typeof result === 'object' && 'error' in result ? 'error' : 'done'
+        onToolCall: (toolName, toolCallId) => {
+          upsertTool(pending, { id: toolCallId, name: toolName, status: 'running' })
         },
-        onToolCall: (toolName) => {
-          pending.toolStatus = 'running'
-          pending.toolName = toolName
+        onToolResult: (id, result) => {
+          const failed = !!result && typeof result === 'object' && 'error' in result
+          upsertTool(pending, { id, status: failed ? 'error' : 'done' })
         },
       },
     )
+    settleRunningTools(pending)
     if (!pending.content) pending.content = '抱歉，暂时无法回答这个问题。'
-    if (pending.toolStatus === 'running') pending.toolStatus = 'error'
-    // #endif
-    // #ifndef H5
-    // 小程序 uni.request 无法流式，仍走同步整包（本次不动 mp 发布路径）
-    const res = await askUserAi(text)
-    pending.content = res.answer || (res.allowed ? '' : '抱歉，暂时无法回答这个问题。')
-    pending.isError = !res.allowed && !res.answer
-    // #endif
-    pending.streaming = false
   } catch (error: any) {
-    pending.streaming = false
-    pending.toolStatus = 'error'
+    // 用户主动中断（切新对话 / 离开页面）：保留已到达内容，不产生错误气泡
+    if (error?.name === 'AbortError') return
+    settleRunningTools(pending)
     pending.isError = true
-    pending.content = pending.content || error?.message || '网络异常，请稍后再试'
+    // 只直呈 api 层「已整理原因」；浏览器底层异常（Failed to fetch 等）转可理解兜底文案
+    const reason = error?.curated ? String(error.message) : '网络异常，请稍后再试'
+    pending.content = pending.content ? `${pending.content}（回答中断：${reason}）` : reason
   } finally {
+    pending.streaming = false
     if (activeController === controller) {
       activeController = null
       answering.value = false
