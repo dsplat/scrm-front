@@ -12,6 +12,6 @@
     "@dcloudio/types": "^3.4.8"
   },
   "scripts": {
-    "test": "node --experimental-strip-types tests/protocol.test.ts"
+    "test": "node --experimental-strip-types tests/protocol.test.ts && node --experimental-strip-types --import ./tests/register-hooks.mjs tests/stream-consumption.test.ts"
   }
 }

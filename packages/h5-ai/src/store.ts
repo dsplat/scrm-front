@@ -280,6 +280,8 @@ export const assistantStore = {
   streaming: computed(() => state.streaming),
   available: computed(() => state.available),
   conversationId: computed(() => state.conversationId),
+  /** 上一轮流式 meta 里的 Agent 归属（页面未显式传 agent_id 时由 useAssistantStream 回退取用） */
+  agentId: computed(() => state.agentId),
   pushUser,
   beginAssistant,
   appendText,

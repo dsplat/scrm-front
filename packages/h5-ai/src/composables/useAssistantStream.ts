@@ -16,7 +16,7 @@ import { getAIConfig } from '../config'
 import { streamHeaders } from '../request'
 import { assistantStore } from '../store'
 import type { PageContext, StreamCallbacks } from '../types'
-import { parseDataStreamLine } from '../protocol'
+import { dispatchDataStreamLine, type StreamLineHandlers } from '../protocol'
 
 /** 流空闲超时（毫秒）：Node 链路有 ping 心跳，120s 为无字节兜底阈值 */
 const STREAM_IDLE_TIMEOUT_MS = 120_000
@@ -100,7 +100,9 @@ export function useAssistantStream() {
     ]
 
     const body: Record<string, any> = { messages }
-    const agentId = Number(pageContext.agent_id)
+    // agent_id / conversation_id 都需回退到上一轮流式 meta 里的值（store 已接），
+    // 否则页面未显式传 agent_id 时，转派后的多轮会退化成无 Agent 归属的新会话
+    const agentId = Number(pageContext.agent_id ?? assistantStore.agentId.value)
     if (Number.isFinite(agentId) && agentId > 0) body.agent_id = agentId
     const conversationId = Number(
       pageContext.conversation_id ?? assistantStore.conversationId.value,
@@ -131,6 +133,28 @@ export function useAssistantStream() {
         },
       }
 
+      // 回调异常只报一次：UI 侧一个 bug 不该既中断传输、又被转写成「连接失败」而丢真因
+      let callbackErrorReported = false
+      const handlers: StreamLineHandlers = {
+        onText: (text) => wrapped.onText(text),
+        onMeta: (meta) => wrapped.onMeta?.(meta),
+        onToolCall: (call) => wrapped.onToolCall([call]),
+        onToolResult: (id, result) => wrapped.onToolResult?.(id, result),
+        onFormFill: (payload) => wrapped.onFormFill?.(payload),
+        onWorkflow: (payload) => wrapped.onWorkflow?.(payload),
+        onPendingConfirmation: (payload) => wrapped.onPendingConfirmation?.(payload),
+        onUserChoice: (payload) => wrapped.onUserChoice?.(payload),
+        onError: (message) => wrapped.onError(message, null),
+        onDone: (meta) => wrapped.onDone(meta),
+        onCallbackError: (error, name) => {
+          console.error(`[h5-ai] ${name} 回调异常`, error)
+          if (callbackErrorReported) return
+          callbackErrorReported = true
+          // 不拼入底层异常原文（面向最终用户），仅给可理解的降级提示；流不中断
+          assistantStore.pushError('界面渲染异常，回答可能不完整，请重新提问。')
+        },
+      }
+
       handle = postStream({
         url: getAIConfig().streamEndpoint,
         headers: streamHeaders(),
@@ -142,40 +166,16 @@ export function useAssistantStream() {
           while ((idx = buffer.indexOf('\n')) !== -1) {
             const line = buffer.slice(0, idx).trim()
             buffer = buffer.slice(idx + 1)
-            if (line && handleStreamLine(line, wrapped)) return
+            if (line && dispatchDataStreamLine(line, handlers)) return
           }
         },
         onDone: () => {
-          if (buffer.trim()) handleStreamLine(buffer.trim(), wrapped)
+          if (buffer.trim()) dispatchDataStreamLine(buffer.trim(), handlers)
           wrapped.onDone(null)
         },
         onError: (err) => wrapped.onError(err.message, null),
       })
     })
-  }
-
-  /** 解析单行数据帧；返回 true 表示流已结束（d: 帧） */
-  function handleStreamLine(line: string, cb: StreamCallbacks): boolean {
-    const event = parseDataStreamLine(line)
-    if (event.type === 'text') cb.onText(event.value)
-    if (event.type === 'meta' && event.value.conversation_id) {
-      cb.onMeta?.({
-        conversation_id: Number(event.value.conversation_id),
-        agent_id: event.value.agent_id as number | null,
-      })
-    }
-    if (event.type === 'tool_call') cb.onToolCall([event.value])
-    if (event.type === 'tool_result') cb.onToolResult?.(event.value.id, event.value.result)
-    if (event.type === 'form_fill') cb.onFormFill?.(event.value as any)
-    if (event.type === 'workflow') cb.onWorkflow?.(event.value as any)
-    if (event.type === 'pending_confirmation') cb.onPendingConfirmation?.(event.value as any)
-    if (event.type === 'user_choice') cb.onUserChoice?.(event.value as any)
-    if (event.type === 'error') cb.onError(event.value)
-    if (event.type === 'done') {
-      cb.onDone(event.value)
-      return true
-    }
-    return false
   }
 
   /** 中断当前流 */

@@ -1,14 +1,20 @@
-import type { ToolCall } from './types'
+import type {
+  ActionConfirmData,
+  FormFillSuggestion,
+  ToolCall,
+  UserChoiceData,
+  WorkflowSuggestion,
+} from './types'
 
 export type DataStreamEvent =
   | { type: 'text'; value: string }
   | { type: 'tool_call'; value: ToolCall }
   | { type: 'meta'; value: Record<string, unknown> }
   | { type: 'tool_result'; value: { id: string; result: unknown } }
-  | { type: 'form_fill'; value: Record<string, unknown> }
-  | { type: 'workflow'; value: Record<string, unknown> }
-  | { type: 'pending_confirmation'; value: Record<string, unknown> }
-  | { type: 'user_choice'; value: Record<string, unknown> }
+  | { type: 'form_fill'; value: FormFillSuggestion }
+  | { type: 'workflow'; value: WorkflowSuggestion }
+  | { type: 'pending_confirmation'; value: ActionConfirmData }
+  | { type: 'user_choice'; value: UserChoiceData }
   | { type: 'error'; value: string }
   | { type: 'done'; value: Record<string, unknown> | null }
   | { type: 'ignore' }
@@ -53,4 +59,93 @@ export function parseDataStreamLine(line: string): DataStreamEvent {
     return { type: 'ignore' }
   }
   return { type: 'ignore' }
+}
+
+/**
+ * 行分派回调（缺项即忽略该事件）。
+ *
+ * 消费层与解析层的唯一接缝：把「帧语义」与「传输/UI 副作用」解耦，
+ * 使四类控制消息、工具结果、EOF 等分派可在无传输桩的情况下被测试覆盖。
+ */
+export interface StreamLineHandlers {
+  onText?: (text: string) => void
+  /** 仅在 meta 帧携带 conversation_id 时触发（与历史行为一致） */
+  onMeta?: (meta: { conversation_id: number; agent_id: number | null }) => void
+  onToolCall?: (call: ToolCall) => void
+  onToolResult?: (id: string, result: unknown) => void
+  onFormFill?: (payload: FormFillSuggestion) => void
+  onWorkflow?: (payload: WorkflowSuggestion) => void
+  onPendingConfirmation?: (payload: ActionConfirmData) => void
+  onUserChoice?: (payload: UserChoiceData) => void
+  onError?: (message: string) => void
+  onDone?: (meta: Record<string, unknown> | null) => void
+  /**
+   * 业务回调自身抛异常时的上报口（携带原始 error 与回调名）。
+   * 传输层不得因此被误判为「连接失败」——见 useAssistantStream 的用法。
+   */
+  onCallbackError?: (error: unknown, callback: string) => void
+}
+
+/**
+ * 解析并分派一行数据帧。返回 true 表示本行是结束帧（`d:`）。
+ *
+ * 每个回调独立 try/catch：一个 UI 回调的 bug 不得中断后续帧的处理，
+ * 也不得让原始异常被转写成「AI 助手连接失败」之类的传输文案而丢真因。
+ */
+export function dispatchDataStreamLine(line: string, h: StreamLineHandlers): boolean {
+  const event = parseDataStreamLine(line)
+
+  const invoke = (name: string, fn?: () => void) => {
+    if (!fn) return
+    try {
+      fn()
+    } catch (e) {
+      if (h.onCallbackError) h.onCallbackError(e, name)
+      else throw e
+    }
+  }
+
+  switch (event.type) {
+    case 'text':
+      invoke('onText', () => h.onText?.(event.value))
+      break
+    case 'meta':
+      if (event.value.conversation_id) {
+        // 缺失的 agent_id 归一为 null（声明类型是 number | null，不把 undefined 泄给 store）
+        const meta = {
+          conversation_id: Number(event.value.conversation_id),
+          agent_id: event.value.agent_id == null ? null : Number(event.value.agent_id),
+        }
+        invoke('onMeta', () => h.onMeta?.(meta))
+      }
+      break
+    case 'tool_call':
+      invoke('onToolCall', () => h.onToolCall?.(event.value))
+      break
+    case 'tool_result':
+      invoke('onToolResult', () => h.onToolResult?.(event.value.id, event.value.result))
+      break
+    case 'form_fill':
+      invoke('onFormFill', () => h.onFormFill?.(event.value))
+      break
+    case 'workflow':
+      invoke('onWorkflow', () => h.onWorkflow?.(event.value))
+      break
+    case 'pending_confirmation':
+      invoke('onPendingConfirmation', () => h.onPendingConfirmation?.(event.value))
+      break
+    case 'user_choice':
+      invoke('onUserChoice', () => h.onUserChoice?.(event.value))
+      break
+    case 'error':
+      invoke('onError', () => h.onError?.(event.value))
+      break
+    case 'done':
+      invoke('onDone', () => h.onDone?.(event.value))
+      return true
+    case 'ignore':
+      break
+  }
+
+  return false
 }
