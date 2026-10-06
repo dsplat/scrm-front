@@ -110,7 +110,8 @@ const draft = ref('')
 const answering = ref(false)
 const messages = ref<LocalChatMessage[]>([])
 let msgSeq = 0
-let activeController: AbortController | null = null
+// H5 用可中断流；MP/其他端运行时无 AbortController（且走同步链路），故只要求 abort 能力
+let activeController: { abort: () => void } | null = null
 
 /**
  * 按 toolCallId 记账单个工具（`max_tool_calls` > 1 时同轮多个，不互相覆盖），
@@ -157,7 +158,9 @@ async function handleSend() {
   // 取数组内的响应式代理引用再变更（直接改 push 前的 raw 对象不触发更新）
   const pending = messages.value[messages.value.length - 1]
   answering.value = true
-  const controller = new AbortController()
+  // MP 运行时无 AbortController（mp 走同步链路，无需中断信号）；仅在可用时创建可中断控制器
+  const controller: { signal?: AbortSignal; abort: () => void } =
+    typeof AbortController !== 'undefined' ? new AbortController() : { abort: () => {} }
   activeController = controller
   try {
     // 多轮历史为 pending 之前的既有消息；H5 逐字流式、非 H5 由 api 层内部回退同步整包
