@@ -17,6 +17,7 @@ import type {
   WorkflowSuggestion,
   ActionConfirmData,
   ActionConfirmStatus,
+  StepFinishInfo,
   UserChoiceData,
 } from './types'
 
@@ -44,6 +45,8 @@ interface StoreState {
   available: boolean
   /** 当前流式中的助手消息 id（null 表示无） */
   currentAssistantId: string | null
+  /** 最近一次 `e:` finish_step（多步链进度信号；仅透传记录，不参与授权/计费） */
+  lastStepFinish: StepFinishInfo | null
 }
 
 /** 只恢复文本轮次（卡片/确认态不跨刷新恢复） */
@@ -88,6 +91,7 @@ const state = reactive<StoreState>({
   availabilityLoaded: false,
   available: false,
   currentAssistantId: null,
+  lastStepFinish: null,
 })
 
 function persistMessages(): void {
@@ -141,6 +145,7 @@ function beginAssistant(): string {
   }
   state.messages.push(msg)
   state.currentAssistantId = msg.id
+  state.lastStepFinish = null
   return msg.id
 }
 
@@ -199,6 +204,15 @@ function attachChoice(d: UserChoiceData): void {
     m.userChoice = d
   })
 }
+
+/**
+ * 记录最近一次单步完成（`e:` finish_step）。
+ * 仅作进度信号供既有展示位消费；usage 只透传，不参与授权或计费。
+ */
+function setLastStepFinish(info: StepFinishInfo): void {
+  state.lastStepFinish = info
+}
+
 function setConfirmStatus(status: ActionConfirmStatus, feedback?: string): void {
   withCurrent((m) => {
     m.confirmStatus = status
@@ -266,6 +280,7 @@ function reset(): void {
   state.agentId = null
   state.currentAssistantId = null
   state.streaming = false
+  state.lastStepFinish = null
   try {
     uni.removeStorageSync(scopedKey(PERSIST_MESSAGES))
     uni.removeStorageSync(scopedKey(PERSIST_CONVERSATION))
@@ -282,6 +297,8 @@ export const assistantStore = {
   conversationId: computed(() => state.conversationId),
   /** 上一轮流式 meta 里的 Agent 归属（页面未显式传 agent_id 时由 useAssistantStream 回退取用） */
   agentId: computed(() => state.agentId),
+  /** 最近一次单步完成信号（`e:` finish_step；无该帧时为 null） */
+  lastStepFinish: computed(() => state.lastStepFinish),
   pushUser,
   beginAssistant,
   appendText,
@@ -293,6 +310,7 @@ export const assistantStore = {
   attachChoice,
   setConfirmStatus,
   answerChoice,
+  setLastStepFinish,
   endAssistant,
   pushError,
   setConversation,

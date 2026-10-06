@@ -1,6 +1,7 @@
 import type {
   ActionConfirmData,
   FormFillSuggestion,
+  StepFinishInfo,
   ToolCall,
   UserChoiceData,
   WorkflowSuggestion,
@@ -15,6 +16,7 @@ export type DataStreamEvent =
   | { type: 'workflow'; value: WorkflowSuggestion }
   | { type: 'pending_confirmation'; value: ActionConfirmData }
   | { type: 'user_choice'; value: UserChoiceData }
+  | { type: 'step_finish'; value: StepFinishInfo }
   | { type: 'error'; value: string }
   | { type: 'done'; value: Record<string, unknown> | null }
   | { type: 'ignore' }
@@ -55,6 +57,18 @@ export function parseDataStreamLine(line: string): DataStreamEvent {
     if (kind === '3')
       return { type: 'error', value: typeof value === 'string' ? value : 'AI 助手遇到错误。' }
     if (kind === 'd') return { type: 'done', value: value ?? null }
+    // e: finish_step（Vercel AI SDK「步完成」控制帧）：多步链每一步结束下发一次。
+    // 仅承载进度信号；usage 只透传记录，不参与授权/计费（BL-059）。
+    if (kind === 'e' && value && typeof value === 'object') {
+      return {
+        type: 'step_finish',
+        value: {
+          finishReason: typeof value.finishReason === 'string' ? value.finishReason : undefined,
+          usage: value.usage,
+          isContinued: typeof value.isContinued === 'boolean' ? value.isContinued : undefined,
+        },
+      }
+    }
   } catch {
     return { type: 'ignore' }
   }
@@ -77,6 +91,8 @@ export interface StreamLineHandlers {
   onWorkflow?: (payload: WorkflowSuggestion) => void
   onPendingConfirmation?: (payload: ActionConfirmData) => void
   onUserChoice?: (payload: UserChoiceData) => void
+  /** 多步链单步完成（`e:` finish_step 帧）；缺项即忽略该事件 */
+  onStepFinish?: (info: StepFinishInfo) => void
   onError?: (message: string) => void
   onDone?: (meta: Record<string, unknown> | null) => void
   /**
@@ -136,6 +152,9 @@ export function dispatchDataStreamLine(line: string, h: StreamLineHandlers): boo
       break
     case 'user_choice':
       invoke('onUserChoice', () => h.onUserChoice?.(event.value))
+      break
+    case 'step_finish':
+      invoke('onStepFinish', () => h.onStepFinish?.(event.value))
       break
     case 'error':
       invoke('onError', () => h.onError?.(event.value))

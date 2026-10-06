@@ -5,6 +5,7 @@
  * 传输走 sse.ts 平台适配层（H5 fetch / 小程序 enableChunked），
  * 线协议解析（Vercel AI SDK data stream 行协议）与 Console useAssistantStream 同源：
  *   0: 文本增量   2: 自定义数据(会话元信息/ping)   9: 工具调用   a: 工具结果   3: 错误   d: 流结束
+ *   e: 单步完成(finish_step，多步链进度信号；BL-059)
  *
  * 与 Console 的关键差异：H5 无 Cookie 会话，认证走 Authorization: Bearer {user_token}，
  * 且必须显式带 X-Tenant-ID（Node→PHP 回环回调丢失请求域名，靠该头识别租户）。
@@ -86,6 +87,8 @@ export function useAssistantStream() {
       onWorkflow: (w) => assistantStore.attachWorkflow(w),
       onPendingConfirmation: (d) => assistantStore.attachConfirm(d),
       onUserChoice: (d) => assistantStore.attachChoice(d),
+      // 多步链单步完成：只记录最小状态（既有展示位可挂接，无消费者时无 UI 变化；usage 不参与授权/计费）
+      onStepFinish: (info) => assistantStore.setLastStepFinish(info),
       onDone: () => assistantStore.endAssistant(),
       onError: (message) => assistantStore.pushError(message),
       ...overrides,
@@ -144,6 +147,7 @@ export function useAssistantStream() {
         onWorkflow: (payload) => wrapped.onWorkflow?.(payload),
         onPendingConfirmation: (payload) => wrapped.onPendingConfirmation?.(payload),
         onUserChoice: (payload) => wrapped.onUserChoice?.(payload),
+        onStepFinish: (info) => wrapped.onStepFinish?.(info),
         onError: (message) => wrapped.onError(message, null),
         onDone: (meta) => wrapped.onDone(meta),
         onCallbackError: (error, name) => {

@@ -25,3 +25,28 @@ assert.deepEqual(
   ),
   { type: 'pending_confirmation', value: { action: 'pending_confirmation', token: 'x' } },
 )
+
+// BL-059：e: finish_step（单步完成）应被解析并透传；仅记录，不参与授权/计费
+assert.deepEqual(
+  parseDataStreamLine(
+    'e:{"finishReason":"tool-calls","usage":{"promptTokens":10,"completionTokens":5},"isContinued":true}',
+  ),
+  {
+    type: 'step_finish',
+    value: {
+      finishReason: 'tool-calls',
+      usage: { promptTokens: 10, completionTokens: 5 },
+      isContinued: true,
+    },
+  },
+)
+// 载荷缺 finishReason / isContinued 仍透传（不得误判为 done 或被吞）
+assert.deepEqual(parseDataStreamLine('e:{"usage":{"promptTokens":1}}'), {
+  type: 'step_finish',
+  value: { finishReason: undefined, usage: { promptTokens: 1 }, isContinued: undefined },
+})
+// 非法载荷（非对象 / 非法 JSON）→ ignore，不得误判为结束帧
+assert.deepEqual(parseDataStreamLine('e:oops'), { type: 'ignore' })
+assert.deepEqual(parseDataStreamLine('e:"str"'), { type: 'ignore' })
+// f: start_step 属既有「不消费」面，行为不变
+assert.deepEqual(parseDataStreamLine('f:{"messageId":"m1"}'), { type: 'ignore' })

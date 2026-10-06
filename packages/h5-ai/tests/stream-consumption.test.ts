@@ -80,6 +80,22 @@ const enc = new TextEncoder()
   assert.deepEqual(seen[3][1], { id: 't1', r: { hits: 2 } })
 }
 
+// ════ 一b、e: finish_step（BL-059）：命中 onStepFinish，且不结束流；无该项回调时静默忽略 ════
+{
+  const steps: unknown[] = []
+  const h: StreamLineHandlers = { onStepFinish: (info) => steps.push(info) }
+  assert.equal(
+    dispatchDataStreamLine('e:{"finishReason":"tool-calls","usage":{"promptTokens":10}}', h),
+    false,
+    'e: 不应被当作结束帧',
+  )
+  assert.deepEqual(steps, [
+    { finishReason: 'tool-calls', usage: { promptTokens: 10 }, isContinued: undefined },
+  ])
+  // 向后兼容：旧分派器未挂 onStepFinish 时，e: 静默忽略（不外溢、不报错）
+  assert.equal(dispatchDataStreamLine('e:{"finishReason":"stop"}', {}), false)
+}
+
 // ════ 二、回调异常隔离：UI bug 不得中断传输，也不得被转写成「连接失败」 ════
 {
   const errors: Array<{ err: unknown; name: string }> = []
@@ -160,6 +176,52 @@ function stubFetch(lines: string[], ok = true, status = 200, json: unknown = nul
   assert.equal(body.agent_id, 9, '应回退到上一轮 meta 的 agent_id，而非退化成无归属新会话')
   assert.equal(body.conversation_id, 123)
   assert.equal(body.messages.at(-1).role, 'user')
+}
+
+// ════ 三b、端到端：e: 帧写 store.lastStepFinish 最小状态，且不断流 ════
+{
+  assistantStore.reset()
+  stubFetch([
+    '0:"在跑"\n',
+    'e:{"finishReason":"tool-calls","usage":{"promptTokens":10,"completionTokens":2},"isContinued":true}\n',
+    '9:{"toolCallId":"t1","toolName":"knowledge_search"}\n',
+    'e:{"finishReason":"stop","usage":{"promptTokens":12,"completionTokens":8}}\n',
+    'd:{"finishReason":"stop"}\n',
+  ])
+  await useAssistantStream().send({ route: '/x', module: 'x' }, '多步链')
+
+  assert.deepEqual(
+    assistantStore.lastStepFinish.value,
+    {
+      finishReason: 'stop',
+      usage: { promptTokens: 12, completionTokens: 8 },
+      isContinued: undefined,
+    },
+    'e: 应写入 store 最小状态（末次覆盖为收尾步）',
+  )
+  const answer = (assistantStore.messages.value as any[]).find(
+    (m) => m.role === 'assistant' && !m.isError,
+  )
+  assert.deepEqual(
+    answer.toolCalls?.map((t: any) => t.id),
+    ['t1'],
+    'e: 不得被当成结束帧（其后 9:/d: 仍应被消费）',
+  )
+  assert.equal(assistantStore.streaming.value, false)
+}
+
+// ════ 三c、端到端：页面级 overrides 可挂接 onStepFinish（替换默认 store 写入） ════
+{
+  assistantStore.reset()
+  const captured: unknown[] = []
+  stubFetch(['e:{"finishReason":"tool-calls"}\n', 'd:{}\n'])
+  await useAssistantStream().send({ route: '/x', module: 'x' }, '覆盖', {
+    onStepFinish: (info) => captured.push(info),
+  })
+  assert.deepEqual(captured, [
+    { finishReason: 'tool-calls', usage: undefined, isContinued: undefined },
+  ])
+  assert.equal(assistantStore.streaming.value, false, 'overrides 不应影响流收尾')
 }
 
 // R13b：UI 回调异常只报「渲染异常」一次，不得被转写成「AI 助手连接失败」

@@ -94,6 +94,22 @@ export interface UserChoiceData {
   multiple: boolean
 }
 
+/**
+ * 单步完成信息（`e:` finish_step 控制帧 → 前端，BL-059）
+ *
+ * Node 引擎多步链（工具轮次/任务链）每完成一步下发一帧。前端仅透传/记录，
+ * 用于在既有展示位（多步进度/日志）挂接「step 完成」信号。
+ * `usage` 只透传，**不参与授权或计费**（计费属后端）。
+ */
+export interface StepFinishInfo {
+  /** 本步结束原因（如 stop / tool-calls / length） */
+  finishReason?: string
+  /** token 用量（原样透传，未做结构约束） */
+  usage?: unknown
+  /** 是否还有后续步骤（引擎携带时透传） */
+  isContinued?: boolean
+}
+
 /** 对话消息（前端渲染用） */
 export interface ChatMessage {
   id: string
@@ -141,6 +157,8 @@ export interface StreamCallbacks {
   onWorkflow?: (workflow: WorkflowSuggestion) => void
   onPendingConfirmation?: (data: ActionConfirmData) => void
   onUserChoice?: (data: UserChoiceData) => void
+  /** 多步链单步完成（`e:` 帧）；无消费者时不挂即与旧行为一致 */
+  onStepFinish?: (info: StepFinishInfo) => void
   onDone: (metadata?: Record<string, any> | null) => void
   onError: (message: string, action?: { label: string; route: string } | null) => void
 }
