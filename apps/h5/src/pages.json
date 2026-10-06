@@ -175,6 +175,10 @@
     {
       "path": "pages/live/watch",
       "style": { "navigationBarTitleText": "观看直播" }
+    },
+    {
+      "path": "pages/wecom-sidebar/index",
+      "style": { "navigationBarTitleText": "客户侧边栏" }
     }
   ],
   "globalStyle": {
