@@ -9,6 +9,7 @@ export interface CheckInActivity {
   end_date: string | null
   status: 'draft' | 'active' | 'paused' | 'ended'
   total_participants: number
+  plan_id?: number | null
   reward_config?: {
     points_per_checkin?: number
     first_checkin_bonus?: number

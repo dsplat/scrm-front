@@ -13,7 +13,7 @@
         v-for="item in activities"
         :key="item.check_in_activity_id"
         class="activity-card"
-        @tap="goDetail(item.check_in_activity_id)"
+        @tap="goDetail(item)"
       >
         <image v-if="item.cover_url" class="cover" :src="item.cover_url" mode="aspectFill" />
         <view class="activity-body">
@@ -63,8 +63,12 @@ async function load() {
   }
 }
 
-function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages/checkin/detail?id=${id}` })
+function goDetail(item: CheckInActivity) {
+  if (item.plan_id) {
+    uni.navigateTo({ url: `/pages/training-camp/detail?id=${item.check_in_activity_id}` })
+    return
+  }
+  uni.navigateTo({ url: `/pages/checkin/detail?id=${item.check_in_activity_id}` })
 }
 </script>
 
