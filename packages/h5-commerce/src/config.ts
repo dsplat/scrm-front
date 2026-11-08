@@ -2,7 +2,7 @@
 /**
  * @scrm/h5-commerce 运行时配置
  *
- * - scrm-platform：configureH5Commerce({ apiPrefix: 'scrm' })（生产 URL 零变更）
+ * - scrm-platform：configureH5Commerce({ apiPrefix: 'biz' })（后端业务路由前缀 biz）
  * - 派生新商城：不配置即可（框架 5 模块默认 route_prefix 为空）
  */
 
@@ -18,7 +18,7 @@ export interface CommercePagesConfig {
 export interface CommerceConfig {
   /** API 基础路径 */
   apiBase: string
-  /** 交易域 API 路由前缀（如 'scrm'），框架默认路由时为空字符串 */
+  /** 交易域 API 路由前缀（如 'biz'），框架默认路由时为空字符串 */
   apiPrefix: string
   /** 登录 token 存储键 */
   tokenKey: string

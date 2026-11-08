@@ -9,7 +9,7 @@
  * - views：商城列表/详情、课程广场/详情/学习、积分兑换区块（整页组件）
  *
  * 宿主接入：
- * 1. main.ts 中 configureH5Commerce({ apiPrefix: 'scrm' })（scrm 项目；新商城可省略）
+ * 1. main.ts 中 configureH5Commerce({ apiPrefix: 'biz' })（scrm 项目；新商城可省略）
  * 2. pages.json 注册薄壳页面，页面内 import 并渲染 views 组件
  */
 
