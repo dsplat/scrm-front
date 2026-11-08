@@ -106,6 +106,15 @@ def ssh_port():
     return str(CFG.get("SERVER_PORT") or "22")
 
 
+def ssh_common_opts():
+    """通用 SSH 选项（BatchMode/静默 + 可选私钥）。"""
+    opts = ["-o", "BatchMode=yes", "-o", "LogLevel=ERROR"]
+    identity = CFG.get("SSH_IDENTITY")
+    if identity:
+        opts += ["-i", os.path.expanduser(identity)]
+    return opts
+
+
 def run_local(cmd, check=True, capture=False, cwd=None):
     """本地执行命令（列表参数）。"""
     if VERBOSE:
@@ -129,8 +138,7 @@ def git(*args, check=True):
 def ssh_run(cmd, check=True, capture=True):
     if VERBOSE:
         log(f"$ ssh {ssh_target()} \"{cmd}\"", "CMD")
-    res = subprocess.run(["ssh", "-p", ssh_port(),
-                          "-o", "BatchMode=yes", "-o", "LogLevel=ERROR",
+    res = subprocess.run(["ssh", "-p", ssh_port(), *ssh_common_opts(),
                           ssh_target(), cmd], capture_output=capture, text=True)
     if check and res.returncode != 0:
         err = (res.stderr or "") if capture else ""
@@ -159,7 +167,9 @@ def rsync_dist(app):
     cmd = ["rsync", "-avz", "--delete"]
     if DRY_RUN:
         cmd.append("--dry-run")
-    cmd += ["-e", f"ssh -p {ssh_port()} -o BatchMode=yes -o LogLevel=ERROR", src, dst]
+    identity = CFG.get("SSH_IDENTITY")
+    identity_arg = f" -i {os.path.expanduser(identity)}" if identity else ""
+    cmd += ["-e", f"ssh -p {ssh_port()} -o BatchMode=yes -o LogLevel=ERROR{identity_arg}", src, dst]
     log(f"rsync 产物 {app}: {dist_rel}/ -> {target_rel}/ (--delete)")
     run_local(cmd)
 
