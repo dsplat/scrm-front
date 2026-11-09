@@ -89,6 +89,7 @@
         </view>
       </view>
     </template>
+    <SecretaryFab :tab-page="false" />
   </view>
 </template>
 
@@ -100,6 +101,7 @@ import { isLoggedIn } from '../../api/auth'
 import { redirectToLogin } from '../../utils/request'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 import AiActionButton from '../../components/ai-assistant/AiActionButton.vue'
 import ErrorState from '../../components/ErrorState.vue'
 

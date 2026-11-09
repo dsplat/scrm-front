@@ -55,6 +55,10 @@
         <view class="section-title">
           <text>我的服务</text>
         </view>
+        <view class="menu-item" @tap="goSecretary">
+          <text class="menu-label"> 我的小秘书 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
         <view class="menu-item" @tap="goOrders">
           <text class="menu-label"> 我的订单 </text>
           <text class="menu-arrow"> › </text>
@@ -133,6 +137,7 @@
         </button>
       </view>
     </template>
+    <SecretaryFab :tab-page="true" />
   </view>
 </template>
 
@@ -144,6 +149,7 @@ import { getMyPointsBalance } from '../../api/member'
 import { useUserStore } from '../../store/user'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 
 const { state, fetchUser, logout } = useUserStore()
 const loggingOut = ref(false)
@@ -178,6 +184,11 @@ onShow(() => {
 
 function goLogin() {
   uni.navigateTo({ url: '/pages/auth/login' })
+}
+
+/** 悬浮球关闭后的常驻入口：工作台页自己会做登录守卫 */
+function goSecretary() {
+  uni.navigateTo({ url: '/pages/secretary/index' })
 }
 
 function goEdit() {

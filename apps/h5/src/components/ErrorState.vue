@@ -39,14 +39,17 @@ withDefaults(
 
 const emit = defineEmits<{ retry: [] }>()
 
+function goHome() {
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
 function goBack() {
   // @ts-ignore - getCurrentPages is provided by uni-app runtime
   const pages = getCurrentPages()
   if (pages.length > 1) {
-    uni.navigateBack()
+    uni.navigateBack({ fail: goHome })
   } else {
-    // 直链进入无上级页：回首页，保证不落孤儿页
-    uni.switchTab({ url: '/pages/index/index' })
+    goHome()
   }
 }
 </script>

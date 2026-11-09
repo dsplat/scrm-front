@@ -36,6 +36,12 @@ onHide(() => {
   --scrm-primary: #07c160;
   --scrm-primary-deep: #06ae56;
   --scrm-primary-soft: rgba(7, 193, 96, 0.08);
+  --scrm-page-bg: #f4f5f7;
+  --scrm-card-bg: #ffffff;
+  --scrm-text-primary: #1f2329;
+  --scrm-text-secondary: #6b7280;
+  --scrm-text-tertiary: #8a9099;
+  --scrm-border: #ebedf0;
 }
 /* #endif */
 
@@ -48,6 +54,12 @@ page {
   --scrm-primary: __SCRM_PRIMARY__;
   --scrm-primary-deep: __SCRM_PRIMARY_DEEP__;
   --scrm-primary-soft: __SCRM_PRIMARY_SOFT__;
+  --scrm-page-bg: #f4f5f7;
+  --scrm-card-bg: #ffffff;
+  --scrm-text-primary: #1f2329;
+  --scrm-text-secondary: #6b7280;
+  --scrm-text-tertiary: #8a9099;
+  --scrm-border: #ebedf0;
 }
 /* #endif */
 </style>

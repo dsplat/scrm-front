@@ -1,6 +1,6 @@
 <template>
   <!-- 微信内置浏览器：不渲染自绘导航栏，复用微信原生导航栏（其读取 document.title） -->
-  <view v-if="!isWechat" class="scrm-navbar">
+  <view v-if="!isWechat" class="scrm-navbar" :style="rootStyle">
     <view class="scrm-navbar__bar" :style="barStyle">
       <view v-if="showBack" class="scrm-navbar__back" @tap="handleBack">
         <text class="scrm-navbar__back-icon"> ‹ </text>
@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { isWechatBrowser } from '../utils/platform'
 
 const props = withDefaults(
@@ -41,6 +41,26 @@ const props = withDefaults(
 
 const isWechat = computed(() => isWechatBrowser())
 
+/**
+ * 小程序状态栏高度（px）。
+ *
+ * 小程序全局 navigationStyle=custom，页面从屏幕顶端起排，自绘栏会整条压在系统状态栏下方
+ * （标题被时钟/刘海盖住，表现为「没有页头」）。H5 无状态栏，恒为 0，不受影响。
+ */
+const statusBarHeight = ref(0)
+// #ifndef H5
+try {
+  statusBarHeight.value = uni.getSystemInfoSync().statusBarHeight || 0
+} catch {
+  statusBarHeight.value = 0
+}
+// #endif
+
+const rootStyle = computed(() => ({
+  background: props.bgColor,
+  paddingTop: `${statusBarHeight.value}px`,
+}))
+
 const barStyle = computed(() => ({
   background: props.bgColor,
   color: props.color,
@@ -50,13 +70,16 @@ const barStyle = computed(() => ({
 // 确保微信原生导航栏始终显示租户名；NavBar 的 title 仅渲染自绘栏文案，
 // 不再同步到 document.title，避免页面名覆盖租户名。
 
+function goHome() {
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
 function handleBack() {
   const pages = getCurrentPages()
   if (pages.length > 1) {
-    uni.navigateBack()
+    uni.navigateBack({ fail: goHome })
   } else {
-    // 无上级页面（如直链进入）回首页
-    uni.switchTab({ url: '/pages/index/index' })
+    goHome()
   }
 }
 </script>

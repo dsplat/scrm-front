@@ -66,6 +66,7 @@
         </view>
       </view>
     </template>
+    <SecretaryFab :tab-page="false" />
   </view>
 </template>
 
@@ -76,6 +77,7 @@ import { getMyPointsBalance, getMyPointsFlow } from '../../api/member'
 import type { PointsBalance, PointsFlowItem } from '../../api/member'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 import ErrorState from '../../components/ErrorState.vue'
 import { redirectToLogin } from '../../utils/request'
 import { isLoggedIn } from '../../api/auth'

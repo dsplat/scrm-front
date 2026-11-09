@@ -1,11 +1,15 @@
 <template>
-  <CourseDetailView :course-id="id" :refresh-tick="tick" />
+  <view class="detail-shell">
+    <CourseDetailView :course-id="id" :refresh-tick="tick" />
+    <SecretaryFab :tab-page="false" :above-bottom-bar="true" />
+  </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import CourseDetailView from '@scrm/h5-commerce/src/views/CourseDetailView.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'

@@ -7,8 +7,8 @@
  * 这样双端复用同一份解析逻辑，只有传输实现不同：
  *
  * - H5：浏览器 fetch + ReadableStream + TextDecoder（流式增量读取）。
- * - 小程序（预留）：uni.request({ enableChunked: true }) + RequestTask.onChunkReceived，
- *   每块给 ArrayBuffer，手动 UTF-8 解码。小程序端未纳入本期验证，接口预留。
+ * - 小程序：uni.request({ enableChunked: true }) + RequestTask.onChunkReceived，
+ *   每块给 ArrayBuffer，手动增量 UTF-8 解码（分块边界可能切在多字节字符中间）。
  *
  * 认证/租户头由调用方经 headers 传入（Bearer + X-Tenant-ID），本层不关心其语义。
  */
@@ -88,13 +88,19 @@ function postStreamH5(opts: StreamOptions): StreamHandle {
 }
 
 /**
- * 小程序（预留）：uni.request enableChunked + onChunkReceived。
+ * 小程序：uni.request enableChunked + onChunkReceived。
  *
  * 说明：wx.request 的 onChunkReceived 每帧回调 ArrayBuffer，需手动 UTF-8 解码；
  * 非 2xx 时 Node 引擎返回的是 JSON 错误体（非 SSE），complete 阶段据 statusCode 降级。
+ *
+ * 低版本基础库（< 2.20.2）不认 enableChunked、没有 onChunkReceived：此时不会产生
+ * 任何分块，整包落在 success 的 res.data 里，按单块补发一次 —— 逐字变整包，但不空白。
  */
 function postStreamMP(opts: StreamOptions): StreamHandle {
   let aborted = false
+  let chunkCount = 0
+  const decode = createUtf8StreamDecoder()
+
   // RequestTask 的 onChunkReceived 是小程序专有 API，@dcloudio/types 未声明，宽松类型规避
   const task = uni.request({
     url: opts.url,
@@ -105,13 +111,14 @@ function postStreamMP(opts: StreamOptions): StreamHandle {
     success: (res: any) => {
       if (aborted) return
       if (res.statusCode >= 400) {
-        const body = res.data as any
+        const body = typeof res.data === 'string' ? safeJson(res.data) : res.data
         opts.onError({
           message: (body && body.message) || 'AI 助手暂时不可用，请稍后重试。',
           statusCode: res.statusCode,
         })
         return
       }
+      if (chunkCount === 0 && typeof res.data === 'string' && res.data) opts.onData(res.data)
       opts.onDone()
     },
     fail: () => {
@@ -119,49 +126,99 @@ function postStreamMP(opts: StreamOptions): StreamHandle {
     },
   })
 
-  ;(task as any).onChunkReceived((res: any) => {
-    if (aborted) return
-    const bytes = new Uint8Array(res.data as ArrayBuffer)
-    opts.onData(decodeUtf8(bytes))
-  })
+  const onChunkReceived = (task as any).onChunkReceived
+  if (typeof onChunkReceived === 'function') {
+    onChunkReceived.call(task, (res: any) => {
+      if (aborted) return
+      chunkCount += 1
+      opts.onData(decode(new Uint8Array(res.data as ArrayBuffer)))
+    })
+  }
 
   return {
     abort: () => {
+      if (aborted) return
       aborted = true
       task.abort()
     },
   }
 }
 
-/** 手写 UTF-8 解码（小程序无稳定 TextDecoder），供 enableChunked 分块解码用 */
-function decodeUtf8(bytes: Uint8Array): string {
-  let out = ''
-  let i = 0
-  while (i < bytes.length) {
-    const b1 = bytes[i]
-    if (b1 < 0x80) {
-      out += String.fromCharCode(b1)
-      i += 1
-    } else if (b1 >= 0xc0 && b1 < 0xe0) {
-      const b2 = bytes[i + 1]
-      out += String.fromCharCode(((b1 & 0x1f) << 6) | (b2 & 0x3f))
-      i += 2
-    } else if (b1 >= 0xe0 && b1 < 0xf0) {
-      const b2 = bytes[i + 1]
-      const b3 = bytes[i + 2]
-      out += String.fromCharCode(((b1 & 0x0f) << 12) | ((b2 & 0x3f) << 6) | (b3 & 0x3f))
-      i += 3
-    } else {
-      const b2 = bytes[i + 1]
-      const b3 = bytes[i + 2]
-      const b4 = bytes[i + 3]
-      let cp = ((b1 & 0x07) << 18) | ((b2 & 0x3f) << 12) | ((b3 & 0x3f) << 6) | (b4 & 0x3f)
-      cp -= 0x10000
-      out += String.fromCharCode(0xd800 + (cp >> 10), 0xdc00 + (cp & 0x3ff))
-      i += 4
-    }
+/** 小程序的传输实现（`postStream` 在非 H5 构建下直接返回它），导出供传输层测试驱动 */
+export { postStreamMP }
+
+function safeJson(text: string): any {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
   }
-  return out
+}
+
+/**
+ * 增量 UTF-8 解码（小程序无稳定 TextDecoder），供 enableChunked 分块解码用。
+ *
+ * 分块边界不保证落在字符边界上：一个汉字 3 字节，可能 1+2 或 2+1 跨两块到达。
+ * 因此尾部不完整的序列必须留到下一块再拼，否则会解出乱码。
+ * 无参调用等于「流已结束、丢弃残留」——合法流不会以半个字符收尾。
+ */
+export function createUtf8StreamDecoder(): (chunk?: Uint8Array) => string {
+  let carry: Uint8Array = new Uint8Array(0)
+
+  return (chunk?: Uint8Array): string => {
+    if (!chunk || chunk.length === 0) {
+      carry = new Uint8Array(0)
+      return ''
+    }
+
+    let bytes = chunk
+    if (carry.length > 0) {
+      bytes = new Uint8Array(carry.length + chunk.length)
+      bytes.set(carry, 0)
+      bytes.set(chunk, carry.length)
+    }
+
+    let out = ''
+    let i = 0
+    while (i < bytes.length) {
+      const b1 = bytes[i]
+      let need = 0
+      let cp = 0
+
+      if (b1 < 0x80) {
+        out += String.fromCharCode(b1)
+        i += 1
+        continue
+      } else if (b1 >= 0xc2 && b1 < 0xe0) {
+        need = 1
+        cp = b1 & 0x1f
+      } else if (b1 >= 0xe0 && b1 < 0xf0) {
+        need = 2
+        cp = b1 & 0x0f
+      } else if (b1 >= 0xf0 && b1 < 0xf5) {
+        need = 3
+        cp = b1 & 0x07
+      } else {
+        // 非法首字节（含游离的续字节）：跳过，避免把后续字节连坐成乱码
+        i += 1
+        continue
+      }
+
+      if (i + need >= bytes.length) break // 尾序列不完整，留到下一块
+      for (let k = 1; k <= need; k += 1) cp = (cp << 6) | (bytes[i + k] & 0x3f)
+      i += need + 1
+
+      if (cp > 0xffff) {
+        const v = cp - 0x10000
+        out += String.fromCharCode(0xd800 + (v >> 10), 0xdc00 + (v & 0x3ff))
+      } else {
+        out += String.fromCharCode(cp)
+      }
+    }
+
+    carry = i < bytes.length ? bytes.slice(i) : new Uint8Array(0)
+    return out
+  }
 }
 
 /**

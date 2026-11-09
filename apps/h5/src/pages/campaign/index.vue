@@ -77,6 +77,7 @@
     <view v-else-if="!loading" class="empty">
       <text>{{ keyword || activeType ? '没有匹配的活动' : '暂无活动，敬请期待' }}</text>
     </view>
+    <SecretaryFab :tab-page="true" />
   </view>
 </template>
 
@@ -89,6 +90,7 @@ import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'
 import NavBar from '../../components/NavBar.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 import ErrorState from '../../components/ErrorState.vue'
 
 interface ActivityItem {

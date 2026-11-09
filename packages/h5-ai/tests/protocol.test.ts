@@ -15,6 +15,15 @@ assert.deepEqual(parseDataStreamLine('2:[{"type":"meta","conversation_id":123,"a
 })
 assert.deepEqual(
   parseDataStreamLine(
+    '2:[{"type":"sources","tool_call_id":"t1","sources":[{"content":"开学时间","title":"校历","document_id":"private"}]}]',
+  ),
+  {
+    type: 'sources',
+    value: { id: 't1', sources: [{ content: '开学时间', title: '校历' }] },
+  },
+)
+assert.deepEqual(
+  parseDataStreamLine(
     'a:{"toolCallId":"t1","result":{"action":"form_fill","fields":{"name":"A"}}}',
   ),
   { type: 'form_fill', value: { action: 'form_fill', fields: { name: 'A' } } },

@@ -1,11 +1,15 @@
 <template>
-  <ShopDetailView :product-id="id" />
+  <view class="detail-shell">
+    <ShopDetailView :product-id="id" />
+    <SecretaryFab :tab-page="false" :above-bottom-bar="true" />
+  </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import ShopDetailView from '@scrm/h5-commerce/src/views/ShopDetailView.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import { useTenantStore } from '../../store/tenant'

@@ -13,6 +13,14 @@
       "style": { "navigationBarTitleText": "客服中心" }
     },
     {
+      "path": "pages/ai-chat/index",
+      "style": { "navigationBarTitleText": "智能客服" }
+    },
+    {
+      "path": "pages/secretary/index",
+      "style": { "navigationBarTitleText": "小秘书" }
+    },
+    {
       "path": "pages/profile/index",
       "style": { "navigationBarTitleText": "我的" }
     },

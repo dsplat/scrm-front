@@ -145,6 +145,7 @@
         <text>暂无活动，敬请期待</text>
       </view>
     </view>
+    <SecretaryFab :tab-page="true" />
   </view>
 </template>
 
@@ -160,6 +161,7 @@ import { useTenantStore } from '../../store/tenant'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 
 interface CampaignItem {
   id: string

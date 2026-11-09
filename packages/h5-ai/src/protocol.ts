@@ -12,6 +12,10 @@ export type DataStreamEvent =
   | { type: 'tool_call'; value: ToolCall }
   | { type: 'meta'; value: Record<string, unknown> }
   | { type: 'tool_result'; value: { id: string; result: unknown } }
+  | {
+      type: 'sources'
+      value: { id: string; sources: Array<{ content: string; title?: string }> }
+    }
   | { type: 'form_fill'; value: FormFillSuggestion }
   | { type: 'workflow'; value: WorkflowSuggestion }
   | { type: 'pending_confirmation'; value: ActionConfirmData }
@@ -43,7 +47,22 @@ export function parseDataStreamLine(line: string): DataStreamEvent {
     }
     if (kind === '2' && Array.isArray(value)) {
       const meta = value.find((item) => item?.type === 'meta')
-      return meta ? { type: 'meta', value: meta } : { type: 'ignore' }
+      if (meta) return { type: 'meta', value: meta }
+      const frame = value.find((item) => item?.type === 'sources')
+      if (frame && Array.isArray(frame.sources)) {
+        const candidates = frame.sources as Array<{ content?: unknown; title?: unknown }>
+        const sources = candidates
+          .filter(
+            (item): item is { content: string; title?: unknown } =>
+              typeof item?.content === 'string' && item.content.trim().length > 0,
+          )
+          .map((item) => ({
+            content: item.content,
+            ...(typeof item.title === 'string' && item.title ? { title: item.title } : {}),
+          }))
+        return { type: 'sources', value: { id: String(frame.tool_call_id ?? ''), sources } }
+      }
+      return { type: 'ignore' }
     }
     if (kind === 'a' && value?.toolCallId) {
       const result = value.result ?? value
@@ -87,6 +106,7 @@ export interface StreamLineHandlers {
   onMeta?: (meta: { conversation_id: number; agent_id: number | null }) => void
   onToolCall?: (call: ToolCall) => void
   onToolResult?: (id: string, result: unknown) => void
+  onSources?: (id: string, sources: Array<{ content: string; title?: string }>) => void
   onFormFill?: (payload: FormFillSuggestion) => void
   onWorkflow?: (payload: WorkflowSuggestion) => void
   onPendingConfirmation?: (payload: ActionConfirmData) => void
@@ -140,6 +160,9 @@ export function dispatchDataStreamLine(line: string, h: StreamLineHandlers): boo
       break
     case 'tool_result':
       invoke('onToolResult', () => h.onToolResult?.(event.value.id, event.value.result))
+      break
+    case 'sources':
+      invoke('onSources', () => h.onSources?.(event.value.id, event.value.sources))
       break
     case 'form_fill':
       invoke('onFormFill', () => h.onFormFill?.(event.value))

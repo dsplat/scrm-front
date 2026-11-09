@@ -4,7 +4,7 @@
  * 内容：
  * - config：运行时配置（端点 / tokenKey / 租户缓存键）
  * - store：Vue 3 reactive 会话状态（消息/流式/续接/可用性/本地持久化）
- * - sse：SSE 传输平台适配层（H5 fetch / 小程序 enableChunked 预留）
+ * - sse：SSE 传输平台适配层（H5 fetch 流 / 小程序 enableChunked 分块流 + 增量 UTF-8 解码）
  * - request：认证头组装 + 轻量 GET
  * - composables：useAssistantStream / usePageContext / useAvailability
  *

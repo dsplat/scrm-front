@@ -100,6 +100,7 @@
         </button>
       </view>
     </template>
+    <SecretaryFab :tab-page="false" :above-bottom-bar="true" />
   </view>
 </template>
 
@@ -110,6 +111,7 @@ import { getEventDetail, getEventTicketTypes } from '../../api/event'
 import { ensureLogin } from '../../utils/auth-guard'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
+import SecretaryFab from '../../components/SecretaryFab.vue'
 import AiActionButton from '../../components/ai-assistant/AiActionButton.vue'
 import ErrorState from '../../components/ErrorState.vue'
 
