@@ -12,7 +12,9 @@ export function invokePayment(payData: Record<string, any>): Promise<void> {
   const redirectUrl = payData.h5_url || payData.mweb_url || payData.pay_url || payData.url
   if (redirectUrl) {
     // #ifdef H5
-    window.location.href = redirectUrl
+    // 必须从本站页面跳转：微信校验 Referer 是否落在商户 H5 支付域名内，
+    // 直接把链接复制到浏览器打开会报「商家参数格式有误」
+    window.location.href = withRedirectUrl(redirectUrl)
     // #endif
     return Promise.resolve()
   }
@@ -46,11 +48,55 @@ function isMiniappRuntime(): boolean {
 /**
  * 当前运行端的支付通道值（与后端 TradePayService::CHANNEL_* 契约对齐）
  *
- * 小程序端显式报 'wechat_miniapp'（后端据此用小程序 appid/openid 下单）；
- * H5 返回空串交由后端自动判定（租户 JSAPI 开关 + 微信 UA）
+ * - 小程序端显式报 'wechat_miniapp'（后端据此用小程序 appid/openid 下单）
+ * - 微信内浏览器返回空串，交由后端按租户开关 + UA 自动改道 JSAPI；
+ *   微信内禁止 MWEB（打开会报「商家参数格式有误」）
+ * - 微信外移动浏览器显式报 'wechat_h5'（MWEB 跳转微信支付中转页）
+ * - 桌面浏览器返回空串（后端按既有路径给出「请在微信内打开」引导）
  */
 export function currentPayChannel(): string {
-  return isMiniappRuntime() ? 'wechat_miniapp' : ''
+  if (isMiniappRuntime()) {
+    return 'wechat_miniapp'
+  }
+
+  if (isWechatBrowser()) {
+    return ''
+  }
+
+  return isMobileBrowser() ? 'wechat_h5' : ''
+}
+
+/** 微信 H5 支付：支付完成后由微信跳回 redirect_url（当前页，回来即刷新订单状态） */
+function withRedirectUrl(url: string): string {
+  if (/([?&])redirect_url=/.test(url)) {
+    return url
+  }
+
+  const current = currentLocationHref()
+  if (!current) {
+    return url
+  }
+
+  return `${url}${url.includes('?') ? '&' : '?'}redirect_url=${encodeURIComponent(current)}`
+}
+
+function currentLocationHref(): string {
+  return typeof window === 'undefined' ? '' : window.location.href
+}
+
+function userAgent(): string {
+  return typeof window === 'undefined' ? '' : window.navigator?.userAgent || ''
+}
+
+function isWechatBrowser(): boolean {
+  return /MicroMessenger/i.test(userAgent())
+}
+
+/** 移动端判定与 apps/h5 的 isMobileBrowser 同口径（iPadOS 桌面 UA 按非移动处理） */
+function isMobileBrowser(): boolean {
+  return /Android|iPhone|iPod|iPad|Windows Phone|webOS|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(
+    userAgent(),
+  )
 }
 
 /** 微信小程序内唤起（后端按 mini_app_id 预下单，参数与 JSAPI 同构） */

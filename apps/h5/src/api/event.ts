@@ -33,8 +33,8 @@ export function registerEvent(
 
 // 发起支付（活动报名订单走 Activity 模块支付入口，含订单归属校验）
 export function payOrder(orderNo: string, openid?: string) {
-  // 小程序端显式上报 wechat_miniapp 通道（后端据此按小程序 appid/openid 下单）；
-  // H5 留空交由后端自动判定（租户 JSAPI 开关 + 微信 UA）
+  // 小程序端报 wechat_miniapp、微信外移动浏览器报 wechat_h5（MWEB 跳转），
+  // 微信内留空交由后端按租户开关 + UA 改道 JSAPI
   const channel = currentPayChannel()
   return request({
     url: `/biz/activities/orders/${orderNo}/pay`,
