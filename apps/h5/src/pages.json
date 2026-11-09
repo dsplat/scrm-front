@@ -57,6 +57,10 @@
       "style": { "navigationBarTitleText": "我的积分" }
     },
     {
+      "path": "pages/member/center",
+      "style": { "navigationBarTitleText": "会员中心", "enablePullDownRefresh": true }
+    },
+    {
       "path": "pages/my/orders",
       "style": { "navigationBarTitleText": "我的订单", "enablePullDownRefresh": true }
     },

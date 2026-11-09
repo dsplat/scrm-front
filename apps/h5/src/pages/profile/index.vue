@@ -82,6 +82,10 @@
         <view class="section-title">
           <text>会员权益</text>
         </view>
+        <view class="menu-item" @tap="goMemberCenter">
+          <text class="menu-label"> 会员中心 </text>
+          <text class="menu-arrow"> › </text>
+        </view>
         <view class="menu-item" @tap="goMember">
           <text class="menu-label"> 我的积分 </text>
           <text class="menu-arrow"> › </text>
@@ -201,6 +205,10 @@ function goChangePassword() {
 
 function goMember() {
   uni.navigateTo({ url: '/pages/member/index' })
+}
+
+function goMemberCenter() {
+  uni.navigateTo({ url: '/pages/member/center' })
 }
 
 function goOrders() {
