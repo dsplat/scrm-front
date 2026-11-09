@@ -2,6 +2,12 @@
   <view class="secretary-page">
     <NavBar :title="pageTitle" />
 
+    <!-- 微信内自绘 NavBar 不渲染，补一个显式返回首页出口，避免成为页面孤岛 -->
+    <view v-if="showInlineBack" class="inline-back" @tap="goHome">
+      <text class="inline-back__icon"> ‹ </text>
+      <text class="inline-back__text"> 返回首页 </text>
+    </view>
+
     <view v-if="loading" class="loading">
       <text>加载中...</text>
     </view>
@@ -102,6 +108,11 @@
         {{ persona.disclaimer }}
       </text>
     </template>
+
+    <!-- 通用孤岛出口：直接打开/分享进入时页面栈可能只有本页，回首页兜底 -->
+    <view class="page-exit">
+      <text class="page-exit__link" @tap="goHome"> 返回首页 </text>
+    </view>
   </view>
 </template>
 
@@ -118,6 +129,7 @@ import {
 } from '../../api/workbench'
 import { ensureLogin } from '../../utils/auth-guard'
 import { getToken } from '../../utils/request'
+import { isWechatBrowser } from '../../utils/platform'
 
 /** icon 单字映射（后端未下发/未知 icon 时用能力包名称首字兜底） */
 const PACK_ICON_TEXT: Record<string, string> = {
@@ -132,6 +144,8 @@ const loading = ref(true)
 const loginRequired = ref(false)
 const workbench = ref<Workbench | null>(null)
 const draft = ref('')
+/** 微信内置浏览器不渲染自绘 NavBar，需要页面内自带返回首页出口 */
+const showInlineBack = isWechatBrowser()
 
 const persona = computed(() => workbench.value?.persona ?? WORKBENCH_FALLBACK.persona)
 const pageTitle = computed(() => persona.value.name || '小秘书')
@@ -206,6 +220,11 @@ function openHandoff(): void {
   })
 }
 
+/** 孤岛出口：不依赖页面栈深度，直接回首页 tab（同时清掉当前页栈） */
+function goHome(): void {
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
 onLoad(() => {
   void guardAndLoad()
 })
@@ -217,6 +236,21 @@ onLoad(() => {
   box-sizing: border-box;
   padding: 20rpx 24rpx calc(40rpx + env(safe-area-inset-bottom));
   background: var(--scrm-page-bg, #f4f5f7);
+}
+.inline-back {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 4rpx 20rpx;
+  color: var(--scrm-text-secondary, #6b7280);
+  font-size: 26rpx;
+}
+.inline-back__icon {
+  font-size: 38rpx;
+  line-height: 1;
+}
+.inline-back__text {
+  line-height: 1;
 }
 .loading {
   display: flex;
@@ -412,5 +446,14 @@ onLoad(() => {
   font-size: 22rpx;
   line-height: 1.5;
   text-align: center;
+}
+.page-exit {
+  padding: 28rpx 0 8rpx;
+  text-align: center;
+}
+.page-exit__link {
+  color: var(--scrm-text-tertiary, #8a9099);
+  font-size: 24rpx;
+  text-decoration: underline;
 }
 </style>

@@ -51,6 +51,18 @@
       </view>
     </view>
 
+    <!-- 小秘书常驻入口：不依赖可关闭的悬浮球，保证首页始终有明确入口 -->
+    <view class="secretary-entry" @tap="goSecretary">
+      <view class="secretary-entry__icon">
+        <text class="secretary-entry__icon-text"> 秘 </text>
+      </view>
+      <view class="secretary-entry__body">
+        <text class="secretary-entry__title"> 小秘书 </text>
+        <text class="secretary-entry__desc"> 订单、课程、积分问题，随时问我 </text>
+      </view>
+      <text class="secretary-entry__action"> 去提问 › </text>
+    </view>
+
     <!-- 系统公告（真实数据：broadcast_events 的 system_announcement；无公告时整段隐藏，不展示假内容） -->
     <view v-if="announcements.length > 0" class="notice-bar">
       <text class="notice-icon"> 🔊 </text>
@@ -293,6 +305,11 @@ function goProfile() {
   uni.switchTab({ url: '/pages/profile/index' })
 }
 
+/** 常驻小秘书入口：登录守卫在工作台页内处理，游客也可先进入 */
+function goSecretary() {
+  uni.navigateTo({ url: '/pages/secretary/index' })
+}
+
 function goCampaignDetail(id: string) {
   // 活动域已统一：详情页为 event 目录（API 已迁 Activity 模块）
   uni.navigateTo({ url: `/pages/event/detail?eventId=${id}` })
@@ -429,6 +446,54 @@ function noticeText(n: AnnouncementVO) {
 .entry-label {
   font-size: 24rpx;
   color: #666;
+}
+.secretary-entry {
+  display: flex;
+  align-items: center;
+  margin: 0 24rpx 24rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 16rpx;
+  background: var(--scrm-primary-soft);
+}
+.secretary-entry__icon {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
+  background: var(--scrm-primary);
+  text-align: center;
+}
+.secretary-entry__icon-text {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 72rpx;
+}
+.secretary-entry__body {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+.secretary-entry__title {
+  display: block;
+  color: var(--scrm-text-primary, #1f2329);
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.secretary-entry__desc {
+  display: block;
+  margin-top: 6rpx;
+  overflow: hidden;
+  color: var(--scrm-text-secondary, #6b7280);
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.secretary-entry__action {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  color: var(--scrm-primary);
+  font-size: 24rpx;
 }
 .section {
   margin: 0 24rpx 24rpx;

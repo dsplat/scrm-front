@@ -182,3 +182,20 @@ test('客服/我的入口改到工作台', () => {
   assert.match(profile, /goSecretary/)
   assert.match(profile, /'\/pages\/secretary\/index'/)
 })
+
+test('首页有常驻小秘书入口（不依赖可关闭悬浮球）', () => {
+  const home = read('pages/index/index.vue')
+  assert.match(home, /class="secretary-entry" @tap="goSecretary"/)
+  assert.match(home, /function goSecretary\(\) \{[\s\S]*?'\/pages\/secretary\/index'/)
+})
+
+test('工作台页有跨端返回首页出口', () => {
+  const page = read('pages/secretary/index.vue')
+  assert.match(page, /const showInlineBack = isWechatBrowser\(\)/)
+  assert.match(page, /v-if="showInlineBack"/)
+  assert.match(page, /class="page-exit"/)
+  assert.match(
+    page,
+    /function goHome\(\): void \{[\s\S]*?uni\.switchTab\(\{ url: '\/pages\/index\/index' \}\)/,
+  )
+})
