@@ -25,7 +25,10 @@ function goLogin() {
 
 onMounted(async () => {
   // #ifdef H5
-  const params = new URLSearchParams(window.location.hash.split('?')[1] || '')
+  // history 路由下 OAuth 回跳参数在 location.search；hash 查询串仅兜底旧链接，
+  // 只读 hash 会把 token 判成缺失（扫码成功后直接弹回登录页）
+  const query = window.location.search || window.location.hash.split('?')[1] || ''
+  const params = new URLSearchParams(query)
   const token = params.get('token')
   const error = params.get('error')
   const pendingToken = params.get('pending_token')
