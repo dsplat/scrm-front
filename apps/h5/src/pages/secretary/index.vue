@@ -48,6 +48,12 @@
             发送
           </button>
         </view>
+        <view class="hero__notice">
+          <AiGeneratedNotice />
+          <text v-if="extraDisclaimer" class="hero__notice-extra">
+            {{ extraDisclaimer }}
+          </text>
+        </view>
       </view>
 
       <!-- 接口失败：展示重试，不渲染任何能力卡或快捷问题 -->
@@ -103,10 +109,6 @@
           <text class="handoff__arrow"> › </text>
         </view>
       </template>
-
-      <text v-if="persona.disclaimer" class="disclaimer">
-        {{ persona.disclaimer }}
-      </text>
     </template>
 
     <!-- 通用孤岛出口：直接打开/分享进入时页面栈可能只有本页，回首页兜底 -->
@@ -121,6 +123,8 @@ import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import NavBar from '../../components/NavBar.vue'
 import ErrorState from '../../components/ErrorState.vue'
+import AiGeneratedNotice from '../../components/ai-assistant/AiGeneratedNotice.vue'
+import { isAiNoticeLike } from '../../components/ai-assistant/ai-generated-notice'
 import {
   getWorkbench,
   WORKBENCH_FALLBACK,
@@ -155,6 +159,11 @@ const packs = computed(() => workbench.value?.packs ?? [])
 const handoffMessage = computed(() => {
   const handoff = workbench.value?.handoff
   return handoff?.mode === 'message' ? handoff.message : ''
+})
+/** 后台定制提示仅作补充；已含 AI 标识字样时由合规标识统一表达，不重复渲染 */
+const extraDisclaimer = computed(() => {
+  const text = (persona.value.disclaimer || '').trim()
+  return text && !isAiNoticeLike(text) ? text : ''
 })
 
 async function loadWorkbench(): Promise<void> {
@@ -439,9 +448,13 @@ onLoad(() => {
   color: var(--scrm-text-tertiary, #8a9099);
   font-size: 36rpx;
 }
-.disclaimer {
+.hero__notice {
+  width: 100%;
+  margin-top: 16rpx;
+}
+.hero__notice-extra {
   display: block;
-  padding: 20rpx 12rpx 0;
+  margin-top: 4rpx;
   color: var(--scrm-text-tertiary, #8a9099);
   font-size: 22rpx;
   line-height: 1.5;

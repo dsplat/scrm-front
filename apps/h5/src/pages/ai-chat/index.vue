@@ -49,11 +49,15 @@
           </view>
         </template>
 
-        <text v-if="disclaimerText" class="disclaimer">
-          {{ disclaimerText }}
+        <text v-if="extraDisclaimer" class="disclaimer">
+          {{ extraDisclaimer }}
         </text>
       </view>
     </scroll-view>
+
+    <view class="notice-bar">
+      <AiGeneratedNotice />
+    </view>
 
     <view class="composer">
       <input
@@ -77,6 +81,8 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import NavBar from '../../components/NavBar.vue'
+import AiGeneratedNotice from '../../components/ai-assistant/AiGeneratedNotice.vue'
+import { isAiNoticeLike } from '../../components/ai-assistant/ai-generated-notice'
 import ChatMessage from '../../components/ai-assistant/ChatMessage.vue'
 import { useUserAiChat } from '../../composables/useUserAiChat'
 import { ensureLogin } from '../../utils/auth-guard'
@@ -96,7 +102,11 @@ const persona = computed(() =>
 )
 const pageTitle = computed(() => persona.value?.name || capabilities.value.title)
 const welcomeText = computed(() => persona.value?.welcome || capabilities.value.welcome)
-const disclaimerText = computed(() => persona.value?.disclaimer || capabilities.value.disclaimer)
+/** 后台定制提示仅作补充；已含 AI 标识字样时由合规标识统一表达，不重复渲染 */
+const extraDisclaimer = computed(() => {
+  const text = (persona.value?.disclaimer || capabilities.value.disclaimer).trim()
+  return text && !isAiNoticeLike(text) ? text : ''
+})
 const quickQuestions = computed(() =>
   workbench.value && !workbench.value.fallback
     ? workbench.value.quick_questions
@@ -276,12 +286,16 @@ function copyMessage(content: string) {
   line-height: 1.5;
   text-align: center;
 }
+.notice-bar {
+  padding: 12rpx 20rpx 0;
+  border-top: 1rpx solid var(--scrm-border, #ebedf0);
+  background: var(--scrm-card-bg, #fff);
+}
 .composer {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid var(--scrm-border, #ebedf0);
+  padding: 8rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
   background: var(--scrm-card-bg, #fff);
 }
 .composer__input {

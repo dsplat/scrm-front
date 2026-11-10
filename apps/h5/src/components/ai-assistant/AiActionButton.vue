@@ -20,6 +20,7 @@
     <!-- 内联渲染本次 AI 交互（复用 ChatMessage：流式文本 + 工具提示 + 错误降级） -->
     <view v-if="turns.length > 0" class="ai-action__result">
       <ChatMessage v-for="m in turns" :key="m.id" :message="m" />
+      <AiGeneratedNotice />
       <button v-if="copyable && !busyState" class="ai-action__copy" @tap="copyResult">
         复制文案
       </button>
@@ -29,6 +30,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import AiGeneratedNotice from './AiGeneratedNotice.vue'
 import ChatMessage from './ChatMessage.vue'
 import { useUserAiChat } from '../../composables/useUserAiChat'
 const props = withDefaults(

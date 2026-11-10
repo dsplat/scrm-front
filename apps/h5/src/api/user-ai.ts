@@ -56,7 +56,7 @@ export const DEFAULT_USER_AI_CAPABILITIES: UserAiCapabilities = {
   title: '智能客服',
   welcome: '你好，我可以帮你解答课程、活动与常见问题。',
   quick_questions: ['如何报名课程？', '如何查看我的订单？', '如何联系工作人员？'],
-  disclaimer: 'AI 回答仅供参考，具体以实际页面与工作人员说明为准。',
+  disclaimer: '内容由 AI 生成，仅供参考。',
   input_max_chars: 2000,
   history_limit: 12,
   streaming: true,
