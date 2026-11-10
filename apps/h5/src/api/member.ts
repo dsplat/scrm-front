@@ -29,7 +29,12 @@ export interface MemberLevel {
 export interface MemberProfile {
   user_id: number
   growth_value: number
+  level_status: 'none' | 'active' | 'expired'
+  level_started_at?: string | null
+  level_expires_at?: string | null
+  validity_days: number
   level: MemberLevel | null
+  expired_level?: { level_id: number; name: string } | null
   benefits: {
     level_id: number | null
     level_name: string | null

@@ -30,9 +30,12 @@
             </view>
             <view class="level-info">
               <text class="level-name">
-                {{ profile?.level?.name || '普通会员' }}
+                {{ levelName }}
               </text>
               <text class="growth-value"> 成长值 {{ profile?.growth_value ?? 0 }} </text>
+              <text class="validity-text">
+                {{ validityText }}
+              </text>
             </view>
           </view>
           <view class="benefit-row">
@@ -143,7 +146,34 @@ const completedCount = computed(
   () => achievements.value.filter((item) => item.status === 'completed').length,
 )
 
-const levelInitial = computed(() => (profile.value?.level?.name || '会').slice(0, 1))
+const levelInitial = computed(() =>
+  (profile.value?.level?.name || profile.value?.expired_level?.name || '会').slice(0, 1),
+)
+
+const levelName = computed(() => {
+  if (profile.value?.level?.name) return profile.value.level.name
+  if (profile.value?.level_status === 'expired' && profile.value.expired_level?.name) {
+    return `${profile.value.expired_level.name}（已过期）`
+  }
+  return '普通会员'
+})
+
+const validityText = computed(() => {
+  if (!profile.value) return ''
+  if (profile.value.level_status === 'expired') return '有效期已结束'
+  if (profile.value.level_status === 'none') return '未开通会员'
+  if (!profile.value.level_expires_at) return '永久有效'
+  return `有效期至 ${formatDate(profile.value.level_expires_at)}`
+})
+
+function formatDate(value?: string | null): string {
+  if (!value) return ''
+  const date = new Date(String(value).replace(' ', 'T'))
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
+}
 
 const discountText = computed(() => {
   const bp = profile.value?.benefits?.discount_basis_points ?? 10000
@@ -271,6 +301,11 @@ onPullDownRefresh(async () => {
   margin-top: 8rpx;
   font-size: 24rpx;
   color: #f4dfb6;
+}
+.validity-text {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #e8d6b2;
 }
 .benefit-row {
   display: flex;
