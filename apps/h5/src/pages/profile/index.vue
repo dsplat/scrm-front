@@ -55,7 +55,7 @@
         <view class="section-title">
           <text>我的服务</text>
         </view>
-        <view class="menu-item" @tap="goSecretary">
+        <view v-if="aiState.enabled" class="menu-item" @tap="goSecretary">
           <text class="menu-label"> 我的小秘书 </text>
           <text class="menu-arrow"> › </text>
         </view>
@@ -151,11 +151,13 @@ import { onShow } from '@dcloudio/uni-app'
 import { isLoggedIn } from '../../api/auth'
 import { getMyPointsBalance } from '../../api/member'
 import { useUserStore } from '../../store/user'
+import { ensureAiAvailability, useAiAvailability } from '../../store/ai'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
 import SecretaryFab from '../../components/SecretaryFab.vue'
 
 const { state, fetchUser, logout } = useUserStore()
+const { state: aiState } = useAiAvailability()
 const loggingOut = ref(false)
 const points = ref<number | null>(null)
 
@@ -184,6 +186,7 @@ onMounted(async () => {
 
 onShow(() => {
   if (loggedIn.value) loadPoints()
+  void ensureAiAvailability()
 })
 
 function goLogin() {

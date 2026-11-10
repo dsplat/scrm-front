@@ -10,6 +10,7 @@ import {
   type UserAiSource,
 } from '../api/user-ai'
 import { getToken } from '../utils/request'
+import { aiDisabled } from '../store/ai'
 
 /** 会话 id 按租户隔离，避免切换租户后误续接别家会话 */
 const CONVERSATION_STORAGE_PREFIX = 'secretary_conversation_id:'
@@ -59,7 +60,8 @@ export function useUserAiChat() {
   let activeController: { abort: () => void } | null = null
 
   async function loadCapabilities() {
-    if (!getToken()) return
+    // 租户关闭 AI 时没必要打这个必然 403 的请求
+    if (!getToken() || aiDisabled()) return
     try {
       capabilities.value = await getUserAiCapabilities()
     } catch {

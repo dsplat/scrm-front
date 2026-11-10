@@ -1,7 +1,7 @@
 <template>
   <view class="self-service-page">
     <NavBar title="客服中心" />
-    <view class="section ai-entry">
+    <view v-if="aiState.enabled" class="section ai-entry">
       <view class="ai-entry__icon"> AI </view>
       <view class="ai-entry__body">
         <text class="section-title"> 智能小秘书 </text>
@@ -61,6 +61,7 @@ import { ref, onMounted } from 'vue'
 import { getFAQs, submitFeedback, getRecommendations } from '../../api/scrm'
 import type { RecommendationCard } from '../../api/scrm'
 import { ensureLogin } from '../../utils/auth-guard'
+import { ensureAiAvailability, useAiAvailability } from '../../store/ai'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import NavBar from '../../components/NavBar.vue'
 
@@ -74,6 +75,7 @@ interface FAQ {
 const feedback = ref('')
 const submitting = ref(false)
 const faqs = ref<FAQ[]>([])
+const { state: aiState } = useAiAvailability()
 
 // ── 智能推荐卡片（BL-030b b4：后端三源聚合，action_url 为服务端设计时预设） ──
 const recommendations = ref<RecommendationCard[]>([])
@@ -87,6 +89,7 @@ const recTypeLabel: Record<RecommendationCard['type'], string> = {
 useTenantTitle()
 
 onMounted(async () => {
+  void ensureAiAvailability()
   try {
     const data = await getFAQs()
     faqs.value = (Array.isArray(data) ? data : []).map((f: any) => ({

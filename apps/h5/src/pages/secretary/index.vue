@@ -14,6 +14,8 @@
 
     <ErrorState v-else-if="loginRequired" message="使用小秘书需先登录" @retry="guardAndLoad" />
 
+    <ErrorState v-else-if="!aiState.enabled" message="AI 功能暂未开放" :show-retry="false" />
+
     <template v-else>
       <!-- Hero：persona 头像/名称/欢迎语 + 直接提问入口 -->
       <view class="hero">
@@ -132,6 +134,7 @@ import {
   type WorkbenchPack,
 } from '../../api/workbench'
 import { ensureLogin } from '../../utils/auth-guard'
+import { applyAiEnabled, useAiAvailability } from '../../store/ai'
 import { getToken } from '../../utils/request'
 import { isWechatBrowser } from '../../utils/platform'
 
@@ -148,6 +151,7 @@ const loading = ref(true)
 const loginRequired = ref(false)
 const workbench = ref<Workbench | null>(null)
 const draft = ref('')
+const { state: aiState } = useAiAvailability()
 /** 微信内置浏览器不渲染自绘 NavBar，需要页面内自带返回首页出口 */
 const showInlineBack = isWechatBrowser()
 
@@ -170,6 +174,7 @@ async function loadWorkbench(): Promise<void> {
   loading.value = true
   try {
     workbench.value = await getWorkbench()
+    if (workbench.value && !workbench.value.fallback) applyAiEnabled(workbench.value.ai_enabled)
   } finally {
     loading.value = false
   }

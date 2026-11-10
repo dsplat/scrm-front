@@ -19,7 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { ensureAiAvailability, useAiAvailability } from '../store/ai'
 
 withDefaults(
   defineProps<{
@@ -38,7 +39,10 @@ const DISMISS_KEY = 'secretary_fab_dismissed_until'
 const DISMISS_MS = 7 * 24 * 60 * 60 * 1000
 const DISMISS_EVENT = 'secretary-fab-dismissed'
 
-const visible = ref(false)
+const dismissed = ref(false)
+const { state: aiState } = useAiAvailability()
+/** 关闭期或租户关闭 AI 后整体不渲染；两者都由响应式状态驱动 */
+const visible = computed(() => !dismissed.value && aiState.enabled)
 
 function isDismissed(): boolean {
   try {
@@ -51,7 +55,7 @@ function isDismissed(): boolean {
 
 /** 同页/跨页同时隐藏：关闭动作广播给所有已挂载实例 */
 function hideForDismiss(): void {
-  visible.value = false
+  dismissed.value = true
 }
 
 function dismiss(): void {
@@ -69,8 +73,9 @@ function openSecretary(): void {
 }
 
 onMounted(() => {
-  visible.value = !isDismissed()
+  dismissed.value = isDismissed()
   uni.$on(DISMISS_EVENT, hideForDismiss)
+  void ensureAiAvailability()
 })
 
 onUnmounted(() => {

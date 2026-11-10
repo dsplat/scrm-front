@@ -44,6 +44,8 @@ export interface WorkbenchChat {
 }
 
 export interface Workbench {
+  /** 租户级 AI 总开关：false 时前端不渲染任何 AI 入口（后端同时 403 全部 AI 端点） */
+  ai_enabled: boolean
   persona: WorkbenchPersona
   quick_questions: string[]
   packs: WorkbenchPack[]
@@ -57,6 +59,7 @@ const FALLBACK_WELCOME = '你好，我是你的智能小秘书，有什么可以
 
 /** 内置兜底：只保留最小可用的问候，不伪造任何能力包或快捷问题 */
 export const WORKBENCH_FALLBACK: Workbench = {
+  ai_enabled: true,
   persona: {
     name: '智能小秘书',
     avatar: '',
@@ -125,6 +128,8 @@ function normalizeWorkbench(raw: unknown): Workbench {
   }
 
   return {
+    // 旧后端不下发该字段时按启用处理，入口行为与升级前一致
+    ai_enabled: source.ai_enabled !== false,
     persona: {
       name: asString(personaRaw.name).trim() || WORKBENCH_FALLBACK.persona.name,
       avatar: asString(personaRaw.avatar).trim(),

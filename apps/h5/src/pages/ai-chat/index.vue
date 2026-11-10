@@ -9,71 +9,77 @@
       </template>
     </NavBar>
 
-    <scroll-view
-      class="message-scroll"
-      scroll-y
-      :scroll-top="scrollTop"
-      :scroll-with-animation="false"
-      :show-scrollbar="false"
-      @scroll="handleScroll"
-    >
-      <view class="message-container">
-        <view v-if="messages.length === 0" class="welcome">
-          <view class="welcome__badge"> AI </view>
-          <text class="welcome__title">
-            {{ pageTitle }}
-          </text>
-          <text class="welcome__text">
-            {{ welcomeText }}
-          </text>
-          <view v-if="quickQuestions.length > 0" class="quick-list">
-            <button
-              v-for="question in quickQuestions"
-              :key="question"
-              class="quick-question"
-              @tap="send(question)"
+    <ErrorState v-if="!aiState.enabled" message="AI 功能暂未开放" :show-retry="false" />
+
+    <template v-else>
+      <scroll-view
+        class="message-scroll"
+        scroll-y
+        :scroll-top="scrollTop"
+        :scroll-with-animation="false"
+        :show-scrollbar="false"
+        @scroll="handleScroll"
+      >
+        <view class="message-container">
+          <view v-if="messages.length === 0" class="welcome">
+            <view class="welcome__badge"> AI </view>
+            <text class="welcome__title">
+              {{ pageTitle }}
+            </text>
+            <text class="welcome__text">
+              {{ welcomeText }}
+            </text>
+            <view v-if="quickQuestions.length > 0" class="quick-list">
+              <button
+                v-for="question in quickQuestions"
+                :key="question"
+                class="quick-question"
+                @tap="send(question)"
+              >
+                {{ question }}
+              </button>
+            </view>
+          </view>
+
+          <template v-for="message in messages" :key="message.id">
+            <ChatMessage :message="message" />
+            <view
+              v-if="message.role === 'assistant' && message.content && !message.streaming"
+              class="message-actions"
             >
-              {{ question }}
-            </button>
-          </view>
+              <text @tap="copyMessage(message.content)"> 复制 </text>
+              <text v-if="message.isError" @tap="retry(message)"> 重试 </text>
+            </view>
+          </template>
+
+          <text v-if="extraDisclaimer" class="disclaimer">
+            {{ extraDisclaimer }}
+          </text>
         </view>
+      </scroll-view>
 
-        <template v-for="message in messages" :key="message.id">
-          <ChatMessage :message="message" />
-          <view
-            v-if="message.role === 'assistant' && message.content && !message.streaming"
-            class="message-actions"
-          >
-            <text @tap="copyMessage(message.content)"> 复制 </text>
-            <text v-if="message.isError" @tap="retry(message)"> 重试 </text>
-          </view>
-        </template>
-
-        <text v-if="extraDisclaimer" class="disclaimer">
-          {{ extraDisclaimer }}
-        </text>
+      <view class="notice-bar">
+        <AiGeneratedNotice />
       </view>
-    </scroll-view>
 
-    <view class="notice-bar">
-      <AiGeneratedNotice />
-    </view>
-
-    <view class="composer">
-      <input
-        v-model="draft"
-        class="composer__input"
-        type="text"
-        placeholder="输入你的问题…"
-        :maxlength="capabilities.input_max_chars"
-        confirm-type="send"
-        @confirm="send()"
-      />
-      <button v-if="answering" class="composer__button composer__button--stop" @tap="stop">
-        停止
-      </button>
-      <button v-else class="composer__button" :disabled="!draft.trim()" @tap="send()">发送</button>
-    </view>
+      <view class="composer">
+        <input
+          v-model="draft"
+          class="composer__input"
+          type="text"
+          placeholder="输入你的问题…"
+          :maxlength="capabilities.input_max_chars"
+          confirm-type="send"
+          @confirm="send()"
+        />
+        <button v-if="answering" class="composer__button composer__button--stop" @tap="stop">
+          停止
+        </button>
+        <button v-else class="composer__button" :disabled="!draft.trim()" @tap="send()">
+          发送
+        </button>
+      </view>
+    </template>
   </view>
 </template>
 
@@ -81,15 +87,18 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import NavBar from '../../components/NavBar.vue'
+import ErrorState from '../../components/ErrorState.vue'
 import AiGeneratedNotice from '../../components/ai-assistant/AiGeneratedNotice.vue'
 import { isAiNoticeLike } from '../../components/ai-assistant/ai-generated-notice'
 import ChatMessage from '../../components/ai-assistant/ChatMessage.vue'
 import { useUserAiChat } from '../../composables/useUserAiChat'
+import { applyAiEnabled, useAiAvailability } from '../../store/ai'
 import { ensureLogin } from '../../utils/auth-guard'
 import { getWorkbench, type Workbench } from '../../api/workbench'
 
 const { capabilities, draft, answering, messages, send, stop, startNewChat, retry } =
   useUserAiChat()
+const { state: aiState } = useAiAvailability()
 const scrollTop = ref(0)
 const viewportHeight = ref(0)
 const nearBottom = ref(true)
@@ -131,6 +140,7 @@ async function loadWorkbench(): Promise<void> {
   workbench.value = data
   // 失败兜底不算加载成功：下次 onShow 仍可重试，避免把已成功配置覆盖成空态
   workbenchLoaded = !data.fallback
+  if (!data.fallback) applyAiEnabled(data.ai_enabled)
 }
 
 async function maybeAutoSend(): Promise<void> {

@@ -1,5 +1,6 @@
 <template>
-  <view class="ai-action">
+  <!-- 租户关闭 AI 时整块不渲染（后端同时 403，这里只负责入口消失） -->
+  <view v-if="aiState.enabled" class="ai-action">
     <!-- 自由输入态：给一个输入框 + 触发按钮（如「AI 找单」） -->
     <view v-if="!intent" class="ai-action__ask">
       <input
@@ -29,9 +30,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import AiGeneratedNotice from './AiGeneratedNotice.vue'
 import ChatMessage from './ChatMessage.vue'
+import { ensureAiAvailability, useAiAvailability } from '../../store/ai'
 import { useUserAiChat } from '../../composables/useUserAiChat'
 const props = withDefaults(
   defineProps<{
@@ -54,7 +56,12 @@ const props = withDefaults(
 )
 
 const { draft, answering: busy, messages: turns, send } = useUserAiChat()
+const { state: aiState } = useAiAvailability()
 const busyState = computed(() => busy.value)
+
+onMounted(() => {
+  void ensureAiAvailability()
+})
 
 async function onTap() {
   if (busyState.value) return

@@ -51,8 +51,8 @@
       </view>
     </view>
 
-    <!-- 小秘书常驻入口：不依赖可关闭的悬浮球，保证首页始终有明确入口 -->
-    <view class="secretary-entry" @tap="goSecretary">
+    <!-- 小秘书常驻入口：不依赖可关闭的悬浮球，保证首页始终有明确入口；租户关闭 AI 时整体隐藏 -->
+    <view v-if="aiState.enabled" class="secretary-entry" @tap="goSecretary">
       <view class="secretary-entry__icon">
         <text class="secretary-entry__icon-text"> 秘 </text>
       </view>
@@ -170,6 +170,7 @@ import { getAnnouncements, type AnnouncementVO } from '../../api/marketing'
 import { getPublishedCourses, navCourseDetail, fenToYuan, type CourseVO } from '@scrm/h5-commerce'
 import { useUserStore } from '../../store/user'
 import { useTenantStore } from '../../store/tenant'
+import { ensureAiAvailability, useAiAvailability } from '../../store/ai'
 import { useTenantTitle } from '../../composables/useTenantTitle'
 import { useSeoMeta } from '../../composables/useSeoMeta'
 import NavBar from '../../components/NavBar.vue'
@@ -191,6 +192,7 @@ const courses = ref<CourseVO[]>([])
 const announcements = ref<AnnouncementVO[]>([])
 const { fetchUser } = useUserStore()
 const { state: tenantState } = useTenantStore()
+const { state: aiState } = useAiAvailability()
 
 // 微信原生栏标题统一为租户名
 useTenantTitle()
@@ -213,6 +215,7 @@ const bannerTitle = computed(() =>
 
 onShow(() => {
   load()
+  void ensureAiAvailability()
 })
 
 onPullDownRefresh(async () => {
