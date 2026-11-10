@@ -1,5 +1,5 @@
 <template>
-  <view v-if="aiAvailable" class="ai-action">
+  <view class="ai-action">
     <!-- 自由输入态：给一个输入框 + 触发按钮（如「AI 找单」） -->
     <view v-if="!intent" class="ai-action__ask">
       <input
@@ -28,13 +28,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { askUserAi, type LocalChatMessage } from '../../api/user-ai'
+import { computed } from 'vue'
 import ChatMessage from './ChatMessage.vue'
-
-// 页面级 AI 动作按钮（Fork A）：收敛到框架 UserAi 基座，走 /user-ai/ask 同步问答。
-// 固定 intent（错题讲解 / 活动分享文案）点按即发；无 intent 时渲染输入框走自由问询。
-// 能力面为知识库白名单（anonymous）；真实的「查订单/讲错题/生成分享文案」工具态属 BL-030e 外部 agentic 后续刀。
+import { useUserAiChat } from '../../composables/useUserAiChat'
 const props = withDefaults(
   defineProps<{
     label: string
@@ -55,12 +51,7 @@ const props = withDefaults(
   },
 )
 
-const aiAvailable = ref(true)
-const draft = ref('')
-const busy = ref(false)
-const turns = ref<LocalChatMessage[]>([])
-let seq = 0
-
+const { draft, answering: busy, messages: turns, send } = useUserAiChat()
 const busyState = computed(() => busy.value)
 
 async function onTap() {
@@ -73,24 +64,13 @@ async function onTap() {
 async function run(requestText?: string) {
   const text = (requestText ?? props.intent ?? draft.value).trim()
   if (!text || busyState.value) return
-  // 把页面可见数据摘要作为轻量上下文一并上行（知识库仍可能无相关片段，工具态待 BL-030e）
-  const question = props.dataSummary ? `${text}\n（相关：${props.dataSummary}）` : text
-  busy.value = true
-  turns.value.push({ id: ++seq, role: 'user', content: text })
-  turns.value.push({ id: ++seq, role: 'assistant', content: '', streaming: true })
-  const pending = turns.value[turns.value.length - 1]
-  try {
-    const res = await askUserAi(question)
-    pending.streaming = false
-    pending.content = res.answer || (res.allowed ? '' : '抱歉，暂时无法回答这个问题。')
-    pending.isError = !res.allowed && !res.answer
-  } catch {
-    pending.streaming = false
-    pending.isError = true
-    pending.content = '网络异常，请稍后再试'
-  } finally {
-    busy.value = false
-  }
+  // 页面上下文随问题上行：模型据此调用页面工具（如活动页 generate_share_copy 需要 activity_id）。
+  // 只带实体定位与摘要，业务事实由后端按 ID 回表，不信任页面文本。
+  const hints: string[] = []
+  if (props.dataSummary) hints.push(props.dataSummary)
+  if (props.entityType && props.entityId) hints.push(`${props.entityType}_id=${props.entityId}`)
+  const question = hints.length > 0 ? `${text}\n（页面信息：${hints.join('；')}）` : text
+  await send(question, { displayText: text })
 }
 
 function copyResult() {
@@ -112,32 +92,33 @@ function copyResult() {
 }
 .ai-action__input {
   height: 72rpx;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--scrm-border, #ebedf0);
   border-radius: 36rpx;
   padding: 0 24rpx;
-  font-size: 28rpx;
-  background: #fff;
+  font-size: 26rpx;
+  background: var(--scrm-card-bg, #fff);
 }
 .ai-action__btn {
-  background: #4a90d9;
+  background: var(--scrm-primary);
   color: #fff;
-  font-size: 28rpx;
+  font-size: 26rpx;
   border-radius: 40rpx;
   padding: 0 32rpx;
   line-height: 72rpx;
   margin: 0;
 }
 .ai-action__btn[disabled] {
-  background: #b8cbe0;
+  background: var(--scrm-primary);
+  color: rgba(255, 255, 255, 0.55);
 }
 .ai-action__result {
   margin-top: 20rpx;
 }
 .ai-action__copy {
   margin-top: 12rpx;
-  background: #fff;
-  color: #4a90d9;
-  border: 2rpx solid #4a90d9;
+  background: var(--scrm-card-bg, #fff);
+  color: var(--scrm-primary);
+  border: 2rpx solid var(--scrm-primary);
   border-radius: 40rpx;
   font-size: 26rpx;
   line-height: 64rpx;
